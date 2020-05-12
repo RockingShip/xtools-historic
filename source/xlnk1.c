@@ -137,28 +137,20 @@ int force;
   }
 }
 
-startup (cmdline)
-register char *cmdline;
+startup (argv)
+register int *argv;
 {
-register int i, ext, *p;
-int hash;
+int hash, *p;
 
-  while (*cmdline) {
-    /* Skip spaces */
-    while (*cmdline && (*cmdline <= ' '))
-      ++cmdline;
+  argv++; /* skip argv[0] */
+  while (*argv) {
+    register char *arg;
+    arg = *argv++;
 
-    if (*cmdline != '-') {
-      /* Copy filename */
-
-
-      /* Now modify extensions */
-      fext(inpfn, cmdline, ".obj", 0);
-      if (!file1inx)
-        fext(outfn, cmdline, ".img", 1);
-
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
+    if (arg) {
+      fext(inpfn, arg, ".obj", 0);
+      if (!outfn[0])
+        fext(outfn, arg, ".img", 1);
 
       /* Insert object into filetable */
       if (file1inx >= FILEMAX)
@@ -173,22 +165,18 @@ int hash;
       p[FUDEFBASE] = p[FDATALEN] = p[FUDEFPOS] = 0;
     } else {
       /* Process option */
-      switch (cmdline[1]) {
+      arg++;
+      switch (*arg++) {
         case 'd':
           debug = 1;
           break;
         case 'l':
-          /* skip -x */
-          cmdline += 2; 
-          /* Skip spaces */
-          while (*cmdline && (*cmdline <= ' '))
-            ++cmdline;
-
-          /* Copy filename */
-          while (*cmdline && (*cmdline > ' '))
-            ++cmdline;
-
-          fext(inpfn, cmdline, ".olb", 0);
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    usage();
+	  else
+            fext(inpfn, arg, ".olb", 0);
 
           /* Insert file into filetable */
           if (file1inx >= FILEMAX)
@@ -200,39 +188,31 @@ int hash;
           p[FLIB] = hash;
           break;
 	case 'm':
-  	  /* skip -m */
-          cmdline += 2;
-	  /* Skip spaces */
-	  while (*cmdline && (*cmdline <= ' '))
-	    ++cmdline;
-
-	  fext(lisfn, cmdline, ".img", 0);
-
- 	  while (*cmdline && (*cmdline > ' '))
-	    ++cmdline;
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    usage();
+	  else
+	    fext(lisfn, arg, ".map", 0);
  	  break;
         case 'o':
-          /* skip -o */
-          cmdline += 2; 
-          /* Skip spaces */
-          while (*cmdline && (*cmdline <= ' '))
-            ++cmdline;
-
-          fext(outfn, cmdline, ".img", 0);
-
-          while (*cmdline && (*cmdline > ' '))
-            ++cmdline;
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    usage();
+	  else
+            fext(outfn, arg, ".img", 0);
           break;
         case 's':
-          /* skip -s */
-          cmdline += 2; 
-          /* Skip spaces */
-          while (*cmdline && (*cmdline <= ' '))
-            ++cmdline;
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    usage();
+
           /* load value */
           stksiz = 0;
-          while ((*cmdline >= '0') && (*cmdline <= '9'))
-            stksiz = stksiz * 10 + *cmdline++ - '0';
+          while (*arg >= '0' && *arg <= '9')
+            stksiz = stksiz * 10 + *arg++ - '0';
           break;
         case 'u':
           undef = 1;
@@ -244,13 +224,9 @@ int hash;
           usage ();
           break;
       }
-      /* Skip switch */
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
     }
   }
 
-  /* filename MUST be supplied */
   if (!outfn[0])
     usage ();
 }
@@ -504,9 +480,9 @@ int hash;
     symmap (0);
   }
 
-  if (debug) {
+  if (lishdl) {
     j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
-    printf ("Names        : %5d/%5d)\n", j, NAMEMAX);
+    fprintf (lishdl, "Names        : %5d/%5d)\n", j, NAMEMAX);
   }
 
   return 0;

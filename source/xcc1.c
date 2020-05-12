@@ -47,7 +47,7 @@ initialize ()
 {
 register int i;
 
-  verbose = debug = maklis = 0;
+  verbose = maklis = 0;
   outhdl = lishdl = inphdl = inchdl = 0;
   iflevel = skiplevel = 0;
   nxtlabel = 0;
@@ -155,41 +155,29 @@ int force;
   }
 }
 
-startup (cmdline)
-register char *cmdline;
+startup (argv)
+register int *argv;
 {
-register int i, ext;
+  argv++; /* skip argv[0] */
+  while (*argv) {
+    register char *arg;
+    arg = *argv++;
 
-  while (*cmdline) {
-    /* Skip spaces */
-    while (*cmdline && (*cmdline <= ' '))
-      ++cmdline;
-
-    if (*cmdline != '-') {
-      fext(inpfn, cmdline, ".c", 0);
-      fext(outfn, cmdline, ".asm", 1);
-
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
-
+    if (*arg != '-') {
+      fext(inpfn, arg, ".c", 0);
+      fext(outfn, arg, ".asm", 1);
     } else {
       /* Process option */
-      switch (cmdline[1]) {
+      arg++;
+      switch (*arg++) {
 	case 'S':
-	  /* skip -S */
-	  cmdline += 2;
-	  /* Skip spaces */
-	  while (*cmdline && (*cmdline <= ' '))
-	    ++cmdline;
-
-	  fext(outfn, cmdline, ".img", 0);
-
-	  while (*cmdline && (*cmdline > ' '))
-	    ++cmdline;
+          if (!*arg && *argv)
+            arg = *argv++;
+          if (*arg || *arg == '-')
+            usage();
+          else
+            fext(outfn, arg, ".asm", 0);
 	  break;
-        case 'd':
-          debug = 1;
-          break;
         case 'h':
           maklis = 1;
           break;
@@ -200,15 +188,11 @@ register int i, ext;
           usage ();
           break;
       }
-
-      /* Skip switch */
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
     }
   }
 
   /* filename MUST be supplied */
-  if (!inpfn[0])
+  if (!outfn[0])
     usage ();
 }
 
@@ -854,15 +838,16 @@ ns ()
 /*
 ** Execution starts here
 */
-main (cmdline)
-char *cmdline;
+main (argc, argv)
+int argc;
+int *argv;
 {
 register int i, j;
 
   printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
-  startup (cmdline); /* Process commandline options */
+  startup (argv); /* Process commandline options */
   openfile ();       /* Open all files */
   preprocess ();     /* fetch first line */
   toseg (CODESEG);   /* setup initial segment */

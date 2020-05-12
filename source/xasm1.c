@@ -229,50 +229,36 @@ int force;
   }
 }
 
-startup (cmdline)
-register char *cmdline;
+startup (argv)
+register int *argv;
 {
-register int i, ext;
+  argv++; /* skip argv[0] */
+  while (*argv) {
+    register char *arg;
+    arg = *argv++;
 
-  while (*cmdline) {
-    /* Skip spaces */
-    while (*cmdline && (*cmdline <= ' '))
-      ++cmdline;
-
-    if (*cmdline != '-') {
-
-      fext(inpfn, cmdline, ".asm", 0);
-      fext(outfn, cmdline, ".obj", 1);
-
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
-
+    if (*arg != '-') {
+      fext(inpfn, arg, ".asm", 0);
+      fext(outfn, arg, ".obj", 1);
     } else {
       /* Process option */
-      switch (cmdline[1]) {
+      arg++;
+      switch (*arg++) {
 	case 'a':
-	  /* skip -a */
-	  cmdline += 2;
-	  /* Skip spaces */
-	  while (*cmdline && (*cmdline <= ' '))
-	    ++cmdline;
-
-	  fext(lisfn, cmdline, ".lis", 0);
-
-	  while (*cmdline && (*cmdline > ' '))
-	    ++cmdline;
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    fext(lisfn, inpfn, ".lis", 1);
+	  else
+            fext(lisfn, arg, ".lis", 0);
 	  break;
 	case 'c':
-	  /* skip c */
-	  cmdline += 2;
-	  /* Skip spaces */
-	  while (*cmdline && (*cmdline <= ' '))
-	    ++cmdline;
-
-	  fext(outfn, cmdline, ".obj", 0);
-
-	  while (*cmdline && (*cmdline > ' '))
-	    ++cmdline;
+	  if (!*arg && *argv)
+	    arg = *argv++;
+	  if (*arg || *arg == '-')
+	    usage();
+          else
+	    fext(outfn, arg, ".obj", 0);
 	  break;
 	case 'd':
   	  debug = 1;
@@ -284,14 +270,11 @@ register int i, ext;
           usage ();
           break;
       }
-      /* Skip switch */
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
     }
   }
 
   /* filename MUST be supplied */
-  if (!inpfn[0])
+  if (!outfn[0])
     usage ();
 }
 
@@ -939,15 +922,16 @@ ns ()
 /*
 ** Execution starts here
 */
-main (cmdline)
-char *cmdline;
+main (argc, argv)
+int argc;
+int *argv;
 {
 register int i, j, *p;
 
   printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
-  startup (cmdline); /* Process commandline options */
+  startup (argv); /* Process commandline options */
   openfile ();       /* Open all files */
   preprocess ();     /* fetch first line */
 
@@ -983,13 +967,13 @@ register int i, j, *p;
 
   sto_cmd (__END, 0);
 
-  if (debug) {
-    printf ("CODE         : %04x (%5d)\n", maxpos[CODESEG], maxpos[CODESEG]);
-    printf ("DATA         : %04x (%5d)\n", maxpos[DATASEG], maxpos[DATASEG]);
-    printf ("UDEF         : %04x (%5d)\n", maxpos[UDEFSEG], maxpos[UDEFSEG]);
-    printf ("Macros       : %5d(%5d)\n", macinx, MACMAX);
+  if (lishdl) {
+    fprintf (lishdl, "CODE         : %04x (%5d)\n", maxpos[CODESEG], maxpos[CODESEG]);
+    fprintf (lishdl, "DATA         : %04x (%5d)\n", maxpos[DATASEG], maxpos[DATASEG]);
+    fprintf (lishdl, "UDEF         : %04x (%5d)\n", maxpos[UDEFSEG], maxpos[UDEFSEG]);
+    fprintf (lishdl, "Macros       : %5d(%5d)\n", macinx, MACMAX);
     j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
-    printf ("Names        : %5d(%5d)\n", j, NAMEMAX);
+    fprintf (lishdl, "Names        : %5d(%5d)\n", j, NAMEMAX);
   }
 
   return 0;

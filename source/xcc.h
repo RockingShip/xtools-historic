@@ -248,7 +248,6 @@ EXTERN int
   skiplevel,		/* level at which #if skipping starts */
   errflag,		/* True if an error has occurred */
   verbose,		/* Verbose -v specified */
-  debug,		/* Debug   -d specified */
   maklis,		/* Listing -h specified */
   outhdl,		/* handle for .ASM file */
   lishdl, 		/* handle for .LIS file */

@@ -104,19 +104,18 @@ int force;
   }
 }
 
-startup (cmdline)
-register char *cmdline;
+startup (argv)
+register int *argv;
 {
-register int i, j, ext;
+  argv++; /* skip argv[0] */
+  while (*argv) {
+    register char *arg;
+    arg = *argv++;
 
-  while (*cmdline) {
-    /* Skip spaces */
-    while (*cmdline && (*cmdline <= ' '))
-      ++cmdline;
 
-    if (*cmdline != '-') {
+    if (*arg != '-') {
       if (!usercmd) {
-        switch (*cmdline) {
+        switch (*arg) {
           case 'a':
             usercmd = ADDCMD;
             break;
@@ -135,31 +134,21 @@ register int i, j, ext;
           default:
             usage ();
         }
-        ++cmdline;
-        if (*cmdline > ' ')
+        if (*++arg)
           usage (); /* one letter commands only */
       } else if (!olbfn[0]) {
-
-	fext(olbfn, cmdline, ".olb", 0);
-        fext(bakfn, cmdline, ".bak", 0);
-        fext(outfn, cmdline, ".tmp", 0);
-
-        while (*cmdline && (*cmdline > ' '))
-          ++cmdline;
-
+	fext(olbfn, arg, ".olb", 0);
+        fext(bakfn, arg, ".bak", 0);
+        fext(outfn, arg, ".tmp", 0);
       } else if (!objfn[0]) {
-
-        /* Copy filename */
-        fext(objfn, cmdline, ".obj", 0);
-        fext(modn, cmdline, "", 1);
-
-        while (*cmdline && (*cmdline > ' '))
-          ++cmdline;
+        fext(objfn, arg, ".obj", 0);
+        fext(modn, arg, "", 1);
       } else
         usage ();
     } else {
       /* Process option */
-      switch (cmdline[1]) {
+      arg++;
+      switch (*arg++) {
 	case 'd':
 	  debug = 1;
 	  break;
@@ -170,15 +159,11 @@ register int i, j, ext;
           usage ();
           break;
       }
-
-      /* Skip switch */
-      while (*cmdline && (*cmdline > ' '))
-        ++cmdline;
     }
   }
 
   /* filename MUST be supplied */
-  if (!olbfn[0])
+  if (!outfn[0])
     usage ();
   /* command MUST be supplied */
   if (!usercmd)
@@ -328,14 +313,15 @@ register int start, hash, tab, len, *p;
 /*
 ** Execution starts here
 */
-main (cmdline)
-char *cmdline;
+main (argc, argv)
+int argc;
+int *argv;
 {
 register int i, j, *p;
 
   printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
-  startup (cmdline); /* Process commandline options */
+  startup (argv); /* Process commandline options */
   if (debug) {
     printf ("Library  : '%s'\n", olbfn);
     printf ("Object   : '%s'\n", objfn);

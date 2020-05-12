@@ -596,9 +596,6 @@ int lval[LLAST], sav_loc, sav_sw;
 register int sav_csp, i, *ptr;
 int lbl1, lbl2, lbl3;
 
-  if (debug)
-    fprintf (outhdl, ";S %s\n", lptr);
-
   if (match ("{")) {
     sav_csp = csp;
     sav_loc = locinx;
