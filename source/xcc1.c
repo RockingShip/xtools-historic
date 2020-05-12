@@ -388,7 +388,7 @@ ifline ()
 int sname;
 
   while (1) {
-	  readline ();
+    readline ();
     if (!inphdl)
       break;
 
@@ -853,17 +853,17 @@ register int i, j;
    error ("no closing #endasm");
   fprintf (outhdl, "\t.END\n");
 
-  if (debug) {
-    printf ("Global vars  : %-4d(%-4d)\n", glbinx, GLBMAX);
+  fprintf (outhdl, "; Global vars  : %5d/%5d\n", glbinx, GLBMAX);
     for (i=0; (i<LOCMAX) && locsym[i*ILAST+INAME]; i++) ;
-    printf ("Local vars   : %-4d(%-4d)\n", i, LOCMAX);
-    printf ("Macros       : %-4d(%-4d)\n", macinx, MACMAX);
+  fprintf (outhdl, "; Local vars   : %5d/%5d\n", i, LOCMAX);
+  fprintf (outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
     j=0; for (i=0; i<NAMEMAX; i++) if (namech[i]) j++;
-    printf ("Names        : %-4d(%-4d)\n", j, NAMEMAX);
-    printf ("Local labels : %-4d\n", nxtlabel);
+  fprintf (outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
+  fprintf (outhdl, "; Local labels : %5d\n", nxtlabel);
     for (i=1; (i<SWMAX) && sw[i*SLAST+SLABEL]; i++) ;
-    printf ("Switch cases : %-4d(%-4d)\n", i-1, SWMAX);
-  }
+  fprintf (outhdl, "; Switch cases : %5d/%5d\n", i-1, SWMAX);
+
+  return 0;
 }
 
 

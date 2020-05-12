@@ -46,7 +46,7 @@ register int i, *p, len;
     len = outname (p[FNAME]);
     while (len++ <= 20)
       printf (" ");
-    printf ("%-04x (%-5d) %-04x (%-5d)\n", 
+    printf ("%04x (%5d) %04x (%5d)\n",
             p[FOFFSET], p[FOFFSET], p[FLENGTH], p[FLENGTH]);
   }
 }
@@ -63,7 +63,7 @@ register int ch, *p, hash, tab;
       p = &name[hash*NLAST];
       if ((p[NCHAR] == ch) && (p[NTAB] == tab)) {
         if (p[NLIB] != -1) {
-          printf ("%-2d ", p[NLIB]+1);
+          printf ("%2d ", p[NLIB]+1);
           outname (hash); 
           printf ("\n");
         }

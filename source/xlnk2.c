@@ -41,11 +41,11 @@ int curseg;
   printf (msg);
   printf (" at ");
   if (curseg == CODESEG)
-    printf ("C%-04x", fp[FCODEPOS]);
+    printf ("C%04x", fp[FCODEPOS]);
   else if (curseg == DATASEG)
-    printf ("D%-04x", fp[FDATAPOS]);
+    printf ("D%04x", fp[FDATAPOS]);
   else
-    printf ("U%-04x", fp[FUDEFPOS]);
+    printf ("U%04x", fp[FUDEFPOS]);
   printf (" in %s\n", inpfn);
 }
 
@@ -62,24 +62,24 @@ register int *fp;
 
 read_byte()
 {
-	char arr[1];
+char arr[1];
 
-	if (fread (arr, 1, 1, inphdl) != 1)
-		fatal("missing .END (use -v to discover where)\n");
+  if (fread (arr, 1, 1, inphdl) != 1)
+	  fatal("missing .END (use -v to discover where)\n");
 
-	/* return unsigned */
-	return arr[0] & 0xff;
+  /* return unsigned */
+  return arr[0] & 0xff;
 }
 
 read_word()
 {
-	char arr[2];
+char arr[2];
 
-	if (fread (arr, 1, 2, inphdl) != 2)
-		fatal("missing .END (use -v to discover where)\n");
+  if (fread (arr, 1, 2, inphdl) != 2)
+    fatal("missing .END (use -v to discover where)\n");
 
-	/* return unsigned */
-	return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
+  /* return unsigned */
+  return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
 }
 
 write_byte(byte)

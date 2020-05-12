@@ -663,11 +663,11 @@ int sname;
   /* Copy line to listing */
   if (maklis) { 
     if (curseg == CODESEG)
-      fprintf (lishdl, "C%-04x: %s\n", curpos[CODESEG], pbuf);
+      fprintf (lishdl, ";C%04x: %s\n", curpos[CODESEG], pbuf);
     else if (curseg == DATASEG)
-      fprintf (lishdl, "D%-04x: %s\n", curpos[DATASEG], pbuf);
+      fprintf (lishdl, ";D%04x: %s\n", curpos[DATASEG], pbuf);
     else
-      fprintf (lishdl, "U%-04x: %s\n", curpos[UDEFSEG], pbuf);
+      fprintf (lishdl, ";U%04x: %s\n", curpos[UDEFSEG], pbuf);
   }
 }
  
@@ -966,29 +966,16 @@ register int i, j, *p;
 
   sto_cmd (__END, 0);
 
-  if (!undef) {
-    j = 0;
-    for (i=0; i<NAMEMAX; i++) {
-      p = &name[i*NLAST];
-      if (p[NTYPE] == UNDEF) {
-        if (!j) {
-          printf ("Undefined symbols :\n");
-          j=1;
-        }
-        outname (i);
-        printf ("\n");
-      }
-    }
+  if (debug) {
+    printf ("CODE         : %04x (%5d)\n", maxpos[CODESEG], maxpos[CODESEG]);
+    printf ("DATA         : %04x (%5d)\n", maxpos[DATASEG], maxpos[DATASEG]);
+    printf ("UDEF         : %04x (%5d)\n", maxpos[UDEFSEG], maxpos[UDEFSEG]);
+    printf ("Macros       : %5d(%5d)\n", macinx, MACMAX);
+    j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
+    printf ("Names        : %5d(%5d)\n", j, NAMEMAX);
   }
 
-  if (debug) {
-    printf ("CODE         : %-04x (%-5d)\n", maxpos[CODESEG], maxpos[CODESEG]);
-    printf ("DATA         : %-04x (%-5d)\n", maxpos[DATASEG], maxpos[DATASEG]);
-    printf ("UDEF         : %-04x (%-5d)\n", maxpos[UDEFSEG], maxpos[UDEFSEG]);
-    printf ("Macros       : %-5d(%-5d)\n", macinx, MACMAX);
-    j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
-    printf ("Names        : %-5d(%-5d)\n", j, NAMEMAX);
-  }
+  return 0;
 }
 
 
@@ -1029,7 +1016,7 @@ register int i,j;
       i = 0;
       while (i < datlen) {
         for (j=0; j<16; j++) {
-          fprintf (outhdl, "0x%-02x", (i >= datlen) ? 0 : datbuf[i]);
+          fprintf (outhdl, "0x%02x", (i >= datlen) ? 0 : datbuf[i]);
           if (++i >= datlen)
             break;
           if (j != 15)

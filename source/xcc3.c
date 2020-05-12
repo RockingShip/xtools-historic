@@ -197,7 +197,7 @@ register int srcreg;
       fprintf (outhdl, "_%d:", lval[LTRUE]);
     gencode_R (_LODR, reg, REG_1);
     gencode_L (_JMP, lblX);
-      fprintf (outhdl, "_%d:", lval[LFALSE]);
+    fprintf (outhdl, "_%d:", lval[LFALSE]);
     gencode_R (_LODR, reg, REG_0);
     fprintf(outhdl, "_%d:", lblX);
 

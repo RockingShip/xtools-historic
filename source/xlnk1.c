@@ -514,8 +514,10 @@ int hash;
 
   if (debug) {
     j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
-    printf ("Names        : %-5d(%-5d)\n", j, NAMEMAX);
+    printf ("Names        : %5d/%5d)\n", j, NAMEMAX);
   }
+
+  return 0;
 }
 
 objmap ()
@@ -528,7 +530,7 @@ register int i, *p, len;
 
   for (i=0; i<file2inx; i++) {
     p = &file2[i*FLAST];
-    fprintf (lishdl, "%-2d ", i+1);
+    fprintf (lishdl, "%2d ", i+1);
     len = foutname (p[FFILE]);
     while (len++ <= 20)
       fprintf (lishdl, " ");
@@ -539,7 +541,7 @@ register int i, *p, len;
       while (len++ <= 20)
         fprintf (lishdl, " ");
     }
-    fprintf (lishdl, " %-04x %-04x  %-04x %-04x  %-04x %-04x\n",
+    fprintf (lishdl, " %04x %04x  %04x %04x  %04x %04x\n",
                      p[FCODEBASE], p[FCODELEN], 
                      p[FDATABASE], p[FDATALEN], 
                      p[FUDEFBASE], p[FUDEFLEN]);
@@ -558,7 +560,7 @@ register int ch, *p, hash, tab;
       p = &name[hash*NLAST];
       if ((p[NCHAR] == ch) && (p[NTAB] == tab)) {
         if (p[NTYPE]) {
-          fprintf (lishdl, "%-2d %-04x ", p[NMODULE]+1, p[NVALUE]);
+          fprintf (lishdl, "%2d %04x ", p[NMODULE]+1, p[NVALUE]);
           if (p[NTYPE] == UNDEF)
             fprintf (lishdl, "**** ");
           else if (p[NTYPE] == ABS)

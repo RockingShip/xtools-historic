@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-12 20:19:53 Conform printf format.
 2020-05-12 20:19:53 Split `gencode()` to avoid stdargs.
 2020-05-12 20:19:53 Conform fopen/fread/fwrite/fseek and endianness.
 2020-05-12 19:40:32 Reordered blocks to avoid forward references.

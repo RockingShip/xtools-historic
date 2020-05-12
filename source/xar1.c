@@ -364,6 +364,8 @@ register int i, j, *p;
 
   if (debug) {
     j=0; for (i=0; i<olbhdr[HNAME]; i++) if (name[i*NLAST+NCHAR]) j++;
-    printf ("Names        : %-5d(%-5d)\n", j, olbhdr[HNAME]);
+    printf ("Names        : %5d/%5d\n", j, olbhdr[HNAME]);
   }
+
+  return 0;
 }
