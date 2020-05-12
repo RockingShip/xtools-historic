@@ -1,0 +1,39 @@
+#ifndef OPCODES_HPP
+#define OPCODES_HPP
+
+#define LDW  0x01
+#define STW  0x02
+#define LDA  0x03
+#define LDB  0x04
+#define STB  0x05
+#define SVC  0x0A
+#define CMP  0x10
+#define LDR  0x11
+#define SUB  0x12
+#define ADD  0x13
+#define MUL  0x14
+#define DIV  0x15
+#define MOD  0x16
+#define OR   0x17
+#define AND  0x18
+#define XOR  0x19
+#define ASL  0x1A
+#define ASR  0x1B
+#define NOT  0x1C
+#define NEG  0x1D
+#define JSB  0x20
+#define RSB  0x21
+#define PSHR 0x23
+#define POPR 0x24
+#define PSHB 0x25
+#define PSHW 0x26
+#define PSHA 0x27
+#define BLE  0x63
+#define BLT  0x64
+#define BGE  0x65
+#define BGT  0x66
+#define BNE  0x67
+#define BEQ  0x68
+#define JMP  0x6F
+
+#endif
