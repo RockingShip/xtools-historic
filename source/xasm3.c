@@ -135,80 +135,6 @@ int rval[LLAST];
   }
 }
 
-hier1 (lval)
-register int lval[];
-{
-  xplng1 (hier2, 0, lval);
-}
-
-hier2 (lval)
-register int lval[];
-{
-  xplng1 (hier3, 2, lval);
-}
-
-hier3 (lval)
-register int lval[];
-{
-  xplng1 (hier4, 4, lval);
-}
-
-hier4 (lval)
-register int lval[];
-{
-  xplng1 (hier5, 6, lval);
-}
-
-hier5 (lval)
-register int lval[];
-{
-  xplng1 (hier6, 9, lval);
-}
-
-hier6 (lval)
-register int lval[];
-{
-  xplng1 (hier7, 12, lval);
-}
-
-hier7 (lval)
-register int lval[];
-{
-
-  if (match ("~")) { /* ~lval */
-    if (!hier7 (lval)) {
-      exprerr ();
-      return 0;
-    }
-    if (lval[LTYPE] == CONSTANT) 
-      lval[LVALUE] = ~lval[LVALUE];
-    else {
-      if (lval[LTYPE] != EXPRESSION)
-        loadlval (lval);
-      sto_cmd (__NOT, 0);
-    }
-  } else if (match ("-")) { /* - */
-    if (!hier7 (lval)) {
-      exprerr ();
-      return 0;
-    }
-    if (lval[LTYPE] == CONSTANT) 
-      lval[LVALUE] = -lval[LVALUE];
-    else {
-      if (lval[LTYPE] != EXPRESSION)
-        loadlval (lval);
-      sto_cmd (__NEG, 0);
-    }
-  } else if (match ("+")) { /* + */
-    if (!hier7 (lval)) {
-      exprerr ();
-      return 0;
-    }
-  } else if (!primary (lval))
-    return 0;
-  return 1;
-}
-
 primary (lval)
 register int lval[];
 {
@@ -268,6 +194,80 @@ int hash;
 
   /* test for constant */
   return constant (lval);  
+}
+
+hier7 (lval)
+register int lval[];
+{
+
+  if (match ("~")) { /* ~lval */
+    if (!hier7 (lval)) {
+      exprerr ();
+      return 0;
+    }
+    if (lval[LTYPE] == CONSTANT) 
+      lval[LVALUE] = ~lval[LVALUE];
+    else {
+      if (lval[LTYPE] != EXPRESSION)
+        loadlval (lval);
+      sto_cmd (__NOT, 0);
+    }
+  } else if (match ("-")) { /* - */
+    if (!hier7 (lval)) {
+      exprerr ();
+      return 0;
+    }
+    if (lval[LTYPE] == CONSTANT) 
+      lval[LVALUE] = -lval[LVALUE];
+    else {
+      if (lval[LTYPE] != EXPRESSION)
+        loadlval (lval);
+      sto_cmd (__NEG, 0);
+    }
+  } else if (match ("+")) { /* + */
+    if (!hier7 (lval)) {
+      exprerr ();
+      return 0;
+    }
+  } else if (!primary (lval))
+    return 0;
+  return 1;
+}
+
+hier6 (lval)
+register int lval[];
+{
+  xplng1 (hier7, 12, lval);
+}
+
+hier5 (lval)
+register int lval[];
+{
+  xplng1 (hier6, 9, lval);
+}
+
+hier4 (lval)
+register int lval[];
+{
+  xplng1 (hier5, 6, lval);
+}
+
+hier3 (lval)
+register int lval[];
+{
+  xplng1 (hier4, 4, lval);
+}
+
+hier2 (lval)
+register int lval[];
+{
+  xplng1 (hier3, 2, lval);
+}
+
+hier1 (lval)
+register int lval[];
+{
+  xplng1 (hier2, 0, lval);
 }
 
 /*
