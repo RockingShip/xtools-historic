@@ -198,7 +198,7 @@ register int *loc, i;
     if (class == REGISTER) {
       reg = allocreg ();
       reglock |= (1<<reg);
-      gencode (((loc[LSIZE] == BPW) || loc[LPTR]) ? _LODW : _LODB, "R,I(R)", reg, loc[IVALUE], REG_AP);
+      gencode_IND(((loc[LSIZE] == BPW) || loc[LPTR]) ? _LODW : _LODB, reg, loc[IVALUE], REG_AP);
       loc[IVALUE] = reg;
     }
 
@@ -509,11 +509,11 @@ register int *p, i, argc;
   fprintf (outhdl, "_");
   symname (sname);
   fprintf (outhdl, "::");
-  gencode (_LODR, "R,R", 1, REG_SP);
+  gencode_R (_LODR, 1, REG_SP);
   lbl1 = ++nxtlabel;
   fprintf (outhdl, "_%d:", lbl1);
-  gencode (_PSHR, "I", 0);
-  gencode (_LODR, "R,R", REG_AP, 1);
+  gencode_I (_PSHR, 0, 0);
+  gencode_R (_LODR, REG_AP, 1);
 
   /* get arguments */
   if (!match ("("))
@@ -578,11 +578,11 @@ register int *p, i, argc;
   /* trailing statements */
   lbl2 = ++nxtlabel;
   fprintf (outhdl, "_%d:\t.ORG\t_%d\n", lbl2, lbl1);
-  gencode (_PSHR, "I", regsum);
+  gencode_I (_PSHR, 0, regsum);
   fprintf (outhdl, "\t.ORG\t_%d\n", lbl2);
   fprintf (outhdl, "_%d:", returnlbl);
-  gencode (_POPR, "I", regsum);
-  gencode (_RSB, "");
+  gencode_I (_POPR, 0, regsum);
+  gencode (_RSB);
 }
 
 
@@ -618,7 +618,7 @@ int lbl1, lbl2, lbl3;
       } else {
         /* allocate locals */
         if ((sav_csp < 0) && (csp != sav_csp)) {
-          gencode (_ADJSP, "I", csp-sav_csp);
+          gencode_ADJSP (csp-sav_csp);
           sav_csp = -sav_csp;
         }
         statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
@@ -628,7 +628,7 @@ int lbl1, lbl2, lbl3;
     if (sav_csp > 0)
       sav_csp = -sav_csp;
     if (csp != sav_csp) {
-      gencode (_ADJSP, "I", sav_csp-csp);
+      gencode_ADJSP (sav_csp-csp);
       csp = sav_csp;
     }
     /* free local registers */
@@ -648,12 +648,12 @@ int lbl1, lbl2, lbl3;
     if (lval[LTYPE] == BRANCH) {
       if (!lval[LFALSE])
         lval[LFALSE] = ++nxtlabel;
-      gencode (lval[LVALUE], "L", lval[LFALSE]);
+      gencode_L (lval[LVALUE], lval[LFALSE]);
     } else {
       lval[LFALSE] = ++nxtlabel;
       lval[LTRUE] = 0;
       loadlval (lval, 0);
-      gencode (_EQ, "L", lval[LFALSE]);
+      gencode_L (_EQ, lval[LFALSE]);
     }
     if (lval[LTRUE])
       fprintf (outhdl, "_%d:", lval[LTRUE]);
@@ -663,7 +663,7 @@ int lbl1, lbl2, lbl3;
       fprintf (outhdl, "_%d:", lval[LFALSE]);
     } else {
       lbl1 = ++nxtlabel;
-      gencode (_JMP, "L", lbl1);
+      gencode_L (_JMP, lbl1);
       fprintf (outhdl, "_%d:", lval[LFALSE]);
       statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
       fprintf (outhdl, "_%d:", lbl1);
@@ -678,18 +678,18 @@ int lbl1, lbl2, lbl3;
     if (lval[LTYPE] == BRANCH) {
       if (!lval[LFALSE])
         lval[LFALSE] = ++nxtlabel;
-      gencode (lval[LVALUE], "L", lval[LFALSE]);
+      gencode_L (lval[LVALUE], lval[LFALSE]);
     } else {
       lval[LFALSE] = ++nxtlabel;
       lval[LTRUE] = 0;
       loadlval (lval, 0);
-      gencode (_EQ, "L", lval[LFALSE]);
+      gencode_L (_EQ, lval[LFALSE]);
     }
     if (lval[LTRUE])
       fprintf (outhdl, "_%d:", lval[LTRUE]);
     freelval (lval);
     statement (swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
-    gencode (_JMP, "L", lbl1);
+    gencode_L (_JMP, lbl1);
     fprintf (outhdl, "_%d:", lval[LFALSE]);
   } else if (amatch ("do")) {
     lbl1 = ++nxtlabel;
@@ -706,12 +706,12 @@ int lbl1, lbl2, lbl3;
         fprintf (outhdl, "_%d=_%d\n", lval[LTRUE], lbl1);
       else
         lval[LTRUE] = lbl1;
-      gencode (negop (lval[LVALUE]), "L", lval[LTRUE]);
+      gencode_L (negop (lval[LVALUE]), lval[LTRUE]);
       if (lval[LFALSE])
         fprintf (outhdl, "_%d:", lval[LFALSE]);
     } else {
       loadlval (lval, 0);
-      gencode (_NE, "L", lbl1);
+      gencode_L (_NE, lbl1);
     }
     freelval (lval);
   } else if (amatch ("for")) {
@@ -735,16 +735,16 @@ int lbl1, lbl2, lbl3;
           lval[LFALSE] = ++nxtlabel;
         if (!lval[LTRUE])
           lval[LTRUE] = ++nxtlabel;
-        gencode (lval[LVALUE], "L", lval[LFALSE]);
+        gencode_L (lval[LVALUE], lval[LFALSE]);
       } else {
         lval[LFALSE] = ++nxtlabel;
         lval[LTRUE] = ++nxtlabel;
         loadlval (lval, 0);
-        gencode (_EQ, "L", lval[LFALSE]);
+        gencode_L (_EQ, lval[LFALSE]);
       }
       freelval (lval);
     }
-    gencode (_JMP, "L", lval[LTRUE]);
+    gencode_L (_JMP, lval[LTRUE]);
     needtoken (";");
     fprintf (outhdl, "_%d:", lbl2);
     if (ch <= ' ')
@@ -752,12 +752,12 @@ int lbl1, lbl2, lbl3;
     if (ch != ';') {
       expression (lval, 1); 
       freelval (lval);
-      gencode (_JMP, "L", lbl1);
+      gencode_L (_JMP, lbl1);
     }
     needtoken (")");
     fprintf (outhdl, "_%d:", lval[LTRUE]);
     statement (swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
-    gencode (_JMP, "L", lbl2);
+    gencode_L (_JMP, lbl2);
     fprintf (outhdl, "_%d:", lval[LFALSE]);
   } else if (amatch ("switch")) {
     needtoken ("(");
@@ -766,13 +766,13 @@ int lbl1, lbl2, lbl3;
     loadlval (lval, 1);
     lbl1 = ++nxtlabel;
     lbl2 = ++nxtlabel;
-    gencode (_JMP, "L", lbl1);
+    gencode_L (_JMP, lbl1);
     sav_sw = swinx;
     if (swinx >= SWMAX)
       fatal ("switch table overflow");
     sw[swinx++*SLAST+SLABEL] = 0; /* enable default */
     statement (sav_sw, returnlbl, lbl2, contlbl, csp, contsp);
-    gencode (_JMP, "L", lbl2);
+    gencode_L (_JMP, lbl2);
     dumpsw (sav_sw, lbl1, lbl2);
     fprintf (outhdl, "_%d:", lbl2);
     swinx = sav_sw; 
@@ -809,22 +809,22 @@ int lbl1, lbl2, lbl3;
       loadlval (lval, 1);
     }
     if (csp != -1)
-      gencode (_ADJSP, "I", -1 - csp);
-    gencode (_JMP, "L", returnlbl);
+      gencode_ADJSP (-1 - csp);
+    gencode_L (_JMP, returnlbl);
     ns ();
   } else if (amatch ("break")) {
     if (!breaklbl)
       error ("not in block");
     if (csp != breaksp)
-      gencode (_ADJSP, "I", breaksp-csp);
-    gencode (_JMP, "L", breaklbl);
+      gencode_ADJSP (breaksp-csp);
+    gencode_L (_JMP, breaklbl);
     ns ();
   } else if (amatch ("continue")) {
     if (!contlbl)
       error ("not in block");
     if (csp != contsp)
-      gencode (_ADJSP, "I", contsp-csp);
-    gencode (_JMP, "L", contlbl);
+      gencode_ADJSP (contsp-csp);
+    gencode_L (_JMP, contlbl);
     ns ();
   } else if (!ch) {
     return; /* EOF */
@@ -851,7 +851,7 @@ int maplbl, deflbl, lbl, lval[LLAST];
     /* no cases specified */
     ptr = &sw[swbase*SLAST];
     if (ptr[SLABEL])
-      gencode (_JMP, "L", ptr[SLABEL]);
+      gencode_L (_JMP, ptr[SLABEL]);
     return;
   }
 
@@ -900,19 +900,19 @@ int maplbl, deflbl, lbl, lval[LLAST];
   /* generate code (use j as reg) */
   fprintf (outhdl, "_%d:", codlbl);
   j = allocreg ();
-  gencode (_LEA,  "R,I", j, lo);
-  gencode (_SUB,  "R,R", 1, j);
-  gencode (_LT,   "L", deflbl);
-  gencode (_LEA,  "R,I", j, hi-lo);
-  gencode (_CMP,  "R,R", 1, j);
-  gencode (_GT,   "L", deflbl);
-  gencode (_MUL,  "R,R", 1, REG_BPW);
+  gencode_I (_LEA,  j, lo);
+  gencode_R (_SUB,  1, j);
+  gencode_L (_LT,   deflbl);
+  gencode_I (_LEA,  j, hi-lo);
+  gencode_R (_CMP,  1, j);
+  gencode_L (_GT,   deflbl);
+  gencode_R (_MUL,  1, REG_BPW);
   lval[LTYPE] = LABEL;
   lval[LNAME] = maplbl;
   lval[LREG1] = 1;
   lval[LREG2] = lval[LVALUE] = 0;
-  gencode (_LODW, "R,M", j, lval);
-  gencode (_JMP, "(R)", j);
+  gencode_M (_LODW, j, lval);
+  gencode_IND(_JMP, 0, 0, j);
   freereg (j);
 }
 

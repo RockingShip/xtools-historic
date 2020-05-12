@@ -152,7 +152,7 @@ register int srcreg;
   if (lval[LTYPE] == CONSTANT) {
     /* test for a predefined register */
     if (reg > 0) 
-      gencode (_LEA, "R,I", reg , lval[LVALUE]);
+      gencode_I (_LEA, reg , lval[LVALUE]);
     else {
       if (lval[LVALUE] == 0)
         srcreg = REG_0;
@@ -164,7 +164,7 @@ register int srcreg;
         srcreg = REG_4;
       else {
         srcreg = allocreg ();
-        gencode (_LEA, "R,I", srcreg , lval[LVALUE]);
+        gencode_I (_LEA, srcreg , lval[LVALUE]);
       }
 
       if (reg == -1) 
@@ -173,7 +173,7 @@ register int srcreg;
         reg = srcreg;
       else {
         reg = allocreg ();
-        gencode (_LODR, "R,R", reg , srcreg);
+        gencode_R (_LODR, reg , srcreg);
       }
     }
 
@@ -185,19 +185,21 @@ register int srcreg;
     lval[LREG1] = reg;
     lval[LREG2] = 0;
   } else if (lval[LTYPE] == BRANCH) {
+    int lblX;
+    lblX = ++nxtlabel;
+
     if (reg <= 0)
       reg = allocreg ();
-    if (lval[LFALSE])
-      gencode (lval[LVALUE], "L", lval[LFALSE]); /* 5 bytes */
-    else
-      gencode (lval[LVALUE], ".+13"); /* 5 bytes */
+    if (!lval[LFALSE])
+      lval[LFALSE] = ++nxtlabel;
+    gencode_L (lval[LVALUE], lval[LFALSE]);
     if (lval[LTRUE])
       fprintf (outhdl, "_%d:", lval[LTRUE]);
-    gencode (_LODR, "R,R", reg, REG_1); /* 3 bytes */
-    gencode (_JMP, ".+8"); /* 5 bytes */
-    if (lval[LFALSE])
+    gencode_R (_LODR, reg, REG_1);
+    gencode_L (_JMP, lblX);
       fprintf (outhdl, "_%d:", lval[LFALSE]);
-    gencode (_LODR, "R,R", reg, REG_0); /* 3 bytes */
+    gencode_R (_LODR, reg, REG_0);
+    fprintf(outhdl, "_%d:", lblX);
 
     lval[LTYPE] = EXPR;
     lval[LPTR]  = 0;
@@ -209,7 +211,7 @@ register int srcreg;
     freelval (lval);
     if (reg <= 0)
       reg = allocreg ();
-    gencode (lval_ISBPW ? _LODW : _LODB, "R,M", reg, lval);
+    gencode_M (lval_ISBPW ? _LODW : _LODB, reg, lval);
 
     lval[LEA]   = EA_REG;
     lval[LNAME] = lval[LVALUE] = 0;
@@ -219,7 +221,7 @@ register int srcreg;
     freelval (lval);
     if (reg <= 0)
       reg = allocreg ();
-    gencode (_LEA, "R,M", reg, lval);
+    gencode_M (_LEA, reg, lval);
 
     lval[LEA]   = EA_REG;
     lval[LNAME] = lval[LVALUE] = 0;
@@ -231,7 +233,7 @@ register int srcreg;
     freelval (lval);
     if (reg <= 0)
       reg = allocreg ();
-    gencode (_LODR, "R,R", reg, lval[LREG1]);
+    gencode_R (_LODR, reg, lval[LREG1]);
 
     lval[LREG1] = reg;
   }
@@ -299,7 +301,7 @@ int rval[LLAST];
       loadlval (rval, -1);
 
       /* Execute operation and release rval */
-      gencode (hier_oper[entry], "R,R", lval[LREG1], rval[LREG1]);
+      gencode_R (hier_oper[entry], lval[LREG1], rval[LREG1]);
       freelval (rval);
 
       /* Modify lval */
@@ -347,7 +349,7 @@ int rval[LLAST];
     loadlval (rval, -1);
 
     /* Compare and release values */
-    gencode (_CMP, "R,R", lval[LREG1], rval[LREG1]);
+    gencode_R (_CMP, lval[LREG1], rval[LREG1]);
     freelval (lval);
     freelval (rval);
 
@@ -417,11 +419,11 @@ int once;
 
     /* postprocess last lval */
     if (hier_oper[entry] == _LAND) {
-      gencode (lval[LVALUE], "L", lval[LFALSE]);
+      gencode_L (lval[LVALUE], lval[LFALSE]);
       if (lval[LTRUE])
         fprintf (outhdl, "_%d:", lval[LTRUE]);
     } else {
-      gencode (negop (lval[LVALUE]), "L", lval[LTRUE]);
+      gencode_L (negop (lval[LVALUE]), lval[LTRUE]);
       if (lval[LFALSE])
         fprintf (outhdl, "_%d:", lval[LFALSE]);
     }
@@ -461,6 +463,7 @@ int once;
 
 /*
 ** Do a hierichal evaluation
+
 */
 
 step (pre, lval, post)
@@ -483,7 +486,7 @@ register int reg;
   dest[LREG2]  = lval[LREG2];
 
   if (lval[LEA] == EA_REG) {
-    gencode ((pre|post), "R,R", lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
+    gencode_R ((pre|post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
     if (post) {
       reg = allocreg ();
       gencode (_LODR, "R,R", reg, lval[LREG1]);
@@ -494,10 +497,10 @@ register int reg;
   } else {
     reg = allocreg ();
     loadlval (lval, reg);
-    gencode ((pre|post), "R,R", lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
-    gencode (dest_ISBPW ? _STOW : _STOB, "R,M", lval[LREG1], dest);
+    gencode_R ((pre|post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
+    gencode_M (dest_ISBPW ? _STOW : _STOB, lval[LREG1], dest);
     if (post) {
-      gencode ((_ADD+_SUB-post), "R,R", reg, lval_ISIPTR ? REG_BPW : REG_1);
+      gencode_R ((_ADD+_SUB-post), reg, lval_ISIPTR ? REG_BPW : REG_1);
       lval[LREG1] = reg;
     }
   }
@@ -586,9 +589,9 @@ int sname, len;
     lval[LREG1] = allocreg ();
     lval[LREG2] = 0;
 
-    gencode (_LODW, "R,I(R)", lval[LREG1], BPW, REG_AP);
-    gencode (_SUB, "R,R", lval[LREG1], REG_BPW);
-    gencode (_DIV, "R,R", lval[LREG1], REG_BPW);
+    gencode_IND (_LODW, lval[LREG1], BPW, REG_AP);
+    gencode_R (_SUB, lval[LREG1], REG_BPW);
+    gencode_R (_DIV, lval[LREG1], REG_BPW);
     return 1;
   } else if (sname == argvid) {
     exprerr ();
@@ -642,7 +645,7 @@ register int argc, reg;
           loadlval (lval, 0); /* make LREG2 available */
         loadlval (lval2, 0);
         if (lval[LSIZE] == BPW)
-          gencode (_MUL, "R,R", lval2[LREG1], REG_BPW); /* size index */
+          gencode_R (_MUL, lval2[LREG1], REG_BPW); /* size index */
         if (!lval[LREG1]) 
           lval[LREG1] = lval2[LREG1];
         else
@@ -665,16 +668,16 @@ register int argc, reg;
       /* Get expression */
       expression(lval2, 0);
       if (lval2[LTYPE] == CONSTANT) {
-        gencode (_PSHA, "I", lval2[LVALUE]);
+        gencode_I (_PSHA, 0, lval2[LVALUE]);
       } else {
         if (lval2[LTYPE] == BRANCH)
           loadlval (lval2, 0);
         freelval (lval2);
         /* Push onto stack */
         if (lval2[LEA] != EA_IND)
-          gencode (_PSHA, "M", lval2);
+          gencode_M (_PSHA, 0, lval2);
         else
-          gencode (lval2_ISBPW ? _PSHW : _PSHB, "M", lval2);
+          gencode_M (lval2_ISBPW ? _PSHW : _PSHB, 0, lval2);
       }
       /* increment ARGC */
       csp -= BPW;
@@ -691,14 +694,14 @@ register int argc, reg;
       reg = REG_4;
     else {
       reg = allocreg ();
-      gencode (_LEA, "R,I", reg, argc);
+      gencode_I (_LEA, reg, argc);
     }
-    gencode (_PSHA, "(R)", reg);
+    gencode_IND (_PSHA, 0, 0, reg);
     /* call */
-    gencode (_JSB, "M", lval);
+    gencode_M (_JSB, 0, lval);
     freelval (lval);
     /* Pop args */
-    gencode (_ADD, "R,R", REG_SP, reg);
+    gencode_R (_ADD, REG_SP, reg);
     if (reg < REG_0)
       freereg (reg);
     csp = sav_csp;
@@ -739,7 +742,7 @@ register int lval[];
       lval[LVALUE] = ~lval[LVALUE];
     else {
       loadlval (lval, 0);
-      gencode (_NOT, "R", lval[LREG1]);
+      gencode_R (_NOT, 0, lval[LREG1]);
     }
   } else if (match ("!")) { /* !lval */
     if (!hier13 (lval)) {
@@ -767,7 +770,7 @@ register int lval[];
       lval[LVALUE] = -lval[LVALUE];
     else {
       loadlval (lval, 0);
-      gencode (_NEG, "R", lval[LREG1]);
+      gencode_R (_NEG, 0, lval[LREG1]);
     }
   } else if (match ("+")) { /* + */
     if (!hier13 (lval)) {
@@ -895,7 +898,7 @@ register int lbl, reg;
     lval[LFALSE] = ++nxtlabel;
 
   /* process 'true' variant */
-  gencode (lval[LVALUE], "L", lval[LFALSE]);
+  gencode_L (lval[LVALUE], lval[LFALSE]);
   if (lval[LTRUE])
     fprintf (outhdl, "_%d:", lval[LTRUE]);
   if (!hier1 (lval))
@@ -906,7 +909,7 @@ register int lbl, reg;
   needtoken (":");
   /* jump to end */
   lbl = ++nxtlabel;
-  gencode (_JMP, "L", lbl);
+  gencode_L (_JMP, lbl);
 
   /* process 'false' variant */
   fprintf (outhdl, "_%d:", lval[LFALSE]);
@@ -962,9 +965,9 @@ register int oper;
 
   if (oper == -1) {
     if (lval[LEA] == EA_REG)
-      gencode (_LODR, "R,R", lval[LREG1], rval[LREG1]);
+      gencode_R (_LODR, lval[LREG1], rval[LREG1]);
     else {
-      gencode (lval_ISBPW ? _STOW : _STOB, "R,M", rval[LREG1], lval);
+      gencode_M (lval_ISBPW ? _STOW : _STOB, rval[LREG1], lval);
       freelval (lval);
     }
     lval[LNAME] = lval[LVALUE] = 0;
@@ -983,12 +986,12 @@ register int oper;
 
     /* load lval into reg, modify it with rval and copy result into dest */
     loadlval (lval, allocreg ()); /* don't reuse regs for dest */
-    gencode (oper, "R,R", lval[LREG1], rval[LREG1]);
+    gencode_R (oper, lval[LREG1], rval[LREG1]);
     freelval (rval);
     if (dest[LEA] == EA_REG)
-      gencode (_LODR, "R,R", dest[LREG1], lval[LREG1]);
+      gencode_R (_LODR, dest[LREG1], lval[LREG1]);
     else
-      gencode (lval_ISBPW ? _STOW : _STOB, "R,M", lval[LREG1], dest);
+      gencode_M (lval_ISBPW ? _STOW : _STOB, lval[LREG1], dest);
   }  
 
   /* resulting type is undefined, so modify LTYPE */

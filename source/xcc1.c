@@ -747,14 +747,14 @@ char *msg;
 exprerr ()
 {
   error ("Invalid expression");
-  gencode (_ILLEGAL, "");
+  gencode (_ILLEGAL);
   junk ();
 }
 
 needlval ()
 {
   error("must be lvalue");
-  gencode (_ILLEGAL, "");
+ gencode (_ILLEGAL);
 }
  
 illname ()
@@ -876,15 +876,10 @@ register int i, j;
 /*
 ** Generate a assembler statement 
 */
-_gencode (opc, modes, marr)
-int opc;
-register char *modes;
-register int *marr;
-{
-register int *lval, reg;
-int *lp;
 
-  /* Plot opcode */
+genopc(opc)
+int opc;
+{
   switch(opc) {
     case _ILLEGAL:
       fprintf (outhdl, "\tILLEGAL\t");
@@ -991,84 +986,114 @@ int *lp;
     case _POPR:
       fprintf (outhdl, "\tPOPR\t");
       break;
-    case _ADJSP:
-      if (*modes != 'I')
-        error("Invalid op mode");
-      if (marr[-1] == BPW)
-        fprintf (outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
-      else if (marr[-1] == -BPW)
-        fprintf (outhdl, "\tSUB\tR%d,R%d\n", REG_SP, REG_BPW);
-      else {
-        reg = allocreg ();
-        fprintf (outhdl, "\tLDA\tR%d,%d\n", reg, marr[-1]);
-        fprintf (outhdl, "\tADD\tR%d,R%d\n", REG_SP, reg);
-        freereg (reg); 
-        --marr;
-      }
-      return 0;
     default:
       fprintf (outhdl, "\tOPC_%d\t", opc);
       break;
   }
+}
 
-  while (*modes) {
-    switch (*modes) {
-      case 'R':
-        fprintf (outhdl, "R%d", *--marr);
-        break;
-      case 'L':
-        fprintf (outhdl, "_%d", *--marr);
-        break;
-      case 'I':
-        fprintf (outhdl, "%d", *--marr);
-        break;
-      case 'M':
-        lval = *--marr; 
+gencode (opc)
+short opc;
+{
+  genopc(opc);
 
-        /* do any stack ajustments */
-        if ((lval[LREG1] == REG_SP) || (lval[LREG2] == REG_SP))
-          lval[LVALUE] = lval[LVALUE] - csp;
-
-        if (lval[LNAME]) {
-          if (lval[LTYPE] == LABEL)
-            fprintf (outhdl, "_%d", lval[LNAME]);
-          else {
-            fprintf (outhdl, "_");
-            symname (lval[LNAME]);
-          }
-        }
-        if (lval[LVALUE] > 0)
-          fprintf (outhdl, "+%d", lval[LVALUE]);
-        else if (lval[LVALUE] < 0)
-          fprintf (outhdl, "%d", lval[LVALUE]);
-        if (lval[LREG1]) {
-          fprintf (outhdl, "(R%d", lval[LREG1]);
-          if (lval[LREG2])
-            fprintf (outhdl, ",R%d", lval[LREG2]);
-          fprintf (outhdl, ")");
-        }
-        break;
-      default:
-        fprintf (outhdl, "%c", *modes);
-        break;
-    }
-    ++modes;
-  }
   fprintf (outhdl, "\n");
 }
 
-gencode (anchor)
-int anchor;
+gencode_L (opc, lbl)
+short opc;
+short lbl;
 {
-register int opc, *args;
-register char *modes;
+  genopc(opc);
 
-  if (!codeebl)
-    fprintf (outhdl, "; ");
-  args = &anchor+ARGC*BPW;
-  opc = *--args;
-  modes = *--args;
-  _gencode (opc, modes, args);
+  fprintf (outhdl, "_%d\n", lbl);
+}
+
+gencode_R (opc, reg1, reg2)
+short opc;
+short reg1, reg2;
+{
+  genopc(opc);
+
+  if (reg1)
+    fprintf(outhdl, "R%d,", reg1);
+  fprintf (outhdl, "R%d\n", reg2);
+}
+
+gencode_I (opc, reg, imm)
+short opc;
+short reg, imm;
+{
+  genopc(opc);
+
+  if (reg)
+    fprintf(outhdl, "R%d,", reg);
+  fprintf (outhdl, "%d\n", imm);
+}
+
+gencode_ADJSP (imm)
+short imm;
+{
+
+	if (imm == BPW)
+		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
+	else if (imm == -BPW)
+		fprintf(outhdl, "\tSUB\tR%d,R%d\n", REG_SP, REG_BPW);
+	else {
+		int reg;
+		reg = allocreg();
+		fprintf(outhdl, "\tLDA\tR%d,%d\n", reg, imm);
+		fprintf(outhdl,"\tADD\tR%d,R%d\n", REG_SP, reg);
+		freereg(reg);
+	}
+	return 0;
+}
+
+gencode_IND(opc, reg, ofs, ind)
+short opc;
+short reg, ofs, ind;
+{
+        genopc(opc);
+
+        if (reg)
+                fprintf(outhdl, "R%d,", reg);
+        if (ofs)
+                fprintf(outhdl, "%d", ofs);
+        fprintf(outhdl, "(R%d)\n", ind);
+}
+
+gencode_M (opc, reg, lval)
+short opc;
+short reg;
+register int lval[];
+{
+
+  genopc(opc);
+
+  if (reg)
+    fprintf(outhdl, "R%d,", reg);
+
+  if (lval[LNAME]) {
+    if (lval[LTYPE] == LABEL)
+      fprintf (outhdl, "_%d", lval[LNAME]);
+    else {
+      fprintf (outhdl, "_");
+      symname (lval[LNAME]);
+    }
+  }
+
+  if (lval[LVALUE] > 0)
+    fprintf (outhdl, "+%d", lval[LVALUE]);
+  else if (lval[LVALUE] < 0)
+    fprintf (outhdl, "%d", lval[LVALUE]);
+  if (lval[LREG1]) {
+    fprintf (outhdl, "(R%d", lval[LREG1]);
+    if (lval[LREG2])
+      fprintf (outhdl, ",R%d", lval[LREG2]);
+    fprintf (outhdl, ")");
+  }
+
+  fprintf (outhdl, "\n");
 }
 
 /*
