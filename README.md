@@ -10,7 +10,7 @@ design, implementation and testing of a emulated CPU and MMU unit.
 Personally not challenging so to up the ante and in agreement with school staff I received permission to
 extend the testing by implementing a turing-complete compiler/assembler/linker/archiver toolchain.
 I was allowed to extend the CPU instruction as long as changes were backwards compatible. 
-The biggest challenge was fitting the toolchain in 64k memory with most instructions being 5-6 bytes.
+The biggest challenge was fitting the toolchain in 64k memory with most instructions being 5 bytes.
 
 ```xcc``` was heavily inspired and partly based on  ```Small-C``` and Digital-Equipment's TOPS-20 ```"REL blocks"```.
 [```Small-C```](https://en.wikipedia.org/wiki/Small-C) is a minimalistic ```C``` compiler for resource-limited environments and 

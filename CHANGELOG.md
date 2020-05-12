@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+```
+2020-05-12 12:13:53 Add build scripts.
+```
+
 ## 1.0.0 2020-05-09 11:26:17
 
 Original 1991 submitted school assignment.
