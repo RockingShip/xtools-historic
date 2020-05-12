@@ -79,6 +79,9 @@ register int i;
   for (i=0; i<SWMAX; i++)
     sw[i*SLAST+SLABEL] = 0;
 
+  /* reserve first entry so it terminates lists */
+  namech[0] = '?';
+
   /* setup array containing hieriachal operators */
   hier_str[ 0] = "||"; hier_oper[ 0] = _LOR;   /*hier3 */
   hier_str[ 1] = 0;                                   
@@ -269,7 +272,8 @@ register int tab;
 {
 register int i;
 
-  if ((i=nametab[tab]) != -1)
+  i = nametab[tab];
+  if (i)
     symname (i);
   fprintf (outhdl, "%c", namech[tab]); 
 }
@@ -286,7 +290,7 @@ register int start, hash, tab, len;
   if (!alpha (*name))
     return 0; /* Not a symbol */
 
-  tab = -1;
+  tab = 0;
   len = 0;
   hash = 0;
   while (an (*name)) {

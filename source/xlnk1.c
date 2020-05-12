@@ -78,6 +78,9 @@ int hash;
     p[NCHAR] = p[NTYPE] = p[NVALUE] = 0;
   }
 
+  /* reserve first entry so it terminates lists */
+  name[0*NLAST+NCHAR] = '?';
+
   /* reset positions */
   pass = 1;
  
@@ -395,7 +398,8 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     i = outname (i); /* display and get length string */
   else
     i = 0; /* nothing displayed yet */
@@ -408,7 +412,8 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     i = foutname (i); /* display and get length string */
   else
     i = 0; /* nothing displayed yet */
@@ -422,7 +427,8 @@ register char *str;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     str = soutname (i, str);
   *str++ = name[hash*NLAST+NCHAR];
   *str = 0;
@@ -438,7 +444,7 @@ int *retval;
 {
 register int start, hash, tab, len, *p;
 
-  tab = -1;
+  tab = 0;
   len = 0;
   hash = 0;
   while (*ident) {
@@ -553,7 +559,7 @@ register int start;
 {
 register int ch, *p, hash, tab;
 
-  tab = (!start) ? -1 : start;
+  tab = (!start) ? 0 : start;
   for (ch='!'; ch<='~'; ch++) {
     hash = (start + ch * ch) % NAMEMAX;
     while (1) {

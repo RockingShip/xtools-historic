@@ -100,6 +100,9 @@ register int i,*p;
     p[NCHAR] = p[NTYPE] = 0;
   }
 
+  /* reserve first entry so it terminates lists */
+  name[0*NLAST+NCHAR] = '?';
+
   /* reset positions */
   pass = 1;
   curseg = CODESEG;
@@ -354,7 +357,8 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     foutname (i);
   fprintf (outhdl, "%c", name[hash*NLAST+NCHAR]); 
 }
@@ -364,7 +368,8 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     outname (i);
   printf ("%c", name[hash*NLAST+NCHAR]); 
 }
@@ -374,10 +379,10 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) == -1)
-    return 1;
-  else
+  i=name[hash*NLAST+NTAB];
+  if (i)
     return lenname (i) + 1;
+  return 1;
 }
 
 /*
@@ -392,7 +397,7 @@ register int start, hash, tab, len, *p;
   if (!alpha (*ident))
     return 0; /* Not a symbol */
 
-  tab = -1;
+  tab = 0;
   len = 0;
   hash = 0;
   while (an (*ident)) {

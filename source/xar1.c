@@ -50,6 +50,15 @@ register int i;
   monitor = debug = usercmd = 0;
   objhdl = olbhdl = outhdl = 0;
   objfn[0] = olbfn[0] = outfn[0] = 0;
+
+  /* reset tables */
+  for (i=0; i<NAMEMAX; i++) {
+    p = &name[i*NLAST];
+    p[NCHAR] = p[NTYPE] = p[NVALUE] = 0;
+  }
+
+  /* reserve first entry so it terminates lists */
+  name[0*NLAST+NCHAR] = '?';
 }
 
 /*
@@ -259,7 +268,8 @@ register int hash;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     i = outname (i); /* display and get length string */
   else
     i = 0; /* nothing displayed yet */
@@ -273,7 +283,8 @@ register char *str;
 {
 register int i;
 
-  if ((i=name[hash*NLAST+NTAB]) != -1)
+  i=name[hash*NLAST+NTAB];
+  if (i)
     str = soutname (i, str);
   *str++ = name[hash*NLAST+NCHAR];
   *str = 0;
@@ -289,7 +300,7 @@ int *retval;
 {
 register int start, hash, tab, len, *p;
 
-  tab = -1;
+  tab = 0;
   len = 0;
   hash = 0;
   while (*ident) {

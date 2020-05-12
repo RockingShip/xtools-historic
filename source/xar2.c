@@ -56,7 +56,7 @@ register int start;
 {
 register int ch, *p, hash, tab;
 
-  tab = (!start) ? -1 : start;
+  tab = (!start) ? 0 : start;
   for (ch='!'; ch<='~'; ch++) {
     hash = (start + ch * ch) % olbhdr[HNAME];
     while (1) {
