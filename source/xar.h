@@ -41,6 +41,7 @@
 
 #define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
 #define FILEMAX 50		/* Size of filetable */
+#define PATHMAX 80		/* length of filename */
 
 /*
 ** Machine dependent parmeters
@@ -140,7 +141,7 @@ EXTERN int
   datlen,		/* length of datbuf */
   olbhdr[HLAST],	/* .OLB header */
   usercmd,		/* user command */
-  monitor,		/* Monitor -m specified */
+  verbose,		/* Verbose -v specified */
   debug,		/* Debug   -d specified */
   olbhdl,		/* handle for source .OLB file */
   outhdl,		/* handle for destination .OLB file */
@@ -149,8 +150,8 @@ EXTERN int
 EXTERN char
 
   datbuf[512],		/* internal scratch buffer */
-  modn[40],		/* name of moule */
-  olbfn[40],		/* source .OLB filename */
-  outfn[40],		/* destination .OLB filename */
-  bakfn[40],		/* .BAK filename */
-  objfn[40];		/* .OBJ filename */
+  modn[PATHMAX],	/* name of moule */
+  olbfn[PATHMAX],	/* source .OLB filename */
+  outfn[PATHMAX],	/* destination .OLB filename */
+  bakfn[PATHMAX],	/* .BAK filename */
+  objfn[PATHMAX];	/* .OBJ filename */

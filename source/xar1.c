@@ -45,16 +45,17 @@
 */
 initialize ()
 {
-register int i;
+register int i, *p;
 
-  monitor = debug = usercmd = 0;
+  verbose = debug = usercmd = 0;
   objhdl = olbhdl = outhdl = 0;
+
   objfn[0] = olbfn[0] = outfn[0] = 0;
 
   /* reset tables */
   for (i=0; i<NAMEMAX; i++) {
     p = &name[i*NLAST];
-    p[NCHAR] = p[NTYPE] = p[NVALUE] = 0;
+    p[NCHAR] = p[NLIB] = 0;
   }
 
   /* reserve first entry so it terminates lists */
@@ -66,14 +67,41 @@ register int i;
 */
 usage ()
 {
-  printf ("usage: xar (A|C|D|L|X) <library>[.<ext>] [<object>[.<ext>] [-m]\n");
-  printf ("  A  Add a module\n");
-  printf ("  C  Create a new library\n");
-  printf ("  D  Delete a module\n");
-  printf ("  L  List the library\n");
-  printf ("  X  Extract a module\n");
-  printf ("  -m Monitor\n");
+  printf ("usage: xar (a|c|d|l|x) <library>[.<ext>] [<object>[.<ext>]\n");
+  printf ("  a  Add a module\n");
+  printf ("  c  Create a new library\n");
+  printf ("  d  Delete a module\n");
+  printf ("  l  List the library\n");
+  printf ("  x  Extract a module\n");
+  printf ("  -v Verbose\n");
   exit (1);
+}
+
+fext(out, path, ext, force)
+char *out;
+char *path;
+char *ext;
+int force;
+{
+  char *p;
+  int  baselen;
+
+  baselen = 0;
+  for (p  = path; *p; p++) {
+    if (*p == '\\' || *p == '/')
+      baselen = 0;
+    else if (*p == '.')
+      baselen = p - path;
+  }
+
+  if (baselen && !force)
+    strcpy(out, path);
+  else {
+    if (!baselen)
+      baselen = p - path;
+    strncpy(out, path, baselen);
+    strcpy(out + baselen, ext);
+  }
 }
 
 startup (cmdline)
@@ -89,19 +117,19 @@ register int i, j, ext;
     if (*cmdline != '-') {
       if (!usercmd) {
         switch (*cmdline) {
-          case 'a': case 'A':
+          case 'a':
             usercmd = ADDCMD;
             break;
-          case 'c': case 'C':
+          case 'c':
             usercmd = CRECMD;
             break;
-          case 'd': case 'D':
+          case 'd':
             usercmd = DELCMD;
             break;
-          case 'l': case 'L':
+          case 'l':
             usercmd = LISCMD;
             break;
-          case 'x': case 'X':
+          case 'x':
             usercmd = EXTCMD;
             break;
           default:
@@ -111,80 +139,38 @@ register int i, j, ext;
         if (*cmdline > ' ')
           usage (); /* one letter commands only */
       } else if (!olbfn[0]) {
-        /* Copy filename */
-        i = ext = 0;
-        while (*cmdline && (*cmdline > ' ')) {
-          bakfn[i] = olbfn[i] = outfn[i] = *cmdline;
-          if (*cmdline == '\\')
-            ext = 0;  /* Directory delimiter */
-          if (*cmdline == '.')
-            ext = i; /* Start of extension */
+
+	fext(olbfn, cmdline, ".olb", 0);
+        fext(bakfn, cmdline, ".bak", 0);
+        fext(outfn, cmdline, ".tmp", 0);
+
+        while (*cmdline && (*cmdline > ' '))
           ++cmdline;
-          ++i;
-        }
-        /* Now modify extensions */
-        if (!ext) {
-          olbfn[i+0] = '.';
-          olbfn[i+1] = 'O';
-          olbfn[i+2] = 'L';
-          olbfn[i+3] = 'B';
-          olbfn[i+4] = 0;
-          ext = i;
-        }
-        outfn[ext] = '.';
-        outfn[ext+1] = '$';
-        outfn[ext+2] = '$';
-        outfn[ext+3] = '$';
-        outfn[ext+4] = 0;
-        bakfn[ext] = '.';
-        bakfn[ext+1] = 'B';
-        bakfn[ext+2] = 'A';
-        bakfn[ext+3] = 'K';
-        bakfn[ext+4] = 0;
+
       } else if (!objfn[0]) {
+
         /* Copy filename */
-        i = j = ext = 0;
-        while (*cmdline && (*cmdline > ' ')) {
-          objfn[i] = modn[j] = *cmdline;
-          if ((modn[i] >= 'a') && (modn[i] <= 'z'))
-            modn[i] += 'A' - 'a';
-          ++j;
-          if (*cmdline == '\\')
-            j = ext = 0;  /* Directory delimiter */
-          if (*cmdline == '.')
-            ext = i; /* Start of extension */
+        fext(objfn, cmdline, ".obj", 0);
+        fext(modn, cmdline, "", 1);
+
+        while (*cmdline && (*cmdline > ' '))
           ++cmdline;
-          ++i;
-        }
-        /* Now modify extensions */
-        if (!ext) {
-          objfn[i+0] = '.';
-          objfn[i+1] = 'O';
-          objfn[i+2] = 'B';
-          objfn[i+3] = 'J';
-          objfn[i+4] = 0;
-          ext = i;
-        }
-        modn[j+0] = '.';
-        modn[j+1] = 'O';
-        modn[j+2] = 'B';
-        modn[j+3] = 'J';
-        modn[j+4] = 0;
       } else
         usage ();
     } else {
       /* Process option */
       switch (cmdline[1]) {
-        case 'm': case 'M':
-          monitor = 1;
-          break;
-        case 'd': case 'D':
-          debug = 1;
+	case 'd':
+	  debug = 1;
+	  break;
+        case 'v':
+          verbose = 1;
           break;
         default:
           usage ();
           break;
       }
+
       /* Skip switch */
       while (*cmdline && (*cmdline > ' '))
         ++cmdline;
@@ -197,7 +183,7 @@ register int i, j, ext;
   /* command MUST be supplied */
   if (!usercmd)
     usage ();
-  /* commands -a -d needs object name */
+  /* commands add/del/extract needs object name */
   if ((usercmd == ADDCMD) || (usercmd == DELCMD) || (usercmd == EXTCMD)) 
     if (!outfn[0])
       usage ();

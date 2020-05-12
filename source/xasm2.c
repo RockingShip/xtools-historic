@@ -365,7 +365,7 @@ int lval[LLAST];
         case UNDEF:
           if (match (":")) {
             ext = match (":");
-            if (monitor && ext) 
+            if (verbose && ext)
               printf ("%s\n", line);
             if (curseg == CODESEG) {
               p[NTYPE] = CODE;
@@ -402,7 +402,7 @@ int lval[LLAST];
         case ABS: case CODE: case DATA: case UDEF:
           if (match (":")) {
             ext = match (":");
-            if (monitor && ext) 
+            if (verbose && ext)
               printf ("%s\n", line);
             if (p[NTYPE] == CODE) {
               if ((curseg != CODESEG) || (p[NVALUE] != curpos[CODESEG]))

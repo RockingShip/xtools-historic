@@ -59,7 +59,7 @@ initialize ()
 register int i,*p;
 int hash;
 
-  undef = monitor = debug = maklis = 0;
+  undef = verbose = debug = 0;
   stksiz = 2000;
   outhdl = lishdl = inphdl = 0;
   inpfn[0] = outfn[0] = 0;
@@ -100,9 +100,41 @@ int hash;
 */
 usage ()
 {
-  printf ("usage: xlnk <file>[.<ext>] {,<file>[.<ext>]} {-x <file>[.<ext>]}\n");
-  printf ("            [-o <file>[.<ext>]] [-s<stksiz>] [-u] [-m] [-d] [-l]\n");
+  printf ("usage: xlnk <file>[.<ext>] ...\n");
+  printf ("  -l <file>[.<ext>]]\tLibrary\n");
+  printf ("  -o <file>[.<ext>]]\tImage output\n");
+  printf ("  -m <file>[.<ext>]]\tMap output\n");
+  printf ("  -s <stksiz>\t\tStack size\n");
+  printf ("  -u\t\t\tIgnore undefined\n");
+  printf ("  -v\t\t\tVerbose\n");
   exit (1);
+}
+
+fext(out, path, ext, force)
+char *out;
+char *path;
+char *ext;
+int force;
+{
+  char *p;
+  int  baselen;
+
+  baselen = 0;
+  for (p  = path; *p; p++) {
+    if (*p == '\\' || *p == '/')
+      baselen = 0;
+    else if (*p == '.')
+      baselen = p - path;
+  }
+
+  if (baselen && !force)
+    strcpy(out, path);
+  else {
+    if (!baselen)
+      baselen = p - path;
+    strncpy(out, path, baselen);
+    strcpy(out + baselen, ext);
+  }
 }
 
 startup (cmdline)
@@ -118,41 +150,20 @@ int hash;
 
     if (*cmdline != '-') {
       /* Copy filename */
-      i = ext = 0;
-      while (*cmdline && (*cmdline > ' ')) {
-        inpfn[i] = *cmdline;
-        if (!file1inx) 
-          outfn[i] = lisfn[i] = *cmdline;
-        if (*cmdline == '\\')
-          ext = 0;  /* Directory delimiter */
-        if (*cmdline == '.')
-          ext = i; /* Start of extension */
-        ++cmdline;
-        ++i;
-      }
+
+
       /* Now modify extensions */
-      if (!ext) {
-        inpfn[i+0] = '.';
-        inpfn[i+1] = 'O';
-        inpfn[i+2] = 'B';
-        inpfn[i+3] = 'J';
-        inpfn[i+4] = 0;
-        ext = i;
-      }
-      if (!file1inx) {
-        outfn[ext] = lisfn[ext] = '.';
-        outfn[ext+1] = 'I';
-        outfn[ext+2] = 'M';
-        outfn[ext+3] = 'G';
-        outfn[ext+4] = 0;
-        lisfn[ext+1] = 'M';
-        lisfn[ext+2] = 'A';
-        lisfn[ext+3] = 'P';
-        lisfn[ext+4] = 0;
-      }
+      fext(inpfn, cmdline, ".obj", 0);
+      if (!file1inx)
+        fext(outfn, cmdline, ".img", 1);
+
+      while (*cmdline && (*cmdline > ' '))
+        ++cmdline;
+
       /* Insert object into filetable */
       if (file1inx >= FILEMAX)
         fatal ("too many files");
+
       p = &file1[file1inx++*FLAST];
       dohash (inpfn, &hash);
       p[FFILE] = hash;
@@ -163,7 +174,10 @@ int hash;
     } else {
       /* Process option */
       switch (cmdline[1]) {
-        case 'x': case 'X':
+        case 'd':
+          debug = 1;
+          break;
+        case 'l':
           /* skip -x */
           cmdline += 2; 
           /* Skip spaces */
@@ -171,67 +185,45 @@ int hash;
             ++cmdline;
 
           /* Copy filename */
-          i = ext = 0;
-          while (*cmdline && (*cmdline > ' ')) {
-            inpfn[i] = *cmdline;
-            if (*cmdline == '\\')
-              ext = 0;  /* Directory delimiter */
-            if (*cmdline == '.')
-              ext = i; /* Start of extension */
+          while (*cmdline && (*cmdline > ' '))
             ++cmdline;
-            ++i;
-          }
-          /* Now modify extensions */
-          if (!ext) {
-            inpfn[i+0] = '.';
-            inpfn[i+1] = 'O';
-            inpfn[i+2] = 'L';
-            inpfn[i+3] = 'B';
-            inpfn[i+4] = 0;
-            ext = i;
-          }
+
+          fext(inpfn, cmdline, ".olb", 0);
+
           /* Insert file into filetable */
           if (file1inx >= FILEMAX)
             fatal ("too many files");
+
           p = &file1[file1inx++*FLAST];
           dohash (inpfn, &hash);
           p[FFILE] = -1;
           p[FLIB] = hash;
           break;
-        case 'o': case 'O':
+	case 'm':
+  	  /* skip -m */
+          cmdline += 2;
+	  /* Skip spaces */
+	  while (*cmdline && (*cmdline <= ' '))
+	    ++cmdline;
+
+	  fext(lisfn, cmdline, ".img", 0);
+
+ 	  while (*cmdline && (*cmdline > ' '))
+	    ++cmdline;
+ 	  break;
+        case 'o':
           /* skip -o */
           cmdline += 2; 
           /* Skip spaces */
           while (*cmdline && (*cmdline <= ' '))
             ++cmdline;
 
-          /* Copy filename */
-          i = ext = 0;
-          while (*cmdline && (*cmdline > ' ')) {
-            lisfn[i] = outfn[i] = *cmdline;
-            if (*cmdline == '\\')
-              ext = 0;  /* Directory delimiter */
-            if (*cmdline == '.')
-              ext = i; /* Start of extension */
+          fext(outfn, cmdline, ".img", 0);
+
+          while (*cmdline && (*cmdline > ' '))
             ++cmdline;
-            ++i;
-          }
-          /* Now modify extensions */
-          if (!ext) {
-            outfn[i+0] = '.';
-            outfn[i+1] = 'I';
-            outfn[i+2] = 'M';
-            outfn[i+3] = 'G';
-            outfn[i+4] = 0;
-            lisfn[i+0] = '.';
-            lisfn[i+1] = 'M';
-            lisfn[i+2] = 'A';
-            lisfn[i+3] = 'P';
-            lisfn[i+4] = 0;
-            ext = i;
-          }
           break;
-        case 's': case 'S':
+        case 's':
           /* skip -s */
           cmdline += 2; 
           /* Skip spaces */
@@ -242,17 +234,11 @@ int hash;
           while ((*cmdline >= '0') && (*cmdline <= '9'))
             stksiz = stksiz * 10 + *cmdline++ - '0';
           break;
-        case 'u': case 'U':
+        case 'u':
           undef = 1;
           break;
-        case 'm': case 'M':
-          monitor = 1;
-          break;
-        case 'd': case 'D':
-          debug = 1;
-          break;
-        case 'l': case 'L':
-          maklis = 1;
+        case 'v':
+          verbose = 1;
           break;
         default:
           usage ();
@@ -290,7 +276,7 @@ openfile ()
 register int i, *p;
   
   outhdl = mustopen (outfn, "w");
-  if (maklis)
+  if (lisfn)
     lishdl = mustopen (lisfn, "w");
 }
 
@@ -511,7 +497,7 @@ int hash;
   openfile ();       /* Open all files */
   process ();        /* start linking */
 
-  if (maklis) {
+  if (lishdl) {
     fprintf (lishdl, "Object statistics : \n");
     objmap ();
     fprintf (lishdl, "\nSymboltable : \n\n");

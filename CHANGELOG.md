@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-12 22:06:26 Fixed+synced `usage()` and friends.
 2020-05-12 21:09:06 Fixed name hashing.
 2020-05-12 21:01:46 Conform printf format.
 2020-05-12 20:19:53 Split `gencode()` to avoid stdargs.

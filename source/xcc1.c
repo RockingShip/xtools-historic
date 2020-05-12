@@ -47,7 +47,7 @@ initialize ()
 {
 register int i;
 
-  monitor = pause = debug = maklis = 0;
+  verbose = debug = maklis = 0;
   outhdl = lishdl = inphdl = inchdl = 0;
   iflevel = skiplevel = 0;
   nxtlabel = 0;
@@ -56,7 +56,6 @@ register int i;
   macinx = macqinx = 0;
   ccode = 1;
   inclnr = inplnr = 0;
-  codeebl = 1;
 
 #ifdef DYNAMIC
   ! check this first
@@ -122,11 +121,38 @@ register int i;
 */
 usage ()
 {
-  printf ("usage: xcc <file>[.<ext>] [-l] [-m] [-p]\n");
-  printf ("  -l Generate listing\n");
-  printf ("  -m Monitor\n");
-  printf ("  -p Pause on error\n");
+  printf ("usage: xcc <file>[.<ext>]\n");
+  printf ("  -h\t\t\tInclude high-level source\n");
+  printf ("  -S <file>[.<ext>]]\tAssembler output\n");
+  printf ("  -v\t\t\tVerbose\n");
   exit (1);
+}
+
+fext(out, path, ext, force)
+char *out;
+char *path;
+char *ext;
+int force;
+{
+  char *p;
+  int  baselen;
+
+  baselen = 0;
+  for (p  = path; *p; p++) {
+    if (*p == '\\' || *p == '/')
+      baselen = 0;
+    else if (*p == '.')
+      baselen = p - path;
+  }
+
+  if (baselen && !force)
+    strcpy(out, path);
+  else {
+    if (!baselen)
+      baselen = p - path;
+    strncpy(out, path, baselen);
+    strcpy(out + baselen, ext);
+  }
 }
 
 startup (cmdline)
@@ -140,52 +166,41 @@ register int i, ext;
       ++cmdline;
 
     if (*cmdline != '-') {
-      /* Copy filename */
-      i = ext = 0;
-      while (*cmdline && (*cmdline > ' ')) {
-        inpfn[i] = outfn[i] = lisfn[i] = *cmdline;
-        if (*cmdline == '\\')
-          ext = 0;  /* Directory delimiter */
-        if (*cmdline == '.')
-          ext = i; /* Start of extension */
+      fext(inpfn, cmdline, ".c", 0);
+      fext(outfn, cmdline, ".asm", 1);
+
+      while (*cmdline && (*cmdline > ' '))
         ++cmdline;
-        ++i;
-      }
-      /* Now modify extensions */
-      if (!ext) {
-        inpfn[i+0] = '.';
-        inpfn[i+1] = 'C';
-        inpfn[i+2] = 0;
-        ext = i;
-      }
-      outfn[ext] = lisfn[ext] = '.';
-      outfn[ext+1] = 'A';
-      outfn[ext+2] = 'S';
-      outfn[ext+3] = 'M';
-      outfn[ext+4] = 0;
-      lisfn[ext+1] = 'L';
-      lisfn[ext+2] = 'I';
-      lisfn[ext+3] = 'S';
-      lisfn[ext+4] = 0;
+
     } else {
       /* Process option */
       switch (cmdline[1]) {
-        case 'm': case 'M':
-          monitor = 1;
-          break;
-        case 'p': case 'P':
-          pause = 1;
-          break;
-        case 'd': case 'D':
+	case 'S':
+	  /* skip -S */
+	  cmdline += 2;
+	  /* Skip spaces */
+	  while (*cmdline && (*cmdline <= ' '))
+	    ++cmdline;
+
+	  fext(outfn, cmdline, ".img", 0);
+
+	  while (*cmdline && (*cmdline > ' '))
+	    ++cmdline;
+	  break;
+        case 'd':
           debug = 1;
           break;
-        case 'l': case 'L':
+        case 'h':
           maklis = 1;
           break;
+	case 'v':
+	  verbose = 1;
+	  break;
         default:
           usage ();
           break;
       }
+
       /* Skip switch */
       while (*cmdline && (*cmdline > ' '))
         ++cmdline;
@@ -525,10 +540,13 @@ int sname;
   bump (0);
 
   /* Copy line to listing */
-  if (debug)
-    fprintf (outhdl, ";* %s\n", pbuf);
-  if (maklis)
-    fprintf (lishdl, "%s\n", pbuf);
+  if (maklis) {
+    int len;
+    len = strlen(line);
+    while (len && line[len-1] <= ' ')
+      len--;
+    fprintf(outhdl, "; %d %.*s\n", inchdl ? inclnr : inplnr, len, line);
+  }
 }
  
 
@@ -736,8 +754,6 @@ char *msg;
     printf ("'%s' ", incfn);
   /* Display original line */
   printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
-  if (maklis)
-    fprintf (lishdl, "%%%s\n", msg);
   fprintf (outhdl, ";%% %s\n", msg);
 }
 

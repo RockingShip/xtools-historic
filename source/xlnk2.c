@@ -118,7 +118,7 @@ char cmd;
   fp[FCODEBASE] = fp[FDATABASE] = fp[FUDEFBASE] = 0;
 
   curseg = CODESEG;
-  if (monitor) {
+  if (verbose) {
     soutname (fileid, datbuf);
     printf ("processing %s", datbuf);
     if (libid != -1) {
@@ -261,7 +261,7 @@ char cmd, cval;
   stackinx = 0;
   fseek (outhdl, fp[FCODEBASE], 0);
 
-  if (monitor) {
+  if (verbose) {
     soutname (fp[FFILE], datbuf);
     printf ("processing %s", datbuf);
     if (fp[FLIB] != -1) {

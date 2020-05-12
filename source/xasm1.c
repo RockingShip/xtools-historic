@@ -74,7 +74,7 @@ initialize ()
 {
 register int i,*p;
 
-  undef = monitor = pause = debug = maklis = 0;
+  verbose = debug = 0;
   outhdl = lishdl = inphdl = inchdl = 0;
   iflevel = skiplevel = 0;
   macinx = macqinx = 0;
@@ -195,12 +195,38 @@ register int i,*p;
 */
 usage ()
 {
-  printf ("usage: xasm <file>[.<ext>] [-l] [-m] [-p] [-u]\n");
-  printf ("  -l Generate listing\n");
-  printf ("  -m Monitor\n");
-  printf ("  -p Pause on error\n");
-  printf ("  -u Supress 'undefined symbol' warnings\n");
+  printf ("usage: xasm <file>[.<ext>]\n");
+  printf ("  -a <file>[.<ext>]]\tListing\n");
+  printf ("  -c <file>[.<ext>]]\tObject output\n");
+  printf ("  -v\t\t\tVerbose\n");
   exit (1);
+}
+
+fext(out, path, ext, force)
+char *out;
+char *path;
+char *ext;
+int force;
+{
+  char *p;
+  int  baselen;
+
+  baselen = 0;
+  for (p  = path; *p; p++) {
+    if (*p == '\\' || *p == '/')
+      baselen = 0;
+    else if (*p == '.')
+      baselen = p - path;
+  }
+
+  if (baselen && !force)
+    strcpy(out, path);
+  else {
+    if (!baselen)
+      baselen = p - path;
+    strncpy(out, path, baselen);
+    strcpy(out + baselen, ext);
+  }
 }
 
 startup (cmdline)
@@ -214,52 +240,45 @@ register int i, ext;
       ++cmdline;
 
     if (*cmdline != '-') {
-      /* Copy filename */
-      i = ext = 0;
-      while (*cmdline && (*cmdline > ' ')) {
-        inpfn[i] = outfn[i] = lisfn[i] = *cmdline;
-        if (*cmdline == '\\')
-          ext = 0;  /* Directory delimiter */
-        if (*cmdline == '.')
-          ext = i; /* Start of extension */
+
+      fext(inpfn, cmdline, ".asm", 0);
+      fext(outfn, cmdline, ".obj", 1);
+
+      while (*cmdline && (*cmdline > ' '))
         ++cmdline;
-        ++i;
-      }
-      /* Now modify extensions */
-      if (!ext) {
-        inpfn[i+0] = '.';
-        inpfn[i+1] = 'A';
-        inpfn[i+2] = 'S';
-        inpfn[i+3] = 'M';
-        inpfn[i+4] = 0;
-        ext = i;
-      }
-      outfn[ext] = lisfn[ext] = '.';
-      outfn[ext+1] = 'O';
-      outfn[ext+2] = 'B';
-      outfn[ext+3] = 'J';
-      outfn[ext+4] = 0;
-      lisfn[ext+1] = 'L';
-      lisfn[ext+2] = 'I';
-      lisfn[ext+3] = 'S';
-      lisfn[ext+4] = 0;
+
     } else {
       /* Process option */
       switch (cmdline[1]) {
-        case 'u': case 'U':
-          undef = 1;
-          break;
-        case 'm': case 'M':
-          monitor = 1;
-          break;
-        case 'p': case 'P':
-          pause = 1;
-          break;
-        case 'd': case 'D':
-          debug = 1;
-          break;
-        case 'l': case 'L':
-          maklis = 1;
+	case 'a':
+	  /* skip -a */
+	  cmdline += 2;
+	  /* Skip spaces */
+	  while (*cmdline && (*cmdline <= ' '))
+	    ++cmdline;
+
+	  fext(lisfn, cmdline, ".lis", 0);
+
+	  while (*cmdline && (*cmdline > ' '))
+	    ++cmdline;
+	  break;
+	case 'c':
+	  /* skip c */
+	  cmdline += 2;
+	  /* Skip spaces */
+	  while (*cmdline && (*cmdline <= ' '))
+	    ++cmdline;
+
+	  fext(outfn, cmdline, ".obj", 0);
+
+	  while (*cmdline && (*cmdline > ' '))
+	    ++cmdline;
+	  break;
+	case 'd':
+  	  debug = 1;
+	  break;
+        case 'v':
+          verbose = 1;
           break;
         default:
           usage ();
@@ -294,16 +313,9 @@ int fd;
 
 openfile ()
 {
-  if (debug) {
-    printf ("INPUT  : '%s'\n", inpfn);
-    printf ("OUTPUT : '%s'\n", outfn);
-    if (maklis)
-      printf ("LIST   : '%s'\n", lisfn);
-  }
-  
   inphdl = mustopen (inpfn, "r");
   outhdl = mustopen (outfn, "w");
-  if (maklis)
+  if (lisfn[0])
     lishdl = mustopen (lisfn, "w");
 }
 
@@ -666,7 +678,7 @@ int sname;
   bump (0);
 
   /* Copy line to listing */
-  if (maklis) { 
+  if (lishdl) {
     if (curseg == CODESEG)
       fprintf (lishdl, ";C%04x: %s\n", curpos[CODESEG], pbuf);
     else if (curseg == DATASEG)
@@ -858,8 +870,8 @@ char *msg;
     printf ("'%s' ", incfn);
   /* Display original line */
   printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
-  if (maklis)
-    fprintf (lishdl, "%%%s\n", msg);
+  if (lishdl)
+    fprintf (lishdl, ";%d %%%s\n", inchdl ? inclnr : inplnr, msg);
 }
 
 fatal (msg)

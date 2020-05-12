@@ -47,6 +47,7 @@
 #define GLBMAX 200		/* Number of global symbols */	
 #define LOCMAX 50		/* Number of local symbols */	
 #define SWMAX 100		/* Number of switch cases */	
+#define PATHMAX 80              /* Length of filename */
 
 /*
 ** Machine dependent parmeters
@@ -237,7 +238,6 @@ EXTERN int
   hier_oper[30],	/* Internal translation of the above */
   locinx,		/* Next free local symbol */
   glbinx,		/* Next free global symbol */
-  codeebl,		/* true means code generation enabled */
   inplnr,		/* Linenumber of .C file */
   inclnr,		/* Linenumber of .H file */
   ccode,		/* True for C source, else ASM source */
@@ -247,10 +247,9 @@ EXTERN int
   iflevel,		/* #if nesting level */
   skiplevel,		/* level at which #if skipping starts */
   errflag,		/* True if an error has occurred */
-  monitor,		/* Monitor -m specified */
-  pause,		/* Pause   -p specified */
+  verbose,		/* Verbose -v specified */
   debug,		/* Debug   -d specified */
-  maklis,		/* Listing -l specified */
+  maklis,		/* Listing -h specified */
   outhdl,		/* handle for .ASM file */
   lishdl, 		/* handle for .LIS file */
   inphdl,		/* handle for .C file */
@@ -277,10 +276,9 @@ EXTERN char
   macq[MACQMAX],
 #endif
 
-  inpfn[40],		/* input filename */
-  incfn[40],		/* include filename */
-  outfn[40],		/* output filename */
-  lisfn[40],		/* listing filename */
+  inpfn[PATHMAX],	/* input filename */
+  incfn[PATHMAX],	/* include filename */
+  outfn[PATHMAX],	/* output filename */
   *line,		/* Pointer to current input buffer */
   *lptr,		/* Pointer to current character in input buffer */
   ch,			/* Current character in line being scanned */

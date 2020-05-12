@@ -44,6 +44,7 @@
 #define SBUFMAX 256		/* Size of source buffer */
 #define MACMAX 300		/* Number of definable macro's */
 #define MACQMAX MACMAX*7	/* Expansiontable for macro's */
+#define PATHMAX 80              /* Length of filename */
 
 /*
 ** Machine dependent parmeters
@@ -246,10 +247,8 @@ EXTERN int
   skiplevel,		/* level at which #if skipping starts */
   errflag,		/* True if an error has occurred */
   undef,		/* Auto-external -u specified */
-  monitor,		/* Monitor -m specified */
-  pause,		/* Pause   -p specified */
+  verbose,		/* Verbose -v specified */
   debug,		/* Debug   -d specified */
-  maklis,		/* Listing -l specified */
   outhdl,		/* handle for .OBJ file */
   lishdl, 		/* handle for .LIS file */
   inphdl,		/* handle for .ASM file */
@@ -269,10 +268,10 @@ EXTERN char
 #endif
 
   datbuf[128],		/* storage buffer for sto_data */
-  inpfn[40],		/* input filename */
-  incfn[40],		/* include filename */
-  outfn[40],		/* output filename */
-  lisfn[40],		/* listing filename */
+  inpfn[PATHMAX],	/* input filename */
+  incfn[PATHMAX],	/* include filename */
+  outfn[PATHMAX],	/* output filename */
+  lisfn[PATHMAX],	/* listing filename */
   *line,		/* Pointer to current input buffer */
   *lptr,		/* Pointer to current character in input buffer */
   ch,			/* Current character in line being scanned */

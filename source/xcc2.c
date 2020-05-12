@@ -481,7 +481,7 @@ register int *p, i, argc;
   argc = 0;
   swinx = 1;
   toseg (CODESEG);
-  if (monitor)
+  if (verbose)
     printf ("%s\n", lptr);
 
   /* get procedure name */

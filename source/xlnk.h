@@ -42,6 +42,7 @@
 #define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
 #define FILEMAX	50		/* Number of files */
 #define STACKMAX 50		/* Size of linker stack */
+#define PATHMAX 80		/* Length of filename */
 
 /*
 ** Machine dependent parmeters
@@ -188,9 +189,8 @@ EXTERN int
   errflag,		/* True if an error has occurred */
   stksiz,		/* Stksiz  -s specified */
   undef,		/* Undef   -u specified */
-  monitor,		/* Monitor -m specified */
+  verbose,		/* Verbose -v specified */
   debug,		/* Debug   -d specified */
-  maklis,		/* Listing -l specified */
   outhdl,		/* handle for .IMG file */
   lishdl, 		/* handle for .MAP file */
   inphdl,		/* handle for .OBJ/.OLB file */
@@ -213,9 +213,9 @@ EXTERN char
 #endif
 
   datbuf[512],		/* storage buffer for sto_data */
-  inpfn[40],		/* input filename */
-  outfn[40],		/* output filename */
-  lisfn[40],		/* listing filename */
+  inpfn[PATHMAX],	/* input filename */
+  outfn[PATHMAX],	/* output filename */
+  lisfn[PATHMAX],	/* listing filename */
   *line,		/* Pointer to current input buffer */
   *lptr,		/* Pointer to current character in input buffer */
   ch,			/* Current character in line being scanned */
