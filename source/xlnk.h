@@ -185,7 +185,7 @@ EXTERN int
   pass,			/* Pass number */
   curseg,		/* Current segment */
   curpos[4],maxpos[4],	/* Position in segment */
-  errflag,		/* True if an error has occured */
+  errflag,		/* True if an error has occurred */
   stksiz,		/* Stksiz  -s specified */
   undef,		/* Undef   -u specified */
   monitor,		/* Monitor -m specified */

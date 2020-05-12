@@ -3,18 +3,20 @@
 
 #include "system.hpp"
 
-class ALU
-{
-  private :
-    int cc;
+class ALU {
 
-  public :
-    int calc (int operation,
-              int lvalue,
-              int rvalue);
-    BOOLEAN test_cc (int operation);
-    int getcc ();
-    setcc (int value);
+private :
+	int cc;
+
+public :
+	int calc(int operation, int lvalue, int rvalue);
+
+	BOOLEAN test_cc(int operation);
+
+	int getcc();
+
+	void setcc(int value);
+
 };
 
 #endif

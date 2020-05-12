@@ -42,6 +42,7 @@
 #define VERSION "X-Emulator, Version 1.0"
 
 #define BPW 2
+#define SBIT 15
 #define MAXFILE 100
 
 /*
@@ -282,7 +283,8 @@ void disp_dump(uint16_t pc, int cc) {
 	for (i = 0; i < 4; i++, loc += 0x10) {
 		printf("%04x:", loc);
 		cp     = &image[loc];
-		for (j = 0; j < 8; j++, cp += 2) printf(" %02x%02x", cp[0], cp[1]);
+		for (j = 0; j < 8; j++, cp++)
+			printf(" %02x", cp[0]);
 		printf("\n");
 	}
 
@@ -299,7 +301,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
 			cp = &image[pb[0] << 8 | pb[1]]; /* get addr string */
 
-			write(1, cp, strlen(cp));
+			fputs(cp, stdout);
 
 			break;
 		case 40: /* FREAD */
@@ -308,7 +310,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			cp = &image[pb[2] << 8 | pb[3]];
 			ctrl[2] = pb[4] << 8 | pb[5];
 
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE)
+			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
 			else if (ctrl[2] == 0)
 				regs[1] = (fgets(cp, 512, handles[ctrl[0]]) == NULL) ? -1 : strlen(cp);
@@ -324,12 +326,12 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			cp = &image[pb[2] << 8 | pb[3]];
 			ctrl[2] = pb[4] << 8 | pb[5];
 
-			if (ctrl[2] == 0)
-				ctrl[2] = strlen(cp);
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE)
+			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
-			else
+			else if (ctrl[2] == 0) {
+				regs[1] = strlen(cp);
+				fputs(cp, handles[ctrl[0]]);
+			} else
 				regs[1] = fwrite(cp, 1, ctrl[2], handles[ctrl[0]]);
 
 			pb[6] = regs[1] >> 8;
@@ -348,7 +350,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 					break;
 			}
 			if (hdl >= MAXFILE)
-				fprintf(stderr, "ERROR: too many open files\n"), exit(1);
+				fprintf(stderr, "ERROR: Too many open files\n"), exit(1);
 
 			if (ctrl[2] == 'R' && ctrl[3] == 'A')
 				handles[hdl] = fopen(cp, "r");
@@ -358,23 +360,23 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 				handles[hdl] = fopen(cp, "rb");
 			else if (ctrl[2] == 'W' && ctrl[3] == 'B')
 				handles[hdl] = fopen(cp, "wb");
-			else if (ctrl[2] == 22355/*WS*/ && ctrl[3] == 'B')
+			else if (ctrl[2] == ('W' << 8 | 'S') && ctrl[3] == 'B')
 				handles[hdl] = fopen(cp, "w+b");
 			else
-				fprintf(stderr, "ERROR:FOPEN(%s,%x,%x)\n", cp, ctrl[2], ctrl[3]), exit(1);
+				fprintf(stderr, "ERROR: FOPEN(%s,%x,%x)\n", cp, ctrl[2], ctrl[3]), exit(1);
 
 			regs[1] = (handles[hdl] == NULL) ? -1 : hdl;
-			pb[0]   = regs[1] >> 8;
-			pb[1]   = regs[1] & 0xFF;
+			pb[0] = regs[1] >> 8;
+			pb[1] = regs[1] & 0xFF;
 			break;
 		}
 		case 43: /* FCLOSE */
 			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
 			ctrl[0] = pb[0] << 8 | pb[1];
 
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE) {
+			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
-			} else {
+			else {
 				regs[1] = fclose(handles[ctrl[0]]);
 
 				handles[ctrl[0]] = NULL; /* release */
@@ -389,7 +391,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			ctrl[1] = pb[2] << 8 | pb[3];
 			ctrl[2] = pb[4] << 8 | pb[5];
 
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE)
+			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
 			else
 				regs[1] = fseek(handles[ctrl[0]], SEEK_SET, ctrl[1]);
@@ -545,7 +547,13 @@ void run() {
 						lval = lval - rval;
 						break;
 				}
-				if (lval > 0) cc = 2; else if (lval < 0) cc = 1; else cc = 0;
+
+				if (lval == 0)
+					cc = 0;
+				else if (lval & (1 << SBIT))
+					cc = 1;
+				else
+					cc = 2;
 				break;
 			case _NEG:
 			case _NOT:
@@ -558,7 +566,12 @@ void run() {
 					lval = ~regs[image[pc - 1] & 0xF];
 				regs[image[pc - 1] & 0xF] = lval;
 
-				if (lval > 0) cc = 2; else if (lval < 0) cc = 1; else cc = 0;
+				if (lval == 0)
+					cc = 0;
+				else if (lval & (1 << SBIT))
+					cc = 1;
+				else
+					cc = 2;
 				break;
 			case _JMP:
 				rval = image[pc++] << 8;

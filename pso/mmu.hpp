@@ -3,24 +3,26 @@
 
 #include "system.hpp"
 
-class PAGE_TABLE
-{
-  private:
-    char *image;
+class PAGE_TABLE {
 
-  public:
-    PAGE_TABLE ();
-    ~PAGE_TABLE ();
+private:
+	char *image;
 
-    BOOLEAN read_byte (ADDRESS addr,
-                       char *value);
-    BOOLEAN read_word (ADDRESS addr,
-                       int *value);
-    BOOLEAN write_byte (ADDRESS addr,
-                        char value);
-    BOOLEAN write_word (ADDRESS addr,
-                        int value);
-    BOOLEAN loadfile   (char *fname);
+public:
+	PAGE_TABLE();
+
+	~PAGE_TABLE();
+
+	BOOLEAN read_byte(ADDRESS addr, char *value);
+
+	BOOLEAN read_word(ADDRESS addr, int *value);
+
+	BOOLEAN write_byte(ADDRESS addr, char value);
+
+	BOOLEAN write_word(ADDRESS addr, int value);
+
+	BOOLEAN loadfile(char *fname);
+
 };
 
 #endif

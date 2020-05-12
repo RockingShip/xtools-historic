@@ -256,7 +256,7 @@ int error, hash, objinx;
     olblen += p[FLENGTH];
   }
 
-  /* if no errors occured then generate new library */
+  /* if no errors occurred then generate new library */
   if (error) {
     printf ("module not inserted\n");
     exit (1);

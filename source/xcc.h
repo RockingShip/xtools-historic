@@ -246,7 +246,7 @@ EXTERN int
   pinx,			/* Position in preprocessor buffer */
   iflevel,		/* #if nesting level */
   skiplevel,		/* level at which #if skipping starts */
-  errflag,		/* True if an error has occured */
+  errflag,		/* True if an error has occurred */
   monitor,		/* Monitor -m specified */
   pause,		/* Pause   -p specified */
   debug,		/* Debug   -d specified */

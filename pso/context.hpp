@@ -1,27 +1,28 @@
 #ifndef CONTEXT_HPP
 #define CONTEXT_HPP
 
-#include "system.hpp"
+class CPU_CONTEXT {
 
-class CPU_CONTEXT
-{
+private :
+	int regs[16];
+	int pc;
+	int cc;
 
-  private :
-    int regs[16];
-    int pc;
-    int cc;
+public :
+	CPU_CONTEXT();
 
-  public :
-    CPU_CONTEXT ();
+	int getreg(int reg);
 
-    int getreg (int reg);
-    int getpc ();
-    int getcc ();
+	int getpc();
 
-    setreg (int reg,
-            int value);
-    setpc (int value);
-    setcc (int value);
+	int getcc();
+
+	void setreg(int reg, int value);
+
+	void setpc(int value);
+
+	void setcc(int value);
+
 };
 
 #endif
