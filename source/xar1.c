@@ -197,28 +197,28 @@ register int i, j, ext;
 /*
 ** Open all files
 */
-mustopen(fn, mode, type)
+mustopen(fn, mode)
 char *fn;
-int mode, type;
+char *mode;
 {
 int fd;
 
-  if ((fd=fopen(fn, mode, type)) > 0)
+  fd=fopen(fn, mode);
+  if (fd > 0)
     return fd;
-  printf ("open error on '%s'. error = %d\n", fn, fd);
+  printf (perror("fopen(%s,%s) returned", fn, mode));
   exit (1);
 }
 
 /*
 ** Open the .OLB file, test the header, and load the tables 
 */
-open_olb (mode)
-int mode;
+open_olb ()
 {
 register int i, *p;
 
-  olbhdl = mustopen (olbfn, mode, 'B');
-  if (fread (olbhdl, olbhdr, HLAST*BPW) != HLAST*BPW) {
+  olbhdl = mustopen (olbfn, "r");
+  if (fread (olbhdr, BPW, HLAST, olbhdl) != HLAST) {
     printf ("error reading .OLB header\n");
     exit (1);
   }
@@ -230,12 +230,12 @@ register int i, *p;
     printf ("file table too large in .OLB\n");
     exit (1);
   }
-  if (fread (olbhdl, name, i=olbhdr[HNAME]*NLAST*BPW) != i) {
+  if (fread (name, BPW, i=olbhdr[HNAME]*NLAST, olbhdl) != i) {
     printf ("error reading .OLB nametable\n");
     exit (1);
   }
   if (olbhdr[HFILE] > 0)
-    if (fread (olbhdl, file, i=olbhdr[HFILE]*FLAST*BPW) != i) {
+    if (fread (file, BPW, i=olbhdr[HFILE]*FLAST, olbhdl) != i) {
       printf ("error reading .OLB filetable\n");
       exit (1);
     }

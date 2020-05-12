@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-12 20:19:53 Conform fopen/fread/fwrite/fseek and endianness.
 2020-05-12 19:40:32 Reordered blocks to avoid forward references.
 2020-05-09 23:21:52 Reformat native programs, only critical code changes.
 2020-05-12 12:13:53 Add build scripts.

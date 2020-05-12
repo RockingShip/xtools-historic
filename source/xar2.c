@@ -80,9 +80,35 @@ register int ch, *p, hash, tab;
   }
 }
 
+read_byte()
+{
+char arr[1];
+
+  if (fread (arr, 1, 1, objhdl) != 1) {
+    printf("missing .END (use -v to discover where)\n");
+    exit(1);
+  }
+
+  /* return unsigned */
+  return arr[0] & 0xff;
+}
+
+read_word()
+{
+char arr[2];
+
+  if (fread (arr, 1, 2, objhdl) != 2) {
+    printf("missing .END (use -v to discover where)\n");
+    exit(1);
+  }
+
+  /* return unsigned */
+  return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
+}
+
 do_lis ()
 {
-  open_olb ('R');
+  open_olb ();
   printf ("Object statistics : \n");
   objmap ();
   printf ("\nSymboltable : \n\n");
@@ -102,24 +128,24 @@ register int i;
     name[i*NLAST+NLIB] = -1;
 
   /* open outputfile */
-  fdelete (outfn);
-  outhdl = mustopen (outfn, 'W', 'B');
+  unlink (outfn);
+  outhdl = mustopen (outfn, "w");
 
   /* Writeout */
-  if (fwrite (outhdl, olbhdr, HLAST*BPW) != HLAST*BPW) {
+  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
     printf ("error writing .OLB header\n");
     exit (1);
   }
-  if (fwrite (outhdl, name, i=olbhdr[HNAME]*NLAST*BPW) != i) {
+  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
     printf ("error writing .OLB nametable\n");
     exit (1);
   }
 
   /* close and rename */
   fclose (outhdl);
-  fdelete (bakfn);
-  frename (olbfn, bakfn);
-  frename (outfn, olbfn);
+  unlink (bakfn);
+  rename (olbfn, bakfn);
+  rename (outfn, olbfn);
 }
 
 do_add ()
@@ -129,7 +155,7 @@ register int objlen, olblen, *p, i;
 int error, hash, objinx;
 
   /* open inputfile */
-  open_olb ('RS');
+  open_olb ();
 
   /* first delete any existing occurences */
   dohash (modn, &hash);
@@ -160,20 +186,17 @@ int error, hash, objinx;
   }
 
   /* open objectfile */
-  objhdl = mustopen (objfn, 'RS', 'B');
+  objhdl = mustopen (objfn, "r");
 
   /* read object, calc length and insert all found symbols */
   error = 0;
   objlen = 0;
   cmd = -1;
   while (cmd != __END) {
-    if (fread (objhdl, &cmd, 1) != 1) {
-      printf ("missing END in .OBJ\n");
-      exit (1);
-    }
+    cmd = read_byte();
     if (cmd < 0) {
       datlen = -cmd;
-      fread (objhdl, datbuf, datlen);
+      fread (datbuf, 1, datlen, objhdl);
       objlen += datlen + 1;
     } else {
       switch (cmd) {
@@ -184,23 +207,22 @@ int error, hash, objinx;
           objlen += 1;
           break;
         case __PUSHB: case __CODEB: case __DATAB: case __UDEFB:
-          fread (objhdl, datbuf, 1);
+          read_byte();
           objlen += 2;
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
-          fread (objhdl, datbuf, BPW);
+          read_word();
           objlen += BPW + 1;
           break;
         case __SYMBOL:
           /* Push symbol value on stack */
-          fread (objhdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (objhdl, datbuf, datlen); /* symbol */
+          datlen = read_byte(); /* length */
+          fread (datbuf, 1, datlen, objhdl); /* symbol */
           objlen += 2 + datlen;
           break;
         case __DSB:
 	  /* skip specified number of bytes in current segment */
-          fread (objhdl, datbuf, BPW); /* skipcount */
+          read_word(); /* skipcount */
           objlen += 1 + BPW;
           break;
         case __END:
@@ -208,10 +230,9 @@ int error, hash, objinx;
            break;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           /* symbol definition */
-          fread (objhdl, datbuf, BPW); /* symbol offset */
-          fread (objhdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (objhdl, datbuf, datlen); /* symbol */
+          read_word(); /* symbol offset */
+          datlen = read_byte(); /* length */
+          fread (datbuf, 1, datlen, objhdl); /* symbol */
           objlen += 1 + BPW + 1 + datlen;
 
           /* locate symbol in table and insert */
@@ -232,7 +253,7 @@ int error, hash, objinx;
           }
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          fread (objhdl, datbuf, BPW); /* segment offset */
+          read_word(); /* segment offset */
           objlen += 1 + BPW;
           break;
         default:
@@ -265,19 +286,19 @@ int error, hash, objinx;
     printf ("module length: %d\n", objlen);
 
   /* build new library */
-  fdelete (outfn);
-  outhdl = mustopen (outfn, 'W', 'B');
+  unlink (outfn);
+  outhdl = mustopen (outfn, "w");
 
   /* Writeout */
-  if (fwrite (outhdl, olbhdr, HLAST*BPW) != HLAST*BPW) {
+  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
     printf ("error writing .OLB header\n");
     exit (1);
   }
-  if (fwrite (outhdl, name, i=olbhdr[HNAME]*NLAST*BPW) != i) {
+  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
     printf ("error writing .OLB nametable\n");
     exit (1);
   }
-  if (fwrite (outhdl, file, i=olbhdr[HFILE]*FLAST*BPW) != i) {
+  if (fwrite (file, BPW, i=olbhdr[HFILE]*FLAST, outhdl) != i) {
     printf ("error writing .OLB filetable\n");
     exit (1);
   }
@@ -293,9 +314,9 @@ int error, hash, objinx;
 
   /* close and rename */
   fclose (outhdl);
-  fdelete (bakfn);
-  frename (olbfn, bakfn);
-  frename (outfn, olbfn);
+  unlink (bakfn);
+  rename (olbfn, bakfn);
+  rename (outfn, olbfn);
 }
 
 do_del ()
@@ -305,7 +326,7 @@ register int olblen, *p, i;
 int error, hash, objinx;
 
   /* open inputfile */
-  open_olb ('RS');
+  open_olb ();
 
   /* locate module in filetable */
   dohash (modn, &hash);
@@ -346,19 +367,19 @@ int error, hash, objinx;
   }
 
   /* build new library */
-  fdelete (outfn);
-  outhdl = mustopen (outfn, 'W', 'B');
+  unlink (outfn);
+  outhdl = mustopen (outfn, "w");
 
   /* Writeout */
-  if (fwrite (outhdl, olbhdr, HLAST*BPW) != HLAST*BPW) {
+  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
     printf ("error writing .OLB header\n");
     exit (1);
   }
-  if (fwrite (outhdl, name, i=olbhdr[HNAME]*NLAST*BPW) != i) {
+  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
     printf ("error writing .OLB nametable\n");
     exit (1);
   }
-  if (fwrite (outhdl, file, i=olbhdr[HFILE]*FLAST*BPW) != i) {
+  if (fwrite (file, BPW, i=olbhdr[HFILE]*FLAST, outhdl) != i) {
     printf ("error writing .OLB filetable\n");
     exit (1);
   }
@@ -371,9 +392,9 @@ int error, hash, objinx;
 
   /* close and rename */
   fclose (outhdl);
-  fdelete (bakfn);
-  frename (olbfn, bakfn);
-  frename (outfn, olbfn);
+  unlink (bakfn);
+  rename (olbfn, bakfn);
+  rename (outfn, olbfn);
 }
 
 do_ext ()
@@ -383,7 +404,7 @@ register int olblen, *p, i;
 int error, hash, objinx;
 
   /* open inputfile */
-  open_olb ('RS');
+  open_olb ();
 
   /* locate module in filetable */
   dohash (modn, &hash);
@@ -398,7 +419,7 @@ int error, hash, objinx;
   }
 
   /* open object file as outhdl (used by copy_obj) */
-  outhdl = mustopen (objfn, 'W', 'B');
+  outhdl = mustopen (objfn, "w");
   copy_obj (olbhdl, p[FOFFSET], p[FLENGTH]);
 
   fclose (outhdl);
@@ -410,16 +431,16 @@ register int hdl, ofs, len;
 {
 register int i, tmplen;
 
-  fseek (hdl, ofs);
+  fseek (hdl, ofs, 0);
   while (len > 0) {
     tmplen = len;
     if (tmplen > 512)
       tmplen = 512;
-    if ((i=fread (hdl, datbuf, tmplen)) != tmplen) {
+    if ((i=fread (datbuf, 1, tmplen, hdl)) != tmplen) {
       printf ("error reading .OLB during copy\n");
       exit (1);
     }
-    if ((i=fwrite (outhdl, datbuf, tmplen)) != tmplen) {
+    if ((i=fwrite (datbuf, 1, tmplen, outhdl)) != tmplen) {
       printf ("error writinging .OLB during copy\n");
       exit (1);
     }

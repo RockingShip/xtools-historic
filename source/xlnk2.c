@@ -60,8 +60,48 @@ register int *fp;
     fp[FUDEFLEN] = fp[FUDEFPOS];
 }
 
-dopass1 (hdl, fileid, libid, libofs)
-int hdl, fileid, libid, libofs;
+read_byte()
+{
+	char arr[1];
+
+	if (fread (arr, 1, 1, inphdl) != 1)
+		fatal("missing .END (use -v to discover where)\n");
+
+	/* return unsigned */
+	return arr[0] & 0xff;
+}
+
+read_word()
+{
+	char arr[2];
+
+	if (fread (arr, 1, 2, inphdl) != 2)
+		fatal("missing .END (use -v to discover where)\n");
+
+	/* return unsigned */
+	return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
+}
+
+write_byte(byte)
+char byte;
+{
+fwrite (&byte, 1, 1, outhdl);
+}
+
+write_word(word)
+int word;
+{
+char arr[2];
+
+arr[0] = word>>8;
+arr[1] = word;
+
+fwrite (arr, 1, 2, outhdl);
+}
+
+
+dopass1 (fileid, libid, libofs)
+short fileid, libid, libofs;
 {
 register int *p, *fp, curseg;
 int symseg, symofs, hash;
@@ -88,13 +128,10 @@ char cmd;
     printf ("\n", datbuf);
   }
   while (1) {
-    if (fread (hdl, &cmd, 1) != 1) {
-      printf ("missing END in %s\n", inpfn);
-      return;
-    }
+    cmd = read_byte();
     if (cmd < 0) {
       datlen = -cmd;
-      fread (hdl, datbuf, datlen);
+      fread (datbuf, 1, datlen, inphdl);
       if (curseg == CODESEG)
         fp[FCODEPOS] += datlen;
       else if (curseg == DATASEG)
@@ -110,17 +147,16 @@ char cmd;
           break;
         case __PUSHB: case __CODEB: case __DATAB: case __UDEFB:
           /* skip byte length stack operations */
-          fread (hdl, datbuf, 1);
+          read_byte();
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
           /* skip BPW length stack operations */
-          fread (hdl, datbuf, BPW);
+          read_word();
           break;
         case __SYMBOL:
           /* Push symbol value on stack */
-          fread (hdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (hdl, datbuf, datlen); /* symbol */
+          datlen = read_byte(); /* length */
+          fread (datbuf, 1, datlen, inphdl); /* symbol */
           datbuf[datlen] = 0;
           dohash (datbuf, &hash);
           p = &name[hash*NLAST];
@@ -149,7 +185,7 @@ char cmd;
           break;
         case __DSB:
 	  /* skip specified number of bytes in current segment */
-          fread (hdl, &symofs, BPW); /* skipcount */
+          symofs = read_word(); /* skipcount */
           if (curseg == CODESEG)
             fp[FCODEPOS] += symofs;
           else if (curseg == DATASEG)
@@ -168,10 +204,9 @@ char cmd;
             symseg = DATA;
           else
             symseg = UDEF;
-          fread (hdl, &symofs, BPW); /* symbol offset */
-          fread (hdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (hdl, datbuf, datlen); /* symbol */
+          symofs = read_word(); /* symbol offset */
+          datlen = read_byte(); /* length */
+          fread (datbuf, 1, datlen, inphdl); /* symbol */
           datbuf[datlen] = 0;
           dohash (datbuf, &hash);
           p = &name[hash*NLAST];
@@ -190,7 +225,7 @@ char cmd;
             printf ("SYMDEF: %s %d:%d\n", datbuf, symseg, symofs);
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          fread (hdl, &symofs, BPW); /* segment offset */
+          symofs = read_word(); /* segment offset */
           savmaxseg (fp);
           if (cmd == __CODEORG) {
             curseg = CODESEG;
@@ -215,8 +250,8 @@ char cmd;
   }
 }
 
-dopass2 (hdl, fp)
-int hdl, *fp;
+dopass2 (fp)
+register int *fp;
 {
 register int i, *p, curseg, lval, rval;
 int symseg, symofs, hash, val;
@@ -224,7 +259,7 @@ char cmd, cval;
 
   curseg = CODESEG;
   stackinx = 0;
-  fseek (outhdl, fp[FCODEBASE]);
+  fseek (outhdl, fp[FCODEBASE], 0);
 
   if (monitor) {
     soutname (fp[FFILE], datbuf);
@@ -237,14 +272,11 @@ char cmd, cval;
   }
 
   while (1) {
-    if (fread (hdl, &cmd, 1) != 1) {
-      printf ("unexpected missing END in %s\n", inpfn);
-      return;
-    }
+    cmd = read_byte();
     if (cmd < 0) {
       datlen = -cmd;
-      fread (hdl, datbuf, datlen);
-      fwrite (outhdl, datbuf, datlen);
+      fread (datbuf, 1, datlen, inphdl);
+      fwrite (datbuf, 1, datlen, outhdl);
       if (curseg == CODESEG)
         fp[FCODEPOS] += datlen;
       else if (curseg == DATASEG)
@@ -311,22 +343,20 @@ char cmd, cval;
           stack[stackinx++] = rval;
           break;
         case __PUSHB: case __CODEB: case __DATAB: case __UDEFB:
-          /* skip byte length stack operations */
-          fread (hdl, datbuf, 1);
+          val = read_byte();
           if (cmd == __PUSHB)
-            stack[stackinx] = datbuf[0];
+            stack[stackinx] = val;
           else if (cmd == __CODEB)
-            stack[stackinx] = fp[FCODEBASE] + datbuf[0];
+            stack[stackinx] = fp[FCODEBASE] + val;
           else if (cmd == __DATAB)
-            stack[stackinx] = fp[FDATABASE] + datbuf[0];
+            stack[stackinx] = fp[FDATABASE] + val;
           else
-            stack[stackinx] = fp[FUDEFBASE] + datbuf[0];
+            stack[stackinx] = fp[FUDEFBASE] + val;
           stackinx += 1;
           if (stackinx >= STACKMAX) objerr (fp, "stack overflow", curseg);
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
-          /* skip BPW length stack operations */
-          fread (hdl, &val, BPW);
+          val = read_word();
           if (cmd == __PUSHB)
             stack[stackinx] = val;
           else if (cmd == __CODEW)
@@ -340,9 +370,8 @@ char cmd, cval;
           break;
         case __SYMBOL:
           /* Push symbol value on stack */
-          fread (hdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (hdl, datbuf, datlen); /* symbol */
+          datlen = read_byte(); /* length */
+          fread (datbuf, 1, datlen, inphdl); /* symbol */
           datbuf[datlen] = 0;
           dohash (datbuf, &hash);
 
@@ -355,8 +384,7 @@ char cmd, cval;
           if (stackinx < 0) objerr (fp, "stack underflow", curseg);
           if ((stack[stackinx] < -128) || (stack[stackinx] > 127))
             objerr (fp, "byte overflow", curseg);
-          cval = stack[stackinx];
-          fwrite (outhdl, &cval, 1);
+          write_byte(stack[stackinx]);
 
           /* increase curpos with 1 */
           if (curseg == CODESEG)
@@ -372,7 +400,7 @@ char cmd, cval;
           /* pop word from stack */
           stackinx -= 1;
           if (stackinx < 0) objerr (fp, "stack underflow", curseg);
-          fwrite (outhdl, &stack[stackinx], BPW);
+          write_word(stack[stackinx]);
 
           /* increase curpos with BPW */
           if (curseg == CODESEG)
@@ -386,7 +414,7 @@ char cmd, cval;
           break;
         case __DSB:
 	  /* skip specified number of bytes in current segment */
-          fread (hdl, &symofs, BPW); /* skipcount */
+	  symofs = read_word(); /* skipcount */
           if (curseg == CODESEG) {
             fp[FCODEPOS] += symofs;
             i = symofs;
@@ -400,11 +428,11 @@ char cmd, cval;
 
           datbuf[0] = datbuf[1] = datbuf[2] = datbuf[3] = 0;
           while (i > 4) {
-            fwrite (outhdl, datbuf, 4);
+            fwrite (datbuf, 1, 4, outhdl);
             i -= 4;
           }
           while (i > 0) {
-            fwrite (outhdl, datbuf, 1);
+            fwrite (datbuf, 1, 1, outhdl);
             i -= 1;
           }
           break;
@@ -414,13 +442,12 @@ char cmd, cval;
           return;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           /* symbol definition (skiped in pass2) */
-          fread (hdl, &symofs, BPW); /* symbol offset */
-          fread (hdl, datbuf, 1); /* length */
-          datlen = datbuf[0];
-          fread (hdl, datbuf, datlen); /* symbol */
+          symofs = read_word() & 0xffff; /* symbol offset */
+          datlen = read_byte() & 0xff; /* length */
+          fread (datbuf, 1, datlen, inphdl); /* symbol */
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          fread (hdl, &symofs, BPW); /* segment offset */
+          symofs = read_word(); /* segment offset */
           if (cmd == __CODEORG) {
             curseg = CODESEG;
             fp[FCODEPOS] = symofs;
@@ -434,7 +461,7 @@ char cmd, cval;
             fp[FUDEFPOS] = symofs;
             i = 0;
           } 
-          fseek (outhdl, i);
+          fseek (outhdl, i, 0);
           break;
         default:
           printf ("unknown command %d", cmd);
@@ -535,13 +562,13 @@ int hash, found;
     if (fp[FLIB] == -1) {
       /* process object */
       soutname (fp[FFILE], inpfn);
-      inphdl = mustopen (inpfn, 'R', 'B');
-      dopass1 (inphdl, fp[FFILE], fp[FLIB], 0);
+      inphdl = mustopen (inpfn, "r");
+      dopass1 (fp[FFILE], fp[FLIB], 0);
       fclose (inphdl);
     } else {
       /* process library */
       soutname (fp[FLIB], inpfn);
-      open_olb ('RS');
+      open_olb ();
       found = 0;
       while (1) {
         for (j=0; j<NAMEMAX; j++) {
@@ -554,12 +581,12 @@ int hash, found;
             if (p[LBNLIB] != -1) {
               /* found module containing symbol definition */
               p = &lbfile[p[LBNLIB]*LBFLAST];
-              fseek (inphdl, p[LBFOFFSET]);
+              fseek (inphdl, p[LBFOFFSET], 0);
               /* add module name to linker symboltable */
               lbsoutname (p[LBFNAME], datbuf);
               dohash (datbuf, &hash);
               /* process */
-              dopass1 (inphdl, hash, fp[FLIB], p[LBFOFFSET]);
+              dopass1 (hash, fp[FLIB], p[LBFOFFSET]);
               found = 1;
             }
           }
@@ -597,11 +624,12 @@ int hash, found;
 
   /* generate prefix "JMP ___START" */
   datbuf[0] = 0x6F;  /* opcode for JMP */
-  fwrite (outhdl, datbuf, 1);
   dohash ("___START", &hash);
-  fwrite (outhdl, &name[hash*NLAST+NVALUE], BPW);
-  datbuf[0] = datbuf[1] = 0; /* No register indirects */
-  fwrite (outhdl, datbuf, 2);
+  datbuf[1] = name[hash*NLAST+NVALUE] >> 8; /* hi */
+  datbuf[2] = name[hash*NLAST+NVALUE]; /* lo */
+  datbuf[3] = 0; /* reg1 */
+  datbuf[4] = 0; /* reg2 */
+  fwrite (datbuf, 1, 5, outhdl);
 
   /* process pass 2 */
   for (i=0; i<file2inx; i++) {
@@ -609,16 +637,16 @@ int hash, found;
     if (fp[FLIB] == -1) {
       /* process object */
       soutname (fp[FFILE], inpfn);
-      inphdl = mustopen (inpfn, 'R', 'B');
-      dopass2 (inphdl, fp);
+      inphdl = mustopen (inpfn, "r");
+      dopass2 (fp);
       fclose (inphdl);
     } else {
       /* process library */
       soutname (fp[FLIB], inpfn);
-      inphdl = mustopen (inpfn, 'RS', 'B');
+      inphdl = mustopen (inpfn, "r");
       while (1) {
-        fseek (inphdl, fp[FOFFSET]);
-        dopass2 (inphdl, fp);
+        fseek (inphdl, fp[FOFFSET], 0);
+        dopass2 (fp);
         /* test if next module comes from same library */
         if (((i+1) >= file2inx) || (file2[(i+1)*FLAST+FLIB] != fp[FLIB]))
           break;

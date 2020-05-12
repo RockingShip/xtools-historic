@@ -197,34 +197,23 @@ register int i, ext;
 /*
 ** Open all files
 */
-mustopen(fn, mode, type)
+mustopen(fn, mode)
 char *fn;
-int mode, type;
+char *mode;
 {
 int fd;
 
-  if ((fd=fopen(fn, mode, type)) > 0)
+  fd=fopen(fn, mode);
+  if (fd > 0)
     return fd;
-  printf ("open error on '%s'. error = %d\n", fn, fd);
+  printf (perror("fopen(%s,%s) returned", fn, mode));
   exit (1);
 }
 
 openfile ()
 {
-char fn[40];
-
-  
-  if (debug) {
-    printf ("INPUT  : '%s'\n", inpfn);
-    printf ("OUTPUT : '%s'\n", outfn);
-    if (maklis)
-      printf ("LIST   : '%s'\n", lisfn);
-  }
-  
-  inphdl = mustopen (inpfn, 'R', 'A');
-  outhdl = mustopen (outfn, 'W', 'A');
-  if (maklis)
-    lishdl = mustopen (lisfn, 'W', 'A');
+  inphdl = mustopen (inpfn, "r");
+  outhdl = mustopen (outfn, "w");
 }
 
 
@@ -367,20 +356,20 @@ int c;
     pbuf[pinx++] = c;
 }
 
-inline ()
+readline ()
 {
   *sbuf = 0;
   if (inphdl)
     while (!*sbuf) {
       if (inchdl) {
-        if (fread (inchdl, sbuf, 0) < 0) {
+        if (!fgets (sbuf, SBUFMAX, inchdl)) {
           fclose (inchdl);
           inchdl = 0;
           continue;
         }
         ++inclnr;
       } else if (inphdl) {
-        if (fread (inphdl, sbuf, 0) < 0) {
+	if (!fgets (sbuf, SBUFMAX, inphdl)) {
           fclose (inphdl);
           inphdl = 0;
           break;
@@ -399,7 +388,7 @@ ifline ()
 int sname;
 
   while (1) {
-    inline ();
+	  readline ();
     if (!inphdl)
       break;
 
@@ -459,7 +448,7 @@ int sname;
     if (!inphdl)
       return 0;
   } else {
-    inline ();
+    readline ();
     return 0;
   }
 
@@ -504,7 +493,7 @@ int sname;
         if (ch)
           bump (1);
         else {
-          inline ();
+          readline ();
           if (!inphdl)
             break;
         }

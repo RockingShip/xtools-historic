@@ -407,7 +407,7 @@ register char *p;
     *--p = 0; /* Remove delimiter */
     
     /* Open file */
-    inchdl = mustopen (incfn, 'R', 'A');
+    inchdl = mustopen (incfn, "r");
     }
 
   /* make next read come from new file (if open) */
@@ -420,13 +420,13 @@ register char *p;
 doasm ()
 {
   ccode = 0; /* mark mode as "asm" */
-  inline (); /* skip #asm */
+  readline (); /* skip #asm */
   while (inphdl) {
     white ();
     if (ch && amatch("#endasm"))
       break;
     fprintf (outhdl, "%s\n", line);
-    inline ();
+    readline ();
   }
   kill (); /* erase to eoln */
   ccode = 1;

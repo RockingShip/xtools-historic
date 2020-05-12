@@ -269,58 +269,37 @@ int hash;
 /*
 ** Open all files
 */
-mustopen(fn, mode, type)
+mustopen(fn, mode)
 char *fn;
-int mode, type;
+char *mode;
 {
 int fd;
 
-  if ((fd=fopen(fn, mode, type)) > 0)
+fd=fopen(fn, mode);
+if (fd > 0)
     return fd;
-  printf ("open error on '%s'. error = %d\n", fn, fd);
+printf (perror("fopen(%s,%s) returned", fn, mode));
   exit (1);
 }
 
 openfile ()
 {
-char fn[40];
 register int i, *p;
   
-  if (debug) {
-    for (i=0; i<file1inx; i++) {
-      p = &file1[i*FLAST];
-      if (p[FFILE] != -1) {
-        printf ("INPUT  : '");
-        outname (p[FFILE]);
-      }
-      if (p[FLIB] != -1) {
-        if (p[FFILE] == -1)
-          printf ("INPUT  : ''");
-        printf (", '");
-        outname (p[FLIB]);
-      }
-      printf ("'\n");
-    }
-    printf ("OUTPUT : '%s'\n", outfn);
-    if (maklis)
-      printf ("LIST   : '%s'\n", lisfn);
-  }
-  
-  outhdl = mustopen (outfn, 'WS', 'B');
+  outhdl = mustopen (outfn, "w");
   if (maklis)
-    lishdl = mustopen (lisfn, 'W', 'A');
+    lishdl = mustopen (lisfn, "w");
 }
 
 /*
 ** Open the .OLB file, test the header, and load the tables 
 */
-open_olb (mode)
-int mode;
+open_olb ()
 {
 register int i, *p;
 
-  inphdl = mustopen (inpfn, mode, 'B');
-  if (fread (inphdl, lbhdr, LBHLAST*BPW) != LBHLAST*BPW) {
+  inphdl = mustopen (inpfn, "r");
+  if (fread (lbhdr, BPW, LBHLAST, inphdl) != LBHLAST) {
     printf ("error reading .OLB header\n");
     exit (1);
   }
@@ -332,12 +311,12 @@ register int i, *p;
     printf ("file table too large in .OLB\n");
     exit (1);
   }
-  if (fread (inphdl, lbname, i=lbhdr[LBHNAME]*LBNLAST*BPW) != i) {
+  if (fread (lbname, BPW, i=lbhdr[LBHNAME]*LBNLAST, inphdl) != i) {
     printf ("error reading .OLB nametable\n");
     exit (1);
   }
   if (lbhdr[LBHFILE] > 0)
-    if (fread (inphdl, lbfile, i=lbhdr[LBHFILE]*LBFLAST*BPW) != i) {
+    if (fread (lbfile, BPW, i=lbhdr[LBHFILE]*LBFLAST, inphdl) != i) {
       printf ("error reading .OLB filetable\n");
       exit (1);
     }

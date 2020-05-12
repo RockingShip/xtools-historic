@@ -276,23 +276,21 @@ register int i, ext;
 /*
 ** Open all files
 */
-mustopen(fn, mode, type)
+mustopen(fn, mode)
 char *fn;
-int mode, type;
+char *mode;
 {
 int fd;
 
-  if ((fd=fopen(fn, mode, type)) > 0)
+  fd=fopen(fn, mode);
+  if (fd > 0)
     return fd;
-  printf ("open error on '%s'. error = %d\n", fn, fd);
+  printf (perror("fopen(%s,%s) returned", fn, mode));
   exit (1);
 }
 
 openfile ()
 {
-char fn[40];
-
-  
   if (debug) {
     printf ("INPUT  : '%s'\n", inpfn);
     printf ("OUTPUT : '%s'\n", outfn);
@@ -300,10 +298,10 @@ char fn[40];
       printf ("LIST   : '%s'\n", lisfn);
   }
   
-  inphdl = mustopen (inpfn, 'R', 'A');
-  outhdl = mustopen (outfn, 'W', 'B');
+  inphdl = mustopen (inpfn, "r");
+  outhdl = mustopen (outfn, "w");
   if (maklis)
-    lishdl = mustopen (lisfn, 'W', 'A');
+    lishdl = mustopen (lisfn, "w");
 }
 
 
@@ -451,7 +449,7 @@ register char *p;
     *--p = 0; /* Remove delimiter */
     
     /* Open file */
-    inchdl = mustopen (incfn, 'R', 'A');
+    inchdl = mustopen (incfn, "r");
     }
 
   /* make next read come from new file (if open) */
@@ -513,20 +511,20 @@ int c;
     pbuf[pinx++] = c;
 }
 
-inline ()
+readline ()
 {
   *sbuf = 0;
   if (inphdl)
     while (!*sbuf) {
       if (inchdl) {
-        if (fread (inchdl, sbuf, 0) < 0) {
+        if (!fgets (sbuf, SBUFMAX, inchdl)) {
           fclose (inchdl);
           inchdl = 0;
           continue;
         }
         ++inclnr;
       } else if (inphdl) {
-        if (fread (inphdl, sbuf, 0) < 0) {
+        if (!fgets (sbuf, SBUFMAX, inphdl)) {
           fclose (inphdl);
           inphdl = 0;
           break;
@@ -545,7 +543,7 @@ ifline ()
 int sname;
 
   while (1) {
-    inline ();
+    readline ();
     if (!inphdl)
       break;
     white ();
@@ -949,7 +947,7 @@ register int i, j, *p;
   else
     fclose (inphdl);
 
-  inphdl = mustopen (inpfn, 'R', 'A');
+  inphdl = mustopen (inpfn, "r");
   macinx = macqinx = 0;
   iflevel = skiplevel = 0;
   inclnr = inplnr = 0;
@@ -1001,6 +999,22 @@ register int i, j, *p;
 /*                                                                    */
 /**********************************************************************/
 
+write_byte(byte)
+char byte;
+{
+  fwrite (&byte, 1, 1, outhdl);
+}
+
+write_word(word)
+int word;
+{
+  char arr[2];
+  arr[0] = word >> 8;
+  arr[1] = word;
+
+  fwrite (arr, 1, 2, outhdl);
+}
+
 sto_flush ()
 {
 char cval;
@@ -1009,8 +1023,8 @@ register int i,j;
   if ((pass == 2) && datlen) {
     if (!debug) {
       cval = -datlen;
-      fwrite (outhdl, &cval, 1);
-      fwrite (outhdl, datbuf, datlen);
+      write_byte (cval);
+      fwrite (datbuf, 1, datlen, outhdl);
     } else {
       i = 0;
       while (i < datlen) {
@@ -1059,71 +1073,70 @@ register int *p;
         case __ADD:  case __SUB:  case __MUL:  case __DIV: case __MOD:
         case __LSR:  case __LSL:  case __AND:  case __OR:  case __XOR:
         case __SWAP: case __POPW: case __POPB: case __END:
-          fwrite (outhdl, &cmd, 1);
+          write_byte (cmd);
           break;
         case __PUSHW: case __PUSHB:
           if ((val >= -128) && (val <= 127))
             cmd = __PUSHB;
           if (cmd == __PUSHB) {
             cval = val;
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &cval, 1);
+            write_byte (cmd);
+            write_byte (cval);
           } else {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &val, BPW);
+            write_byte (cmd);
+            write_word (val);
           }
           break;
         case __CODEW: case __CODEB:
           if ((val >= -128) && (val <= 127))
             cmd = __CODEB;
           if (cmd == __CODEB) {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &cval, 1);
+            write_byte (cmd);
+            write_byte (cval);
           } else {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &val, BPW);
+            write_byte (cmd);
+            write_word (val);
           }
           break;
         case __DATAW: case __DATAB:
           if ((val >= -128) && (val <= 127))
             cmd = __DATAB;
           if (cmd == __DATAB) {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &cval, 1);
+            write_byte (cmd);
+            write_byte (cval);
           } else {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &val, BPW);
+            write_byte (cmd);
+            write_word (val);
           }
           break;
         case __UDEFW: case __UDEFB:
           if ((val >= -128) && (val <= 127))
             cmd = __UDEFB;
           if (cmd == __UDEFB) {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &cval, 1);
+            write_byte (cmd);
+            write_byte (cval);
           } else {
-            fwrite (outhdl, &cmd, 1);
-            fwrite (outhdl, &val, BPW);
+            write_byte (cmd);
+            write_word (val);
           }
           break;
         case __SYMBOL:
-          fwrite (outhdl, &cmd, 1);
-          cval = lenname (val);
-          fwrite (outhdl, &cval, 1);
+          write_byte (cmd);
+          write_byte (lenname (val));
           foutname (val);
           break;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           p = &name[val*NLAST];
-          fwrite (outhdl, &cmd, 1);
-          fwrite (outhdl, &p[NVALUE], BPW);
+          write_byte (cmd);
+          write_word (p[NVALUE]);
           cval = lenname (val);
-          fwrite (outhdl, &cval, 1);
+          write_byte (cval);
           foutname (val);
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG: 
         case __DSB:
-          fwrite (outhdl, &cmd, 1);
-          fwrite (outhdl, &val, BPW);
+          write_byte (cmd);
+          write_word (val);
           break;
         default:   
           printf ("unimplemented OBJECT cmd: %d\n", cmd);
