@@ -88,7 +88,7 @@ int hash;
   add_res ("___START",    UNDEF);
   add_res ("___STACKLEN", ABS);
   add_res ("___CODEBASE", ABS);
-  add_res ("___CODELEN"), ABS;
+  add_res ("___CODELEN",  ABS);
   add_res ("___DATABASE", ABS);
   add_res ("___DATALEN",  ABS);
   add_res ("___UDEFBASE", ABS);

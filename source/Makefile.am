@@ -1,4 +1,4 @@
-AM_CFLAGS =  -traditional-cpp -Dint=long -fno-inline -w
+AM_CFLAGS =  -Dint=long -fno-inline -w
 
 bin_PROGRAMS = xcc xasm xlnk xar
 

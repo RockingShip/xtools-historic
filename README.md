@@ -17,7 +17,7 @@ The biggest challenge was fitting the toolchain in 64k memory with most instruct
 [```Small-C```](https://en.wikipedia.org/wiki/Small-C) is a minimalistic ```C``` compiler for resource-limited environments and 
 [```"REL blocks"```](https://www.livingcomputers.org/UI/UserDocs/TOPS-20-v7-1/3_LINK_Reference_Manual.pdf) (chapter 1 and appendix A) which are basically a mix of code and post-fix operators to evaluate and resolve symbol references.
 
-```xcc``` language features:
+### ```xcc``` language features:
 
  - Preprocessor ```#include```, ```#define``` and ```#asm```
  - No structures (use arrays with named offsets)
@@ -27,77 +27,7 @@ The biggest challenge was fitting the toolchain in 64k memory with most instruct
  - ```"sizeof(int)==sizeof(char*)"``` (allows for de-referencing of ints)
  - No heap or ```malloc()``` (pointer stack based variables might be an alternative)
 
-Project layout:
-```
-    <root>
-    +-- pso/     # school assigned emulator
-    +-- source/  # xcc,xasm,xlnk,xar 
-    +-- lib/     # X-library 
-    \-- xemu.c   # native emulator
-```
-
-`xcc` assumes 16-bit/MSB architecture.
-The project was originally developed using the 16-bits Zortech C/C++ development environment.
-
-The function `disp_opc()` in `xemu.c` is an opcode cheat sheet.
-
-## Getting Started
-
-These instructions will get the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-The school assignment is written in traditional ```C++``` and ```xcc``` written in minimalistic ```C```.
-
-Both assume that ```"sizeof(int)==sizeof(char*)"```. 
-Pointers are stored in ints which need need some creativity to work with 64-bit architecture. 
-
-This requires the gcc compiler flags ```"-traditional-cpp -fpermissive -Dint=long"``` and ```libc``` replacement. 
-
-### Installing
-
-The makefile supports a number of targets:
-
-```
-    make pso     # emulator of school assignment
-    make stage1  # build 'xcc' with native compiler
-    make stage2  # build 'xcc' with emulated stage1 compiler 
-    make stage3  # build 'xcc' with emulated stage2 compiler and compare result with stage2
-```
-
-Included example is my 1996 IOCCC submission: [Bulls and Cows](https://en.wikipedia.org/wiki/Bulls_and_Cows),
-where you think of a secret number and the program tries to guess.
-It's originally a one-liner, extra whitespace included for readability.
-Anything can be programmed into a for-loop.
-
-Compile test program. 
-With gcc you would issue: "gcc cattle.c -traditional-cpp"
-
-```
-    # compile
-    ./xemu xcc cattle
-    # assemble
-    ./xemu xasm cattle
-    # link
-    ./xemu xlnk cattle -l xlib
-```
-
-Run test program. 
-
-```
-    # run (think of secret number 0291)
-    ./xemu cattle
-    1123  # program displays first guess
-    02    # you answer with "02". No digits at correct position, '2' and '1' present
-    7912  # program displays second guess
-    03    # you answer with "03". No digits at correct position, '2', '9' and '1' present
-    9237  # program displays third guess
-    11    # you answer with "11". The '2' is correct, '1' is present
-    0291  # program displays fourth guess
-    40    # you answer with "40". The guess is correct
-```
-
-## `"-Dint=long"`
+### `"-Dint=long"`
 
 `xtools` needs to be compilable and runnable without modifications both with a native compiler (`gcc`) and the sandboxed self.
 `xcc` assumes and is designed for architectures where `"sizeof(int)>=sizeof(char*))"` because pointers are stores in ints.
@@ -178,6 +108,114 @@ Revised output:
     1 ffffffffffffffff 1 ffffffffffffffff
 ```
   
+  
+  
+### `REL` language
+
+`REL` objects are used to construct assembler output and executables.
+It is a conceptually different approach of both traditional `a.out` and modern `ELF`. 
+
+`a.out/ELF` both see code/data as binary blobs with fixup tables. 
+These tables contain instructions on how to fix parts of these blobs that are position/location dependent.
+
+`REL` blocks can be seen as expression trees where the nodes are opcodes pointing to other nodes, symbol, references or binary blobs.
+The result after "evaluating" the tree is the executable image.
+
+For example, The binary represention of a call to subroutine would be the binary value for the opcode "CALL" followed by some addressing mode representing the address of the function.
+Say the opcode is `0x12 0x44` and the function name resolving to a 32 bits value.
+
+In `a.out/ELF` this would be represented by `"0x12 0x44 0x00 0x00 0x00 0x00"` and a fixup that the 32 bits value of the label be added at offset+2.
+
+With `REL` it would look like:
+```
+   <data 0x12 0x44> <push addrof-label> <pop 32-bits>`
+```
+
+`REL` also allows complex expressions of symbols and values (because of the postfix `REL` operators) but also conditional linking like:
+```
+   <blob for some code>
+   <blob code to prepare, call and handle result of some function> 
+   <blob code when function does not exist>
+   <push result of "test if-label-exists">
+   <pop result and 2 blobs and push the one for condition "TRUE"`>
+   ...
+```
+
+`REL` trees contain a mix of multi-sized data blobs and instructions on how, if and where to place and use them.
+It also allows for post-processing where blobs can be merged when conditionals fold to constants.
+This feature is essential when integrating with the `untangle` engine.
+
+### Project layout
+
+```
+    <root>
+    +-- pso/     # school assigned emulator
+    +-- source/  # xcc,xasm,xlnk,xar 
+    +-- lib/     # X-library 
+    \-- xemu.c   # native emulator
+```
+
+`xcc` assumes 16-bit/MSB architecture.
+The project was originally developed using the 16-bits Zortech C/C++ development environment.
+
+The function `disp_opc()` in `xemu.c` is an opcode cheat sheet.
+
+## Getting Started
+
+These instructions will get the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+The school assignment is written in traditional ```C++``` and ```xcc``` written in minimalistic ```C```.
+
+The programs `xcc/xasm/xlnk/xar` assume that ```"sizeof(int)==sizeof(char*)"```. 
+Pointers are stored in ints which need need some creativity to work with 64-bit architecture. 
+
+This requires the compiler flags `"-Dint=long"`, possibly `"-fno-inline"` and some magic. 
+
+### Installing
+
+The makefile supports a number of targets:
+
+```
+    make pso     # emulator of school assignment
+    make stage1  # build 'xcc' with native compiler
+    make stage2  # build 'xcc' with emulated stage1 compiler 
+    make stage3  # build 'xcc' with emulated stage2 compiler and compare result with stage2
+```
+
+Included example is my 1996 IOCCC submission: [Bulls and Cows](https://en.wikipedia.org/wiki/Bulls_and_Cows),
+where you think of a secret number and the program tries to guess.
+It's originally a one-liner, extra whitespace included for readability.
+Anything can be programmed into a for-loop.
+
+Compile test program. 
+With gcc you would issue: "gcc cattle.c -traditional-cpp"
+
+```
+    # compile
+    ./xemu xcc cattle
+    # assemble
+    ./xemu xasm cattle
+    # link
+    ./xemu xlnk cattle -l xlib
+```
+
+Run test program. 
+
+```
+    # run (think of secret number 0291)
+    ./xemu cattle
+    1123  # program displays first guess
+    02    # you answer with "02". No digits at correct position, '2' and '1' present
+    7912  # program displays second guess
+    03    # you answer with "03". No digits at correct position, '2', '9' and '1' present
+    9237  # program displays third guess
+    11    # you answer with "11". The '2' is correct, '1' is present
+    0291  # program displays fourth guess
+    40    # you answer with "40". The guess is correct
+```
+
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning.
