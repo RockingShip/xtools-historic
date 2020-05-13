@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
-2020-05-12 22:06:26 Fixed argc/argv.
+2020-05-12 23:09:16 Got "-Dint=long" working (Yay!).
+2020-05-12 22:42:37 Fixed argc/argv.
 2020-05-12 22:06:26 Fixed+synced `usage()` and friends.
 2020-05-12 21:09:06 Fixed name hashing.
 2020-05-12 21:01:46 Conform printf format.

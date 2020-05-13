@@ -101,7 +101,7 @@ fwrite (arr, 1, 2, outhdl);
 
 
 dopass1 (fileid, libid, libofs)
-short fileid, libid, libofs;
+int fileid, libid, libofs;
 {
 register int *p, *fp, curseg;
 int symseg, symofs, hash;

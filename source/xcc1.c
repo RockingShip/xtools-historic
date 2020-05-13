@@ -998,7 +998,7 @@ int opc;
 }
 
 gencode (opc)
-short opc;
+int opc;
 {
   genopc(opc);
 
@@ -1006,8 +1006,7 @@ short opc;
 }
 
 gencode_L (opc, lbl)
-short opc;
-short lbl;
+int opc, lbl;
 {
   genopc(opc);
 
@@ -1015,8 +1014,7 @@ short lbl;
 }
 
 gencode_R (opc, reg1, reg2)
-short opc;
-short reg1, reg2;
+int opc, reg1, reg2;
 {
   genopc(opc);
 
@@ -1026,8 +1024,7 @@ short reg1, reg2;
 }
 
 gencode_I (opc, reg, imm)
-short opc;
-short reg, imm;
+int opc, reg, imm;
 {
   genopc(opc);
 
@@ -1037,9 +1034,8 @@ short reg, imm;
 }
 
 gencode_ADJSP (imm)
-short imm;
+int imm;
 {
-
 	if (imm == BPW)
 		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
 	else if (imm == -BPW)
@@ -1055,8 +1051,7 @@ short imm;
 }
 
 gencode_IND(opc, reg, ofs, ind)
-short opc;
-short reg, ofs, ind;
+int opc, reg, ofs, ind;
 {
         genopc(opc);
 
@@ -1068,8 +1063,7 @@ short reg, ofs, ind;
 }
 
 gencode_M (opc, reg, lval)
-short opc;
-short reg;
+int opc, reg;
 register int lval[];
 {
 

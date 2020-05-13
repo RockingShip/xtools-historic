@@ -149,9 +149,12 @@ register int lval[], reg;
 {
 register int srcreg;
 
+  /* Sign extend to fix being called with negative constant when copiled with -Dint=long */
+  reg |= -(reg & (1<<SBIT));
+
   if (lval[LTYPE] == CONSTANT) {
     /* test for a predefined register */
-    if (reg > 0) 
+    if (reg > 0)
       gencode_I (_LEA, reg , lval[LVALUE]);
     else {
       if (lval[LVALUE] == 0)
@@ -167,7 +170,7 @@ register int srcreg;
         gencode_I (_LEA, srcreg , lval[LVALUE]);
       }
 
-      if (reg == -1) 
+      if (reg == -1)
         reg = srcreg;
       else if (srcreg < REG_0)
         reg = srcreg;
@@ -228,7 +231,7 @@ register int srcreg;
     lval[LREG1] = reg;
     lval[LREG2] = 0;
   } else if (((reg > 0) && (lval[LREG1] != reg)) ||
-             (REG_RESVD&(1<<lval[LREG1])) || 
+             (REG_RESVD&(1<<lval[LREG1])) ||
              ((reg != -1) && (reglock&(1<<lval[LREG1])))) {
     freelval (lval);
     if (reg <= 0)
@@ -267,11 +270,11 @@ int rval[LLAST];
   /* Load lval */
   if (!(*hier)(lval))
     return 0;
-  
+
   while (1) {
     /* Locate operation */
     entry = start;
-    while (1) { 
+    while (1) {
       if (!(cptr = hier_str[entry]))
         return 1;
       if (omatch (cptr))
@@ -288,7 +291,7 @@ int rval[LLAST];
       exprerr ();
       return 1;
     }
-  
+
     /* Put rval into a register */
     if (!rval[LPTR] && (rval[LTYPE] == FUNCTION))
       error ("Invalid function use");
@@ -313,7 +316,7 @@ int rval[LLAST];
 }
 
 /*
-** generic processing for <lval> <comparison> <rval> 
+** generic processing for <lval> <comparison> <rval>
 */
 xplng2 (hier, start, lval)
 register int (*hier)(), start, lval[];
@@ -324,10 +327,10 @@ int rval[LLAST];
   /* Load lval */
   if (!(*hier)(lval))
     return 0;
-  
+
   /* Locate operation */
   entry = start;
-  while (1) { 
+  while (1) {
     if (!(cptr = hier_str[entry]))
       return 1;
     if (omatch (cptr))
@@ -340,7 +343,7 @@ int rval[LLAST];
     exprerr ();
     return 1;
   }
-  
+
   /* Generate code */
   if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
     lval[LVALUE] = calc (lval[LVALUE], hier_oper[entry], rval[LVALUE]);
@@ -379,7 +382,7 @@ int once;
   entry = start;
   while (1) {
     /* Locate operation */
-    while (1) { 
+    while (1) {
       if (!(cptr = hier_str[entry]))
         return 1;
       if (omatch (cptr))
@@ -412,7 +415,7 @@ int once;
           lval[LTRUE] = ++nxtlabel;
         lbl = lval[LTRUE];
       }
-      
+
       /* Mark done */
       once = 0;
     }
@@ -433,7 +436,7 @@ int once;
       exprerr ();
       return 1;
     }
-  
+
     /* Put lval into a register */
     if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
       error ("Invalid function use");
@@ -459,7 +462,7 @@ int once;
   }
 }
 
-  
+
 
 /*
 ** Do a hierichal evaluation
@@ -646,7 +649,7 @@ register int argc, reg;
         loadlval (lval2, 0);
         if (lval[LSIZE] == BPW)
           gencode_R (_MUL, lval2[LREG1], REG_BPW); /* size index */
-        if (!lval[LREG1]) 
+        if (!lval[LREG1])
           lval[LREG1] = lval2[LREG1];
         else
           lval[LREG2] = lval2[LREG1];
@@ -738,7 +741,7 @@ register int lval[];
       exprerr ();
       return 0;
     }
-    if (lval[LTYPE] == CONSTANT) 
+    if (lval[LTYPE] == CONSTANT)
       lval[LVALUE] = ~lval[LVALUE];
     else {
       loadlval (lval, 0);
@@ -749,9 +752,9 @@ register int lval[];
       exprerr ();
       return 0;
     }
-    if (lval[LTYPE] == CONSTANT) 
+    if (lval[LTYPE] == CONSTANT)
       lval[LVALUE] = !lval[LVALUE];
-    else if (lval[LTYPE] == BRANCH) 
+    else if (lval[LTYPE] == BRANCH)
       lval[LVALUE] = negop(lval[LVALUE]);
     else {
       /* convert CC bits into a BRANCH */
@@ -766,7 +769,7 @@ register int lval[];
       exprerr ();
       return 0;
     }
-    if (lval[LTYPE] == CONSTANT) 
+    if (lval[LTYPE] == CONSTANT)
       lval[LVALUE] = -lval[LVALUE];
     else {
       loadlval (lval, 0);
@@ -949,7 +952,7 @@ register int oper;
   else if (match ("%="))  oper = _MOD;
   else if (match (">>=")) oper = _LSR;
   else if (match ("<<=")) oper = _LSL;
-  else 
+  else
     return 1;
 
   /* test if lval modifiable */

@@ -9,8 +9,9 @@ In my early education days of computer science there was a "PSO" (practical syst
 design, implementation and testing of a emulated CPU and MMU unit. 
 Personally not challenging so to up the ante and in agreement with school staff I received permission to
 extend the testing by implementing a turing-complete compiler/assembler/linker/archiver toolchain.
-I was allowed to extend the CPU instruction as long as changes were backwards compatible. 
-The biggest challenge was fitting the toolchain in 64k memory with most instructions being 5 bytes.
+Modifications to the incomplete instruction set were also permitted as long as they were backwards compatible. 
+The biggest challenge was fitting the toolchain in 64k memory with most instructions being 5-6 bytes.
+
 
 ```xcc``` was heavily inspired and partly based on  ```Small-C``` and Digital-Equipment's TOPS-20 ```"REL blocks"```.
 [```Small-C```](https://en.wikipedia.org/wiki/Small-C) is a minimalistic ```C``` compiler for resource-limited environments and 
@@ -96,9 +97,87 @@ Run test program.
     40    # you answer with "40". The guess is correct
 ```
 
+## `"-Dint=long"`
 
+`xtools` needs to be compilable and runnable without modifications both with a native compiler (`gcc`) and the sandboxed self.
+`xcc` assumes and is designed for architectures where `"sizeof(int)>=sizeof(char*))"` because pointers are stores in ints.
 
+The only problem on architectures where this differs (like x86-64) are function calls.
+Variables will be passed as 64 bits values, however constants as 32 bits.
 
+Back in the day all calling arguments would be pushed on the stack, constants would therefore unsync the stack. 
+Modern calling standards pass the first 6 arguments through registers, so the first six arguments are 'safe'.
+
+However, because they are in registers, the pushed constant will be in the lower 32 bits, the upper 32 set to zero.
+This will break the signedness of arguments.   
+
+The phenomina is best explained with this code snippet:
+```
+    long main(argc, argv)
+    {
+        test(+1L, -1L, +1, -1);
+        return 0;
+    }
+
+    test(a, b, c, d)
+    long a,b,c,d;
+    {
+        printf("%lx %lx %lx %lx\n", a, b, c, d);
+
+        if (a > 0) printf("a=%lx\n", a);
+        if (b > 0) printf("b=%lx\n", b);
+        if (c > 0) printf("c=%lx\n", c);
+        if (d > 0) printf("d=%lx\n", d);
+    }
+```
+
+ - The "`main`" is placed before "`test()`" so the compiler cannot implicitly protoize `"test()"`.
+ - Traditional C function declarations. (Yes, `main(argc,argv)` is a valid declaration).
+ - Four function arguments, two for 32/64 bits and two for set/clear sign bit.
+ - `if` statements that test sign bit. 
+ 
+Output after compiling with `"gcc -traditional-cpp -fno-inline"`:
+
+````
+    1 ffffffffffffffff 1 ffffffff
+    a=1
+    c=1
+    d=ffffffff
+````
+
+The second arguments shows a sign extended 64 bit number, the forth only filled with lower 32 bits.
+
+Solution for this issue is to manually sign extend function arguments where `SBIT` is the sign bit of your choosing.
+For native this is 31 and for xtools 15.
+```
+  arg |= -(arg & (1 << SBIT));
+```  
+
+Revised source for `"test()"`
+
+```
+test(a, b, c, d)
+long a,b,c,d;
+{
+        a |= -(a & (1<<31));
+        b |= -(b & (1<<31));
+        c |= -(c & (1<<31));
+        d |= -(d & (1<<31));
+
+        printf("%lx %lx %lx %lx\n", a, b, c, d);
+
+        if (a > 0) printf("a=%lx\n", a);
+        if (b > 0) printf("b=%lx\n", b);
+        if (c > 0) printf("c=%lx\n", c);
+        if (d > 0) printf("d=%lx\n", d);
+}
+```
+
+Revised output:
+```
+    1 ffffffffffffffff 1 ffffffffffffffff
+```
+  
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning.
