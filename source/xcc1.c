@@ -165,7 +165,7 @@ register int *argv;
 
     if (*arg != '-') {
       fext(inpfn, arg, ".c", 0);
-      fext(outfn, arg, ".asm", 1);
+      fext(outfn, arg, ".xs", 1);
     } else {
       /* Process option */
       arg++;
@@ -173,10 +173,10 @@ register int *argv;
 	case 'S':
           if (!*arg && *argv)
             arg = *argv++;
-          if (*arg || *arg == '-')
+          if (!*arg || *arg == '-')
             usage();
           else
-            fext(outfn, arg, ".asm", 0);
+            fext(outfn, arg, ".xs", 0);
 	  break;
         case 'h':
           maklis = 1;
@@ -208,7 +208,7 @@ int fd;
   fd=fopen(fn, mode);
   if (fd > 0)
     return fd;
-  printf (perror("fopen(%s,%s) returned", fn, mode));
+  printf ("fopen(%s,%s) failed\n", fn, mode);
   exit (1);
 }
 

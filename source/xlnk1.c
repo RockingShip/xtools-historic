@@ -147,8 +147,8 @@ int hash, *p;
     register char *arg;
     arg = *argv++;
 
-    if (arg) {
-      fext(inpfn, arg, ".obj", 0);
+    if (*arg != '-') {
+      fext(inpfn, arg, ".xo", 0);
       if (!outfn[0])
         fext(outfn, arg, ".img", 1);
 
@@ -173,10 +173,10 @@ int hash, *p;
         case 'l':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    usage();
 	  else
-            fext(inpfn, arg, ".olb", 0);
+            fext(inpfn, arg, ".xa", 0);
 
           /* Insert file into filetable */
           if (file1inx >= FILEMAX)
@@ -190,7 +190,7 @@ int hash, *p;
 	case 'm':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    usage();
 	  else
 	    fext(lisfn, arg, ".map", 0);
@@ -198,7 +198,7 @@ int hash, *p;
         case 'o':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    usage();
 	  else
             fext(outfn, arg, ".img", 0);
@@ -206,7 +206,7 @@ int hash, *p;
         case 's':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    usage();
 
           /* load value */
@@ -243,7 +243,7 @@ int fd;
 fd=fopen(fn, mode);
 if (fd > 0)
     return fd;
-printf (perror("fopen(%s,%s) returned", fn, mode));
+  printf ("fopen(%s,%s) failed\n", fn, mode);
   exit (1);
 }
 
@@ -252,7 +252,7 @@ openfile ()
 register int i, *p;
   
   outhdl = mustopen (outfn, "w");
-  if (lisfn)
+  if (lisfn[0])
     lishdl = mustopen (lisfn, "w");
 }
 
@@ -460,8 +460,9 @@ char *msg;
 /*
 ** Execution starts here
 */
-main (cmdline)
-char *cmdline;
+main (argc, argv)
+int argc;
+int *argv;
 {
 register int i, j, *p, len;
 int hash;
@@ -469,7 +470,7 @@ int hash;
   printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
-  startup (cmdline); /* Process commandline options */
+  startup (argv); /* Process commandline options */
   openfile ();       /* Open all files */
   process ();        /* start linking */
 

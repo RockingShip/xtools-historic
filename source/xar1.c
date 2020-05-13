@@ -137,11 +137,11 @@ register int *argv;
         if (*++arg)
           usage (); /* one letter commands only */
       } else if (!olbfn[0]) {
-	fext(olbfn, arg, ".olb", 0);
+	fext(olbfn, arg, ".xa", 0);
         fext(bakfn, arg, ".bak", 0);
         fext(outfn, arg, ".tmp", 0);
       } else if (!objfn[0]) {
-        fext(objfn, arg, ".obj", 0);
+        fext(objfn, arg, ".xo", 0);
         fext(modn, arg, "", 1);
       } else
         usage ();
@@ -186,7 +186,7 @@ int fd;
   fd=fopen(fn, mode);
   if (fd > 0)
     return fd;
-  printf (perror("fopen(%s,%s) returned", fn, mode));
+  printf ("fopen(%s,%s) failed\n", fn, mode);
   exit (1);
 }
 

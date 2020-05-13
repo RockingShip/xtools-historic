@@ -257,7 +257,7 @@ int error, hash, objinx;
           objlen += 1 + BPW;
           break;
         default:
-          printf ("unknown command %d in .OBJ", cmd);
+          printf ("unknown command %d\n", cmd);
           exit (1); 
           break;
       }

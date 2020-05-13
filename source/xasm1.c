@@ -238,8 +238,8 @@ register int *argv;
     arg = *argv++;
 
     if (*arg != '-') {
-      fext(inpfn, arg, ".asm", 0);
-      fext(outfn, arg, ".obj", 1);
+      fext(inpfn, arg, ".xs", 0);
+      fext(outfn, arg, ".xo", 1);
     } else {
       /* Process option */
       arg++;
@@ -247,7 +247,7 @@ register int *argv;
 	case 'a':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    fext(lisfn, inpfn, ".lis", 1);
 	  else
             fext(lisfn, arg, ".lis", 0);
@@ -255,10 +255,10 @@ register int *argv;
 	case 'c':
 	  if (!*arg && *argv)
 	    arg = *argv++;
-	  if (*arg || *arg == '-')
+	  if (!*arg || *arg == '-')
 	    usage();
           else
-	    fext(outfn, arg, ".obj", 0);
+	    fext(outfn, arg, ".xo", 0);
 	  break;
 	case 'd':
   	  debug = 1;
@@ -290,7 +290,7 @@ int fd;
   fd=fopen(fn, mode);
   if (fd > 0)
     return fd;
-  printf (perror("fopen(%s,%s) returned", fn, mode));
+  printf ("fopen(%s,%s) failed\n", fn, mode);
   exit (1);
 }
 
