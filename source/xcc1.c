@@ -1047,7 +1047,6 @@ int imm;
 		fprintf(outhdl,"\tADD\tR%d,R%d\n", REG_SP, reg);
 		freereg(reg);
 	}
-	return 0;
 }
 
 gencode_IND(opc, reg, ofs, ind)
@@ -1066,11 +1065,14 @@ gencode_M (opc, reg, lval)
 int opc, reg;
 register int lval[];
 {
-
   genopc(opc);
 
   if (reg)
     fprintf(outhdl, "R%d,", reg);
+
+  /* apply any stack ajustments */
+  if ((lval[LREG1] == REG_SP) || (lval[LREG2] == REG_SP))
+    lval[LVALUE] = lval[LVALUE] - csp;
 
   if (lval[LNAME]) {
     if (lval[LTYPE] == LABEL)

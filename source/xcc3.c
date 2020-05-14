@@ -492,8 +492,8 @@ register int reg;
     gencode_R ((pre|post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
     if (post) {
       reg = allocreg ();
-      gencode (_LODR, "R,R", reg, lval[LREG1]);
-      gencode ((_ADD+_SUB-post), "R,R", reg, lval_ISIPTR ? REG_BPW : REG_1);
+      gencode_R (_LODR, reg, lval[LREG1]);
+      gencode_R ((_ADD+_SUB-post), reg, lval_ISIPTR ? REG_BPW : REG_1);
       freelval (lval);
       lval[LREG1] = reg;
     }

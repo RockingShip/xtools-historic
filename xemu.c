@@ -292,59 +292,52 @@ void disp_dump(uint16_t pc, int cc) {
 }
 
 void do_svc(uint16_t pc, int16_t id, int cc) {
-	uint8_t *pb;
-	char    *cp, *cp2;
-	int16_t ctrl[10];
+	uint16_t ctrl[10];
 
 	switch (id) {
-		case 31: /* PRINT LINE */
-			pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
-			cp = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+		case 31: { /* osprint() */
+			uint8_t *pb  = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
+			char    *str = &image[pb[0] << 8 | pb[1]]; /* get addr string */
 
-			fputs(cp, stdout);
-
+			fputs(str, stdout);
 			break;
-		case 40: /* FREAD */
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		}
+		case 40: { /* fread() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
 			ctrl[0] = pb[0] << 8 | pb[1];
-			cp = &image[pb[2] << 8 | pb[3]];
-			ctrl[2] = pb[4] << 8 | pb[5];
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
-				regs[1] = -1;
-			else if (ctrl[2] == 0)
-				regs[1] = (fgets(cp, 512, handles[ctrl[0]]) == NULL) ? -1 : strlen(cp);
-			else
-				regs[1] = fread(cp, 1, ctrl[2], handles[ctrl[0]]);
-
-			pb[6] = regs[1] >> 8;
-			pb[7] = regs[1] & 0xFF;
-			break;
-		case 41: /* FWRITE */
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0] = pb[0] << 8 | pb[1];
-			cp = &image[pb[2] << 8 | pb[3]];
-			ctrl[2] = pb[4] << 8 | pb[5];
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
-				regs[1] = -1;
-			else if (ctrl[2] == 0) {
-				regs[1] = strlen(cp);
-				fputs(cp, handles[ctrl[0]]);
-			} else
-				regs[1] = fwrite(cp, 1, ctrl[2], handles[ctrl[0]]);
-
-			pb[6] = regs[1] >> 8;
-			pb[7] = regs[1] & 0xFF;
-			break;
-		case 42: /* FOPEN */ {
-			uint16_t hdl;
-
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			cp = &image[pb[2] << 8 | pb[3]]; /* get addr string */
+			ctrl[1] = pb[2] << 8 | pb[3];
 			ctrl[2] = pb[4] << 8 | pb[5];
 			ctrl[3] = pb[6] << 8 | pb[7];
+			char *addr = &image[ctrl[0]];
 
+			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
+				regs[1] = -1;
+			else
+				regs[1] = fread(addr, ctrl[1], ctrl[2], handles[ctrl[3]]);
+			break;
+		}
+		case 41: { /* fwrite() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
+			ctrl[1]     = pb[2] << 8 | pb[3];
+			ctrl[2]     = pb[4] << 8 | pb[5];
+			ctrl[3]     = pb[6] << 8 | pb[7];
+			char *addr = &image[ctrl[0]];
+
+			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
+				regs[1] = -1;
+			else
+				regs[1] = fwrite(addr, ctrl[1], ctrl[2], handles[ctrl[3]]);
+			break;
+		}
+		case 42: { /* fopen() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
+			ctrl[1]     = pb[2] << 8 | pb[3];
+			char *name = &image[ctrl[0]]; /* get addr string */
+			char *mode = &image[ctrl[1]]; /* get addr string */
+
+			int hdl;
 			for (hdl = 6; hdl < MAXFILE; hdl++) {
 				if (!handles[hdl])
 					break;
@@ -352,27 +345,13 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			if (hdl >= MAXFILE)
 				fprintf(stderr, "ERROR: Too many open files\n"), exit(1);
 
-			if (ctrl[2] == 'R' && ctrl[3] == 'A')
-				handles[hdl] = fopen(cp, "r");
-			else if (ctrl[2] == 'W' && ctrl[3] == 'A')
-				handles[hdl] = fopen(cp, "w");
-			else if (ctrl[2] == 'R' && ctrl[3] == 'B')
-				handles[hdl] = fopen(cp, "rb");
-			else if (ctrl[2] == 'W' && ctrl[3] == 'B')
-				handles[hdl] = fopen(cp, "wb");
-			else if (ctrl[2] == ('W' << 8 | 'S') && ctrl[3] == 'B')
-				handles[hdl] = fopen(cp, "w+b");
-			else
-				fprintf(stderr, "ERROR: FOPEN(%s,%x,%x)\n", cp, ctrl[2], ctrl[3]), exit(1);
-
-			regs[1] = (handles[hdl] == NULL) ? -1 : hdl;
-			pb[0] = regs[1] >> 8;
-			pb[1] = regs[1] & 0xFF;
+			handles[hdl] = fopen(name, mode);
+			regs[1]      = (handles[hdl] == NULL) ? -1 : hdl;
 			break;
 		}
-		case 43: /* FCLOSE */
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0] = pb[0] << 8 | pb[1];
+		case 43: { /* fclose() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
 
 			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
@@ -381,72 +360,84 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 
 				handles[ctrl[0]] = NULL; /* release */
 			}
-
-			pb[0] = regs[1] >> 8;
-			pb[1] = regs[1] & 0xFF;
 			break;
-		case 44: /* FSEEK */
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0] = pb[0] << 8 | pb[1];
-			ctrl[1] = pb[2] << 8 | pb[3];
-			ctrl[2] = pb[4] << 8 | pb[5];
+		}
+		case 44: { /* fseek() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
+			ctrl[1]     = pb[2] << 8 | pb[3];
+			ctrl[2]     = pb[4] << 8 | pb[5];
+
+			long ofs = ctrl[1];
+			/* sign extend */
+			ofs |= -(ofs & (1 << 15));
 
 			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
 			else
-				regs[1] = fseek(handles[ctrl[0]], SEEK_SET, ctrl[1]);
-
-			pb[0] = regs[1] >> 8;
-			pb[1] = regs[1] & 0xFF;
+				regs[1] = fseek(handles[ctrl[0]], ofs, ctrl[2]);
 			break;
-		case 45: /* FDELETE */
-			pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			cp = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+		}
+		case 45: { /* unlink() */
+			uint8_t *pb   = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			char    *name = &image[pb[0] << 8 | pb[1]]; /* get addr string */
 
-			regs[1] = unlink(cp);
-
-			pb[0] = regs[1] >> 8;
-			pb[1] = regs[1] & 0xFF;
+			regs[1] = unlink(name);
 			break;
-		case 46: /* FRENAME */
-			pb  = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			cp  = &image[pb[0] << 8 | pb[1]]; /* get addr string */
-			cp2 = &image[pb[2] << 8 | pb[3]]; /* get addr string */
+		}
+		case 46: { /* rename() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
+			ctrl[1]     = pb[2] << 8 | pb[3];
+			char *oldname = &image[ctrl[0]]; /* get addr string */
+			char *newname = &image[ctrl[1]]; /* get addr string */
 
-			regs[1] = rename(cp, cp2);
-
-			pb[0] = regs[1] >> 8;
-			pb[1] = regs[1] & 0xFF;
+			regs[1] = rename(oldname, newname);
 			break;
+		}
+		case 47: { /* ftell() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0]     = pb[0] << 8 | pb[1];
+
+			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
+				regs[1] = -1;
+			else
+				regs[1] = ftell(handles[ctrl[0]]);
+			break;
+		}
 		case 90: /* OSINFO */
 			switch (regs[0]) {
-				case 0x32: {
+				case 0x32: { /* Get commandline */
 					char **cpp;
 
-					pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
-					cp = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+					uint8_t *pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
+					char *args = &image[pb[0] << 8 | pb[1]]; /* get addr string */
 
 					/* concat argv[] except for argv[0] */
 					cpp = inpargv + 1;
 					if (*cpp)
-						strcpy(cp, *cpp++);
+						strcpy(args, *cpp++);
 					while (*cpp) {
-						strcat(cp, " ");
-						strcpy(cp, *cpp++);
+						strcat(args, " ");
+						strcpy(args, *cpp++);
 					}
 
 					break;
 				}
 				default:
 					printf("unimplemented OSINFO call\n");
-					disp_opc(pc - 1);
-					disp_dump(pc - 1, cc);
+					disp_opc(pc);
+					disp_dump(pc, cc);
 					break;
 			}
 			break;
-		case 99: /* EXIT */
-			exit(0);
+		case 99: { /* exit() */
+			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+			ctrl[0] = pb[0] << 8 | pb[1];
+
+			exit(ctrl[0]);
 			break;
+		}
 		case 100: /* MONITOR ON */
 			monitor = 1;
 			break;
@@ -455,8 +446,8 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			break;
 		default:
 			printf("unimplemented SVC call\n");
-			disp_opc(pc - 1);
-			disp_dump(pc - 1, cc);
+			disp_opc(pc);
+			disp_dump(pc, cc);
 			break;
 	}
 }
@@ -740,7 +731,7 @@ void run() {
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
 				/* process */
-				do_svc(pc - 1, rval, cc);
+				do_svc(pc - 2, rval, cc);
 				break;
 			default:
 				printf("encountered unimplemented opcode\n");

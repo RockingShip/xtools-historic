@@ -12,33 +12,33 @@ XFILE::XFILE(PAGE_TABLE *pagetable) {
 	type = 0;
 }
 
-int XFILE::fopen(char *fname, int mode, int type) {
+int XFILE::fopen(char *fname, char *mode) {
 	char *cp;
 
 	/* Open file */
-	switch (mode) {
-		case 'W':
-		case 'W' << 8 | 'S':
-			hdl = open(fname, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
-			if (hdl < 0)
-				return hdl;
-			break;
-		case 'R':
-		case 'R' << 8 | 'S':
-			hdl = open(fname, O_RDWR, 0);
-			if (hdl < 0)
-				return hdl;
-			break;
-		default:
-			printf("file '%s' has unknown open mode '%c'\n", fname, mode);
-			exit(1);
+	if (mode[0] == 'w' && mode[1] == 0) {
+		hdl = open(fname, O_RDWR | O_CREAT | O_TRUNC, S_IREAD | S_IWRITE);
+		if (hdl < 0)
+			return hdl;
+		this->mode = 'W';
+	} else if (mode[0] == 'r' && mode[1] == 0) {
+		hdl = open(fname, O_RDWR, 0);
+		if (hdl < 0)
+			return hdl;
+		this->mode = 'R';
+	} else {
+		printf("file '%s' has unknown open mode '%c'\n", fname, mode);
+		exit(1);
 	}
 
-	/* Link it all */
-	strcpy(name, fname);
-	bufpos      = filpos = buflen = bufofs = 0;
-	dirty       = 0;
-	XFILE::mode = mode;
+	strncpy(name, fname, PATHMAX);
+
+	bufpos = filpos = buflen = bufofs = 0;
+	dirty  = 0;
+
+	/* initial load */
+	if (this->mode == 'R')
+		fload();
 
 	return 0;
 }
@@ -77,10 +77,9 @@ int XFILE::fload() {
 	filpos = bufpos + buflen;
 }
 
-int XFILE::fread(ADDRESS addr, int len) {
-	int retlen, ch;
+int XFILE::fread(ADDRESS addr, int siz, int cnt) {
 
-	if (!mode)
+	if (!mode || !siz)
 		return -1;
 
 	if (mode == 'W') {
@@ -88,9 +87,8 @@ int XFILE::fread(ADDRESS addr, int len) {
 		exit(1);
 	}
 
-	retlen      = 0;
-	if (!len)
-		len = -1;  /* negative -> ASCII mode */
+	int len = siz * cnt;
+	int retlen = 0;
 	while (len) {
 		/* test if extractpoint in window */
 		if (bufofs >= buflen) {
@@ -102,42 +100,22 @@ int XFILE::fread(ADDRESS addr, int len) {
 			bufofs = 0;
 			fload();
 			/* test for EOF */
-			if (!buflen) {
-				if (len < 0)
-					pagetable->write_byte(addr++, 0); /* terminate ASCII buffer */
-				return retlen ? retlen : -1 /*EOF*/ ;
-			}
+			if (!buflen)
+				return retlen ? retlen / siz : 0 /*EOF*/ ;
 		}
 		/* extract from window */
-		if (len > 0) {
-			/* binary mode */
-			pagetable->write_byte(addr++, buf[bufofs++]);
-			--len;
-			++retlen;
-		} else {
-			/* text mode */
-			ch = buf[bufofs++];
-			if (ch == 13) {
-				/* skip <CR> */ ;
-			} else {
-				pagetable->write_byte(addr++, ch);
-				++retlen;
-
-				if (ch == 10) {
-					pagetable->write_byte(addr++, 0);
-					return retlen;
-				}
-			}
-		}
+		pagetable->write_byte(addr++, buf[bufofs++]);
+		--len;
+		++retlen;
 	}
-	return retlen;
+	return retlen / siz;
 }
 
-int XFILE::fwrite(ADDRESS addr, int len) {
+int XFILE::fwrite(ADDRESS addr, int siz, int cnt) {
 	int retlen;
 	char ch;
 
-	if (!mode)
+	if (!mode || !siz)
 		return -1;
 
 	if (mode == 'R') {
@@ -145,9 +123,8 @@ int XFILE::fwrite(ADDRESS addr, int len) {
 		exit(1);
 	}
 
+	int len = siz * cnt;
 	retlen = 0;
-	if (!len)
-		len = -1;  /* negative -> ASCII mode */
 	while (len) {
 		/* test if insertpoint in window */
 		if (bufofs >= BUFMAX) {
@@ -162,42 +139,39 @@ int XFILE::fwrite(ADDRESS addr, int len) {
 				fload();
 		}
 		dirty = 1;
-		if (len > 0) {
-			/* binary mode */
-			pagetable->read_byte(addr++, &buf[bufofs++]);
-			--len;
-			++retlen;
-		} else {
-			/* text mode */
-			pagetable->read_byte(addr++, &ch);
-			if (!ch)
-				return retlen;
-			buf[bufofs++] = ch;
-			++retlen;
-		}
+
+		pagetable->read_byte(addr++, &buf[bufofs++]);
+		--len;
+		++retlen;
+
 		if (bufofs > buflen)
 			buflen = bufofs;
 	}
-	return retlen;
+	return retlen / siz;
 }
 
-int XFILE::fseek(int pos) {
+int XFILE::fseek(int pos, int whence) {
 	int i;
-	long len, _pos;
+	long len;
 	char *cp;
 
 	if (!mode)
 		return -1;
+	if (whence != SEEK_SET && whence != SEEK_CUR)
+		return -1;
 
-	_pos = pos;
-	_pos &= 0xFFFFL;
+	/* convert SEEK_CUR to SEEK_SET */
+	if (whence == SEEK_CUR) {
+		whence = SEEK_SET;
+		pos = bufpos + bufofs + pos;
+	}
 
 	/* test if positioned within current block */
-	if ((_pos - bufpos >= 0) && (_pos - bufpos < BUFMAX)) {
-		bufofs = _pos - bufpos;
+	if ((pos - bufpos >= 0) && (pos - bufpos < BUFMAX)) {
+		bufofs = pos - bufpos;
 		if (bufofs - buflen >= 0)
 			buflen = bufofs + 1;
-		return _pos;
+		return pos;
 	}
 
 	/* first flush buffer if dirty */
@@ -205,17 +179,17 @@ int XFILE::fseek(int pos) {
 		fflush();
 
 	/* now do a OS seek */
-	while (filpos != _pos) {
-		filpos = lseek(_pos, hdl, 0);
-		if (filpos != _pos) {
+	while (filpos != pos) {
+		filpos = lseek(hdl, pos, SEEK_SET);
+		if (filpos != pos) {
 			/* erase buffer */
 			for (i = 0, cp = buf; i < BUFMAX; i++)
 				*cp++ = 0;
 			/* go to EOF */
-			filpos = lseek(0, hdl, 2);
+			filpos = lseek(hdl, 0,2);
 			/* fill */
-			while (filpos - _pos < 0) {
-				len = _pos - filpos;
+			while (filpos - pos < 0) {
+				len = pos - filpos;
 				if (len >= BUFMAX)
 					len = BUFMAX;
 				if (write(hdl, buf, len) != len) {
@@ -229,11 +203,15 @@ int XFILE::fseek(int pos) {
 	}
 
 	/* read buffer */
-	bufpos = _pos;
+	bufpos = pos;
 	bufofs = buflen = 0;
 	fload();
 
-	return _pos;
+	return pos;
+}
+
+int XFILE::ftell() {
+	return bufpos + bufofs;
 }
 
 int XFILE::fclose() {

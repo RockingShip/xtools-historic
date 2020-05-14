@@ -24,13 +24,15 @@ public :
 
 	PCB();
 
-	int fopen(char *fname, int mode, int type);
+	int fopen(char *fname, char *mode);
 
-	int fread(int fid, ADDRESS addr, int len);
+	int fread(ADDRESS addr, int siz, int cnt, int hdl);
 
-	int fwrite(int fid, ADDRESS addr, int len);
+	int fwrite(ADDRESS addr, int siz, int cnt, int hdl);
 
-	int fseek(int fid, int pos);
+	int fseek(int fid, int pos, int whence);
+
+	int ftell(int fid);
 
 	int fclose(int fid);
 

@@ -4,7 +4,8 @@
 #include "mmu.hpp"
 #include "system.hpp"
 
-#define BUFMAX 0x200L
+#define BUFMAX  0x200L
+#define PATHMAX 80 /* Length of filename */
 
 class XFILE {
 
@@ -13,7 +14,7 @@ private :
 	int type;
 	int hdl;
 	char buf[BUFMAX];
-	char name[40];
+	char name[PATHMAX];
 	long bufpos;
 	long filpos;
 	int buflen;
@@ -28,13 +29,15 @@ private :
 public :
 	XFILE(PAGE_TABLE *pagetable);
 
-	int fopen(char *fname, int mode, int type);
+	int fopen(char *fname, char *mode);
 
-	int fread(ADDRESS addr, int len);
+	int fread(ADDRESS addr, int siz, int cnt);
 
-	int fwrite(ADDRESS addr, int len);
+	int fwrite(ADDRESS addr, int siz, int cnt);
 
-	int fseek(int pos);
+	int fseek(int pos, int whence);
+
+	int ftell();
 
 	int fclose();
 

@@ -105,85 +105,124 @@ void KERNEL::copystr(ADDRESS addr, char *buf) {
 
 BOOLEAN KERNEL::supervisor(int opcode, int *R0, int *R1) {
 	char buf[512], buf2[80];
-	int i, ch, addr, hdl, len, pos, retlen, mode, type;
-	char *strp;
 
 	switch (opcode) {
-		case 31: // TPUT
+		case 31: { // osprint()
+			int str;
+
 			// get start address of string
-			if (read_word(*R1 + 0, &addr)) {
-				copystr(addr, buf);
+			if (read_word(*R1 + 0, &str)) {
+				copystr(str, buf);
 				fputs(buf, stdout);
 			}
+
 			return TRUE;
-		case 40: // DGET
+		}
+		case 40: { /* fread() */
+		        int buf, siz, cnt, hdl;
+
+			read_word(*R1 + 0, &buf);
+			read_word(*R1 + 2, &siz);
+			read_word(*R1 + 4, &cnt);
+			read_word(*R1 + 6, &hdl);
+
+			*R1 = current->fread(buf, siz, cnt, hdl);
+			return TRUE;
+		}
+		case 41: { /* fwrite() */
+		        int buf, siz, cnt, hdl;
+
+			read_word(*R1 + 0, &buf);
+			read_word(*R1 + 2, &siz);
+			read_word(*R1 + 4, &cnt);
+			read_word(*R1 + 6, &hdl);
+
+			*R1 = current->fwrite(buf, siz, cnt, hdl);
+			return TRUE;
+		}
+		case 42: { /* fopen() */
+			int name, mode;
+
+			read_word(*R1 + 0, &name);
+			read_word(*R1 + 2, &mode);
+			copystr(name, buf);
+			copystr(mode, buf2);
+
+			*R1 = current->fopen(buf, buf2);
+			return TRUE;
+		}
+		case 43: { /* fclose() */
+			int hdl;
+
 			read_word(*R1 + 0, &hdl);
-			read_word(*R1 + 2, &addr);
-			read_word(*R1 + 4, &len);
-			retlen = current->fread(hdl, addr, len);
-			write_word(*R1 + 6, retlen);
-			*R1 = retlen;
+
+			*R1 = current->fclose(hdl);
 			return TRUE;
-		case 41: // DPUT
+		}
+		case 44: { /* fseek() */
+			int hdl, ofs, whence;
+
 			read_word(*R1 + 0, &hdl);
-			read_word(*R1 + 2, &addr);
-			read_word(*R1 + 4, &len);
-			retlen = current->fwrite(hdl, addr, len);
-			write_word(*R1 + 6, retlen);
-			*R1 = retlen;
+			read_word(*R1 + 2, &ofs);
+			read_word(*R1 + 4, &whence);
+
+			/* sign extend */
+			ofs |= -(ofs & (1 << 15));
+
+			*R1 = current->fseek(hdl, ofs, whence);
 			return TRUE;
-		case 42: // DOPEN
-			read_word(*R1 + 2, &addr);
-			copystr(addr, buf);
-			read_word(*R1 + 4, &mode);
-			read_word(*R1 + 6, &type);
-			hdl = current->fopen(buf, mode, type);
-			write_word(*R1 + 0, hdl);
-			*R1 = hdl;
+		}
+		case 45: { /* unlink() */
+			int name;
+
+			read_word(*R1 + 0, &name);
+			copystr(name, buf);
+
+			*R1 =  unlink(buf);
 			return TRUE;
-		case 43: // DCLOSE
+		}
+		case 46: { /* rename() */
+			int oldname, newname;
+
+			read_word(*R1 + 0, &oldname);
+			read_word(*R1 + 2, &newname);
+			copystr(oldname, buf);
+			copystr(newname, buf2);
+
+			*R1 = rename(buf, buf2);
+			return TRUE;
+		}
+		case 47: { /* ftell() */
+			int hdl;
+
 			read_word(*R1 + 0, &hdl);
-			retlen = current->fclose(hdl);
-			*R1 = retlen;
+
+			*R1 = current->ftell(hdl);
 			return TRUE;
-		case 44: /* FSEEK */
-			read_word(*R1 + 0, &hdl);
-			read_word(*R1 + 2, &pos);
-			retlen = current->fseek(hdl, pos);
-			write_word(*R1 + 0, retlen);
-			*R1 = retlen;
-			return TRUE;
-		case 45: /* FDELETE */
-			read_word(*R1 + 0, &addr);
-			copystr(addr, buf);
-			retlen = unlink(buf);
-			write_word(*R1 + 0, retlen);
-			*R1 = retlen;
-			return TRUE;
-		case 46: /* FRENAME */
-			read_word(*R1 + 0, &addr);
-			copystr(addr, buf);
-			read_word(*R1 + 2, &addr);
-			copystr(addr, buf2);
-			retlen = rename(buf, buf2);
-			write_word(*R1 + 0, retlen);
-			*R1 = retlen;
-			return TRUE;
+		}
 		case 90: // OSINFO
 			switch (*R0) {
-				case 0x0032:  // Get commandline
+				case 0x0032: { // Get commandline
+					int addr, i;
+
 					// return zero length
 					read_word(*R1 + 0, &addr);
 					write_word(*R1 + 4, 6);
 					for (i = 0; i < 7; i++)
 						write_byte(addr++, current->command[i]);
 					return TRUE;
+				}
 				default:
 					return FALSE;
 			}
-		case 99: // RETURN
+		case 99: { /* exit() */
+			int code;
+
+			read_word(*R1 + 0, &code);
+
 			current->exit();
-			exit(0);
+			exit(code);
+		}
 		default:
 			return FALSE;
 	}

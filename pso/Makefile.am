@@ -1,5 +1,3 @@
-AM_CXXFLAGS =  -traditional-cpp -fpermissive
-
 bin_PROGRAMS = pso
 
 pso_SOURCES = \
