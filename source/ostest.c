@@ -8,7 +8,6 @@ __START()
 	/* r11 REG_1   constant 1 */
 	/* R10 REG_0   constant 0 */
 #asm
-	lda	r15,0
 	lda	r13,2
 	lda	r12,4
 	lda	r11,1

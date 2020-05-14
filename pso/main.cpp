@@ -9,7 +9,7 @@
 KERNEL kernel;
 CPU cpu;
 
-char *fext(char *path, const char *ext) {
+char *fext(char *path, const char *ext, int force) {
 	char *p;
 	int  baselen;
 
@@ -22,6 +22,8 @@ char *fext(char *path, const char *ext) {
 	}
 
 	if (!baselen)
+		baselen = p - path;
+	else if (!force)
 		return path;
 
 	p = (char *) malloc(baselen + strlen(ext) + 1);
@@ -45,8 +47,12 @@ int main(int argc, char *argv[]) {
 	}
 	cpu.load_context(&kernel.current->context, &kernel.current->pagetable);
 
+	argv[1] = fext(argv[1], ".img", 0);
+
 	printf("loading...\n");
-	cpu.loadfile(fext(argv[1], ".img"));
+	cpu.loadfile(argv[1]);
+
+	cpu.pushArgs(argv + 1);
 
 	printf("starting...\n");
 	while (1)

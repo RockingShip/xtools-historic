@@ -192,6 +192,61 @@ void startup(int argc, char **argv) {
 	usage();
 }
 
+uint16_t pushArgs(uint16_t sp, char *argv[]) {
+	int i, len, strbase, argvbase, argc;
+	char *arg;
+
+	// count needed string space
+	len = argc = 0;
+	for (i = 0; argv[i]; i++)
+		len += strlen(argv[argc++]) + 2;
+
+	// align
+	len = (len + 1) & ~1;
+
+	// string base
+	sp = (sp - len) & 0xffff;
+	strbase = sp;
+	// argv base
+	sp = (sp - (argc + 1) * BPW) & 0xffff;
+	argvbase = sp;
+
+	// copy strings
+	for (i = 0; i < argc; i++) {
+		image[argvbase++] = strbase >> 8;
+		image[argvbase++] = strbase;
+		for (arg = argv[i]; *arg; arg++)
+			image[strbase++] = *arg;
+		image[strbase++] = 0;
+	}
+
+	// terminator NULL
+	image[argvbase++] = 0;
+	image[argvbase++] = 0;
+
+	// push argc
+	sp -= BPW;
+	image[sp + 0] = argc >> 8;
+	image[sp + 1] = argc;
+
+	// push argv
+	sp -= BPW;
+	image[sp + 0] = (sp + 4) >> 8;
+	image[sp + 1] = (sp + 4);
+
+	// push size of push-frame
+	sp -= BPW;
+	image[sp + 0] = 0;
+	image[sp + 1] = 3 * BPW;
+
+	// push return address
+	sp -= BPW;
+	image[sp + 0] = 0;
+	image[sp + 1] = 0;
+
+	return sp;
+}
+
 /**********************************************************************/
 /*                                                                    */
 /*    The emulator                                                    */
@@ -452,7 +507,8 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 	}
 }
 
-void run() {
+void run(uint16_t inisp) {
+
 	uint16_t pc;
 	int16_t  lval;
 	int16_t  rval;
@@ -465,6 +521,7 @@ void run() {
 	cc     = 0;
 	for (i = 0; i < 16; i++)
 		regs[i] = 0;
+	regs[15] = inisp;
 	while (1) {
 		if (monitor) {
 			disp_reg(pc, cc);
@@ -753,6 +810,7 @@ void run() {
 */
 int main(int argc, char **argv) {
 	int fd;
+	uint16_t inisp;
 
 	setlinebuf(stdout);
 
@@ -760,6 +818,9 @@ int main(int argc, char **argv) {
 
 	startup(argc, argv);
 
+	/*
+	 * Load image
+	 */
 	fd = open(inpargv[0], O_RDONLY);
 	if (fd < 0) {
 		fprintf(stderr, "open error on '%s'. error=%s\n", inpargv[0], strerror(errno));
@@ -768,6 +829,11 @@ int main(int argc, char **argv) {
 	int r = read(fd, image, 0x10000);
 	close(fd);
 
-	run();
+	/*
+	 * Push argc/argv on stack
+	 */
+	inisp = pushArgs(inisp, inpargv);
+
+	run(inisp);
 	return 0;
 }

@@ -21,7 +21,7 @@ ostest.img : ostest.xo oscall.xo xlnk
 	./xlnk -m ostest.map -o $@ ostest.xo oscall.xo
 
 xcc.img : xcc1.xo xcc2.xo xcc3.xo xlnk
-	./xlnk -m -o $@ xcc1.xo xcc2.xo xcc3.xo
+	./xlnk -m xcc.map -o $@ xcc1.xo xcc2.xo xcc3.xo
 
 test-ostest : ostest.img
 	../xemu ostest.img

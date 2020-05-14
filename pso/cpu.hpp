@@ -37,6 +37,7 @@ public :
 
 	BOOLEAN loadfile(char *fname);
 
+	void pushArgs(char *argv[]);
 };
 
 #endif

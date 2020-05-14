@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "cpu.hpp"
 #include "kernel.hpp"
 #include "opcodes.hpp"
@@ -456,4 +457,58 @@ void CPU::save_context(CPU_CONTEXT *context) {
 	CPU::context.setcc(alu.getcc());
 	// return context
 	*context = CPU::context;
+}
+
+void CPU::pushArgs(char *argv[]) {
+
+	int BPW = 2;
+	int i, len, strbase, argvbase, argc, sp;
+	char *arg;
+
+	sp = context.getreg(15);
+
+	// count needed string space
+	len = argc = 0;
+	for (i = 0; argv[i]; i++)
+		len += strlen(argv[argc++]) + 2;
+
+	// align
+	len = (len + 1) & ~1;
+
+	// string base
+	sp = (sp - len) & 0xffff;
+	strbase = sp;
+	// argv base
+	sp = (sp - (argc + 1) * BPW) & 0xffff;
+	argvbase = sp;
+
+	// copy strings
+	for (i = 0; i < argc; i++) {
+		write_word(argvbase, strbase);
+		argvbase += BPW;
+		for (arg = argv[i]; *arg; arg++)
+			write_byte(strbase++, *arg);
+		write_byte(strbase++, 0);
+	}
+
+	// terminator NULL
+	write_word(argvbase, 0);
+
+	// push argc
+	sp -= BPW;
+	write_word(sp, argc);
+
+	// push argv
+	sp -= BPW;
+	write_word(sp, sp + 4);
+
+	// push size of push-frame
+	sp -= BPW;
+	write_word(sp, 3 * BPW);
+
+	// push return address
+	sp -= BPW;
+	write_word(sp, 0);
+
+	context.setreg(15, sp);
 }
