@@ -121,6 +121,8 @@ register int i;
 */
 usage ()
 {
+  printf ("X-C-Compiler, Version %s\n\n", getversion());
+
   printf ("usage: xcc <file>[.<ext>]\n");
   printf ("  -h\t\t\tInclude high-level source\n");
   printf ("  -S <file>[.<ext>]]\tAssembler output\n");
@@ -846,7 +848,6 @@ int *argv;
 {
 register int i, j;
 
-  printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
   startup (argv); /* Process commandline options */

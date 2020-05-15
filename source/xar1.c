@@ -67,6 +67,8 @@ register int i, *p;
 */
 usage ()
 {
+  printf ("X-Archiver, Version %s\n\n", getversion());
+
   printf ("usage: xar (a|c|d|l|x) <library>[.<ext>] [<object>[.<ext>]\n");
   printf ("  a  Add a module\n");
   printf ("  c  Create a new library\n");
@@ -319,7 +321,6 @@ int *argv;
 {
 register int i, j, *p;
 
-  printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   startup (argv); /* Process commandline options */
   if (debug) {

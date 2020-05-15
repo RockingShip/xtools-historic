@@ -554,7 +554,8 @@ register int i, j, *fp, *p, len;
 int hash, found;
 
   pass = 1;
-  printf ("Pass 1\n");
+  if (verbose)
+    printf ("Pass 1\n");
 
   /* process pass 1 */
   for (i=0; i<file1inx; i++) {
@@ -620,7 +621,8 @@ int hash, found;
   }
 
   pass = 2;
-  printf ("Pass 2\n");
+  if (verbose)
+    printf ("Pass 2\n");
 
   /* generate prefix "JMP ___START" */
   datbuf[0] = 0x6F;  /* opcode for JMP */

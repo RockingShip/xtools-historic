@@ -34,8 +34,6 @@
 ** Compiler dependent parameters
 */
 
-#define VERSION "X-Assembler, Version 1.0"
-
 /* #define DYNAMIC		/* allocate memory dynamically */
 /* #define UPPER		/* force symbols to uppercase */
 

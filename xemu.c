@@ -39,8 +39,6 @@
 ** Compiler dependent parameters
 */
 
-#define VERSION "X-Emulator, Version 1.0"
-
 #define BPW 2
 #define SBIT 15
 #define MAXFILE 100
@@ -169,7 +167,8 @@ char *fext(char *path, char *ext, int force) {
 ** Process commandline
 */
 void usage() {
-	fprintf(stderr, "X-Emulator, Version 1.0\n"); /* Print banner */
+	fprintf(stderr, "X-Emulator, Version %s\n\n", getversion()); /* Print banner */
+
 	fprintf(stderr, "usage: xemu [-m] <file>[.<ext>] [<command>]\n");
 	exit(1);
 }
@@ -834,9 +833,6 @@ int main(int argc, char **argv) {
 	initialize();
 
 	startup(argc, argv);
-
-	if (verbose)
-		printf("%s\n", VERSION);
 
 	/*
 	 * Load image

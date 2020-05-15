@@ -100,6 +100,8 @@ int hash;
 */
 usage ()
 {
+  printf ("X-Linker, Version %s\n\n", getversion());
+
   printf ("usage: xlnk <file>[.<ext>] ...\n");
   printf ("  -l <file>[.<ext>]]\tLibrary\n");
   printf ("  -o <file>[.<ext>]]\tImage output\n");
@@ -467,7 +469,6 @@ int *argv;
 register int i, j, *p, len;
 int hash;
 
-  printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
   startup (argv); /* Process commandline options */

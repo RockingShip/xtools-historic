@@ -7,4 +7,5 @@ SUBDIRS = pso source
 
 bin_PROGRAMS = xemu
 
-xemu_SOURCES = xemu.c
+xemu_SOURCES = xemu.c getversion.c
+

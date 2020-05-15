@@ -4,26 +4,18 @@ AM_CFLAGS =  -Dint=long -fno-inline -w
 EXTRA_DIST = ostest.c oscall.c
 CLEANFILES = *.xs *.xo
 
-# stage 1
+# STAGE 1
+# Native binaries
 
 bin_PROGRAMS = xcc xasm xlnk xar
 
-xcc_SOURCES = xcc1.c xcc2.c xcc3.c xcc.h
+xcc_SOURCES = xcc1.c xcc2.c xcc3.c xcc.h ../getversion.c
 
-xasm_SOURCES = xasm1.c xasm2.c xasm3.c xasm.h
+xasm_SOURCES = xasm1.c xasm2.c xasm3.c xasm.h ../getversion.c
 
-xlnk_SOURCES = xlnk1.c xlnk2.c xlnk.h
+xlnk_SOURCES = xlnk1.c xlnk2.c xlnk.h ../getversion.c
 
-xar_SOURCES = xar1.c xar2.c xar.h
-
-
-# stage 2
-
-%.xs : %.c xcc
-	./xcc -S $@ $<
-
-%.xo : %.xs xasm
-	./xasm -c $@ $<
+xar_SOURCES = xar1.c xar2.c xar.h ../getversion.c
 
 ostest.img : ostest.xo oscall.xo xlnk
 	./xlnk -m ostest.map -o $@ ostest.xo oscall.xo

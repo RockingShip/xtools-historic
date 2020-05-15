@@ -12,5 +12,5 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_LN_S
 
-AC_CONFIG_FILES([Makefile pso/Makefile source/Makefile])
+AC_CONFIG_FILES([Makefile pso/Makefile source/Makefile getversion.c])
 AC_OUTPUT

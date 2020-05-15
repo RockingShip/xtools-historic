@@ -195,6 +195,8 @@ register int i,*p;
 */
 usage ()
 {
+  printf ("X-Assembler, Version %s\n\n", getversion());
+
   printf ("usage: xasm <file>[.<ext>]\n");
   printf ("  -a <file>[.<ext>]]\tListing\n");
   printf ("  -c <file>[.<ext>]]\tObject output\n");
@@ -928,7 +930,6 @@ int *argv;
 {
 register int i, j, *p;
 
-  printf ("%s\n", VERSION); /* Print banner */
   initialize (); /* initialize all variables */
   
   startup (argv); /* Process commandline options */
@@ -936,7 +937,8 @@ register int i, j, *p;
   preprocess ();     /* fetch first line */
 
   pass = 1;
-  printf ("Pass 1\n");
+  if (verbose)
+    printf ("Pass 1\n");
   if (lishdl)
     fprintf (lishdl, "Pass 1\n");
   parse ();          /* GO !!! */
@@ -958,7 +960,8 @@ register int i, j, *p;
   datlen = 0;
 
   pass = 2;
-  printf ("Pass 2\n");
+  if (verbose)
+    printf ("Pass 2\n");
   if (lishdl)
   fprintf (lishdl, "Pass 2\n");
   parse ();          /* GO !!! */
