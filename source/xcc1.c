@@ -167,7 +167,8 @@ register int *argv;
 
     if (*arg != '-') {
       fext(inpfn, arg, ".c", 0);
-      fext(outfn, arg, ".xs", 1);
+      if (!outfn[0])
+        fext(outfn, arg, ".xs", 1);
     } else {
       /* Process option */
       arg++;
@@ -871,7 +872,7 @@ register int i, j;
     for (i=1; (i<SWMAX) && sw[i*SLAST+SLABEL]; i++) ;
   fprintf (outhdl, "; Switch cases : %5d/%5d\n", i-1, SWMAX);
 
-  return 0;
+  return errflag;
 }
 
 

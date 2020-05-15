@@ -487,7 +487,7 @@ int hash;
     fprintf (lishdl, "Names        : %5d/%5d)\n", j, NAMEMAX);
   }
 
-  return 0;
+  return errflag;
 }
 
 objmap ()

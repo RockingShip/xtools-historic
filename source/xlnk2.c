@@ -47,6 +47,7 @@ int curseg;
   else
     printf ("U%04x", fp[FUDEFPOS]);
   printf (" in %s\n", inpfn);
+  errflag = 1;
 }
 
 savmaxseg (fp)
@@ -437,8 +438,10 @@ char cmd, cval;
           }
           break;
         case __END:
-          if (stackinx)
-            printf ("stack not properly released in %s\n", inpfn);
+          if (stackinx) {
+	    printf ("stack not properly released in %s\n", inpfn);
+	    exit(1);
+          }
           return;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           /* symbol definition (skiped in pass2) */
@@ -612,6 +615,7 @@ int hash, found;
       if (p[NTYPE] == UNDEF) {
         if (!j) {
           printf ("Undefined symbols :\n");
+          errflag=1;
           j=1;
         }
         outname (i);

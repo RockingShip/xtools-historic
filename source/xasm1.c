@@ -241,7 +241,8 @@ register int *argv;
 
     if (*arg != '-') {
       fext(inpfn, arg, ".xs", 0);
-      fext(outfn, arg, ".xo", 1);
+      if (!outfn[0])
+        fext(outfn, arg, ".xo", 1);
     } else {
       /* Process option */
       arg++;
@@ -857,6 +858,8 @@ char *msg;
   printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
   if (lishdl)
     fprintf (lishdl, ";%d %%%s\n", inchdl ? inclnr : inplnr, msg);
+
+  errflag = 1;
 }
 
 fatal (msg)
@@ -979,7 +982,7 @@ register int i, j, *p;
     fprintf (lishdl, "Names        : %5d(%5d)\n", j, NAMEMAX);
   }
 
-  return 0;
+  return errflag;
 }
 
 

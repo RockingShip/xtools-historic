@@ -140,6 +140,7 @@ EXTERN int
   olbhdr[HLAST],	/* .OLB header */
   usercmd,		/* user command */
   verbose,		/* Verbose -v specified */
+  errflag,              /* Error occured */
   debug,		/* Debug   -d specified */
   olbhdl,		/* handle for source .OLB file */
   outhdl,		/* handle for destination .OLB file */
