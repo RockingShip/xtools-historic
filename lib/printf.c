@@ -1,14 +1,5 @@
 #define BPW 2
 
-_puts (str)
-char *str;
-{
-#asm
-	lda	r1,4(r14)
-	svc	31
-#endasm
-}
-
 _doprt (optr, cmd, args)
 register char *optr, *cmd;
 int *args;
@@ -23,8 +14,7 @@ char           numbuf[32];
 
   while (ch = *cmd++) {
     if (ch=='\n') {
-      *optr++ = '\15';
-      *optr++ = '\12';
+      *optr++ = '\n';
     } else if (ch != '%') {
       *optr++ = ch;
     } else {
@@ -61,7 +51,7 @@ char           numbuf[32];
             if (ch <= 9)
               ch += '0';
             else
-              ch += 'A'-10;
+              ch += 'a'-10;
             *nptr++ = ch;
             val >>= 4;
           } while ((--i > 0) || ((val) && ((val != -1) || (ch < '8'))));
@@ -92,8 +82,7 @@ char           numbuf[32];
           nptr = *--args;
           while (ch = *nptr++)
             if (ch == '\n') {
-              *optr++ = '\15';
-              *optr++ = '\12';
+              *optr++ = '\n';
             } else
               *optr++ = ch;
           nptr = numbuf; /* Reset pointer */
@@ -122,6 +111,8 @@ char           numbuf[32];
   *optr++ = 0;
 }
 
+extern int stdout;
+
 printf (anchor)
 int anchor;
 {
@@ -132,7 +123,7 @@ register int *args;
   args = &anchor+ARGC*BPW;
   cmd = *--args;
   _doprt (obuf, cmd, args);
-  _puts (obuf);
+  fputs (obuf, stdout);
 }
 
 fprintf (anchor)
@@ -146,7 +137,7 @@ register int hdl, *args;
   hdl = *--args;
   cmd = *--args;
   _doprt (obuf, cmd, args);
-  fwrite (hdl, obuf, 0);
+  fputs(obuf, hdl);
 }
 
 sprintf (anchor)
