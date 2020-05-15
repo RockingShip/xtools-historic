@@ -39,7 +39,7 @@
 /* #define DYNAMIC		/* allocate memory dynamically */
 /* #define UPPER		/* force symbols to uppercase */
 
-#define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
+#define NAMEMAX 997		/* Size of nametable !!! MUST BE PRIME !!! */
 #define PBUFMAX 512		/* Size of preprocessor buffer */
 #define SBUFMAX 256		/* Size of source buffer */
 #define MACMAX 300		/* Number of definable macro's */

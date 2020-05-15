@@ -89,12 +89,14 @@
 ** Storage
 */
 
-int     monitor;                /* Monitor -m specified */
-char    *opc_name[128];         /* texual descriptors of opcodes */
-char    **inpargv;              /* argv[] for emulated */
-uint8_t image[0x10000];         /* actual image */
-int16_t regs[16];               /* registers */
-FILE    *handles[MAXFILE];          /* handle/FILE mapping */
+FILE     *handles[MAXFILE];     /* handle/FILE mapping */
+uint8_t  image[0x10000];        /* actual image */
+char     **inpargv;             /* argv[] for emulated */
+uint16_t lowestSP;              /* Lowest encountered SP */
+int      monitor;               /* Monitor -m specified */
+char     *opc_name[128];        /* texual descriptors of opcodes */
+int16_t  regs[16];              /* registers */
+int      verbose;               /* Verbose -v specified */
 
 void initialize() {
 	opc_name[_ADD]  = "ADD";
@@ -184,12 +186,21 @@ void startup(int argc, char **argv) {
 		} else if (argv[0][1] == 'm') {
 			monitor = 1;
 			argv++;
+		} else if (argv[0][1] == 'v') {
+			verbose = 1;
+			argv++;
 		} else {
 			usage();
 		}
 	}
 
 	usage();
+}
+
+void shutdown(int code) {
+	if (verbose)
+		printf("lowestSP=%04x\n", lowestSP);
+	exit(code);
 }
 
 uint16_t pushArgs(uint16_t sp, char *argv[]) {
@@ -319,31 +330,29 @@ void disp_opc(uint16_t pc) {
 
 void disp_dump(uint16_t pc, int cc) {
 	uint16_t loc;
-	uint8_t  *cp;
-	int      i, j;
+	uint8_t *cp;
+	int i, j;
 
 	disp_reg(pc, cc);
 	printf("\nStackdump:\n");
-	loc    = regs[15];
+	loc = regs[15];
 	for (i = 0; i < 4; i++, loc += 0x10) {
 		printf("%04x:", loc);
-		cp     = &image[loc];
+		cp = &image[loc];
 		for (j = 0; j < 8; j++, cp += 2)
 			printf(" %02x%02x", cp[0], cp[1]);
 		printf("\n");
 	}
 
 	printf("\nCodedump:\n");
-	loc    = pc;
+	loc = pc;
 	for (i = 0; i < 4; i++, loc += 0x10) {
 		printf("%04x:", loc);
-		cp     = &image[loc];
+		cp = &image[loc];
 		for (j = 0; j < 8; j++, cp++)
 			printf(" %02x", cp[0]);
 		printf("\n");
 	}
-
-	exit(1);
 }
 
 void do_svc(uint16_t pc, int16_t id, int cc) {
@@ -398,7 +407,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 					break;
 			}
 			if (hdl >= MAXFILE)
-				fprintf(stderr, "ERROR: Too many open files\n"), exit(1);
+				fprintf(stderr, "ERROR: Too many open files\n"), shutdown(1);
 
 			handles[hdl] = fopen(name, mode);
 			regs[1]      = (handles[hdl] == NULL) ? -1 : hdl;
@@ -483,6 +492,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 					printf("unimplemented OSINFO call\n");
 					disp_opc(pc);
 					disp_dump(pc, cc);
+					shutdown(ctrl[0]);
 					break;
 			}
 			break;
@@ -490,7 +500,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
 			ctrl[0] = pb[0] << 8 | pb[1];
 
-			exit(ctrl[0]);
+			shutdown(ctrl[0]);
 			break;
 		}
 		case 100: /* MONITOR ON */
@@ -526,6 +536,11 @@ void run(uint16_t inisp) {
 		if (monitor) {
 			disp_reg(pc, cc);
 			disp_opc(pc);
+		}
+		if (!lowestSP || (regs[15]&0xffff) < lowestSP) {
+			lowestSP = regs[15];
+			if (monitor)
+				printf("lowestSP=%04x\n", lowestSP);
 		}
 
 		opc = image[pc++];
@@ -794,6 +809,8 @@ void run(uint16_t inisp) {
 				printf("encountered unimplemented opcode\n");
 				disp_opc(pc - 1);
 				disp_dump(pc - 1, cc);
+				if (verbose)
+					printf("lowestSP=%04x\n", lowestSP);
 				break;
 		}
 	}
@@ -817,6 +834,9 @@ int main(int argc, char **argv) {
 	initialize();
 
 	startup(argc, argv);
+
+	if (verbose)
+		printf("%s\n", VERSION);
 
 	/*
 	 * Load image
