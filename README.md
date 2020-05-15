@@ -26,6 +26,7 @@ The biggest challenge was fitting the toolchain in 64k memory with most instruct
  - Signed ints only
  - ```"sizeof(int)==sizeof(char*)"``` (allows for de-referencing of ints)
  - No heap or ```malloc()``` (pointer stack based variables might be an alternative)
+ - Peephole optimiser
 
 ### `"-Dint=long"`
 

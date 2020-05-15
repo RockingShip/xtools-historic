@@ -13,10 +13,20 @@ m4/
 Makefile
 Makefile.in
 pso/pso
+source/xas
+source/xasm
+source/xcc
+source/xlnk
 stamp-h1
 todo.txt
 xemu
 
 *.bak
+*.img
+*.lis
 *.log
+*.map
 *.o
+*.xo
+*.xs
+
