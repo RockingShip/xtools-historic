@@ -254,8 +254,8 @@ char cmd;
 dopass2 (fp)
 register int *fp;
 {
-register int i, *p, curseg, lval, rval;
-int symseg, symofs, hash, val;
+register int i, lval, rval;
+int curseg, symofs, hash, val;
 char cmd, cval;
 
   curseg = CODESEG;

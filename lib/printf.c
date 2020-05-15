@@ -98,7 +98,7 @@ char           numbuf[32];
       /* Some numeric postprocessing */
       fld_len -= nptr-numbuf;  /* Get length of filler */
 
-      if (justify)
+      if (!justify)
         while (fld_len-- > 0)
           *optr++ = leading;
       while (nptr != numbuf)

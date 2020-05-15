@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-15 20:59:00 Got `xcc,xasm,xlnk` to stage 3.
 2020-05-15 20:56:35 Sandbox exit code.
 2020-05-15 20:38:02 Be less verbose and get version from autoconf.
 2020-05-15 13:49:08 Reduce xcc symbol table size to avoid stack overflow. 

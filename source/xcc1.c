@@ -1030,6 +1030,9 @@ int opc, reg1, reg2;
 gencode_I (opc, reg, imm)
 int opc, reg, imm;
 {
+  /* sign extend */
+  imm |= -(imm & (1<<SBIT));
+
   genopc(opc);
 
   if (reg)
@@ -1040,6 +1043,9 @@ int opc, reg, imm;
 gencode_ADJSP (imm)
 int imm;
 {
+  /* sign extend */
+  imm |= -(imm & (1<<SBIT));
+
 	if (imm == BPW)
 		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
 	else if (imm == -BPW)
@@ -1056,6 +1062,9 @@ int imm;
 gencode_IND(opc, reg, ofs, ind)
 int opc, reg, ofs, ind;
 {
+  /* sign extend */
+  ofs |= -(ofs & (1<<SBIT));
+
         genopc(opc);
 
         if (reg)
@@ -1087,10 +1096,14 @@ register int lval[];
     }
   }
 
+  /* sign extend */
+  int ofs;
+  ofs = lval[LVALUE] | -(lval[LVALUE] & (1<<SBIT));
+
   if (lval[LVALUE] > 0)
-    fprintf (outhdl, "+%d", lval[LVALUE]);
+    fprintf (outhdl, "+%d", ofs);
   else if (lval[LVALUE] < 0)
-    fprintf (outhdl, "%d", lval[LVALUE]);
+    fprintf (outhdl, "%d", ofs);
   if (lval[LREG1]) {
     fprintf (outhdl, "(R%d", lval[LREG1]);
     if (lval[LREG2])
