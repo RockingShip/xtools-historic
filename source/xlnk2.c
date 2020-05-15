@@ -357,7 +357,7 @@ char cmd, cval;
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
           val = read_word();
-          if (cmd == __PUSHB)
+          if (cmd == __PUSHW)
             stack[stackinx] = val;
           else if (cmd == __CODEW)
             stack[stackinx] = fp[FCODEBASE] + val;

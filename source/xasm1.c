@@ -1146,16 +1146,19 @@ register int *p;
         case __SWAP: fprintf (outhdl, "SWAP\n"); break;
         case __POPB: fprintf (outhdl, "POPB\n"); break;
         case __POPW: fprintf (outhdl, "POPW\n"); break;
-        case __PUSHW: fprintf (outhdl, "PUSH %d\n", val); break;
-        case __CODEW: fprintf (outhdl, "CODE %d\n", val); break;
-        case __DATAW: fprintf (outhdl, "DATA %d\n", val); break;
-        case __UDEFW: fprintf (outhdl, "UDEF %d\n", val); break;
+	case __PUSHW: fprintf (outhdl, "PUSHW %d\n", val); break;
+	case __PUSHB: fprintf (outhdl, "PUSHB %d\n", val); break;
+	case __CODEW: fprintf (outhdl, "CODEW %d\n", val); break;
+	case __CODEB: fprintf (outhdl, "CODEB %d\n", val); break;
+	case __DATAW: fprintf (outhdl, "DATAW %d\n", val); break;
+	case __DATAB: fprintf (outhdl, "DATAB %d\n", val); break;
+	case __UDEFW: fprintf (outhdl, "UDEFW %d\n", val); break;
+	case __UDEFB: fprintf (outhdl, "UDEFB %d\n", val); break;
         case __DSB: fprintf (outhdl, "DSB %d\n", val); break;
         case __END: fprintf (outhdl, "END\n", val); break;
         case __CODEORG: fprintf (outhdl, "CODEORG %d\n", val); break;
         case __DATAORG: fprintf (outhdl, "DATAORG %d\n", val); break;
         case __UDEFORG: fprintf (outhdl, "UDEFORG %d\n", val); break; 
-        default: fprintf (outhdl, "cmd: %d\n", cmd); break;
         case __SYMBOL:
           fprintf (outhdl, "SYMBOL ");
           foutname (val);
@@ -1179,6 +1182,9 @@ register int *p;
           foutname (val);
           fprintf (outhdl, "\n", 0);
           break;
+	default:
+	  fprintf (outhdl, "cmd: %d\n", cmd);
+	  break;
       }
     }
   }

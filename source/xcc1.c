@@ -365,18 +365,20 @@ readline ()
   if (inphdl)
     while (!*sbuf) {
       if (inchdl) {
-        if (!fgets (sbuf, SBUFMAX, inchdl)) {
+        if (!fgets (sbuf, SBUFMAX-1, inchdl)) {
           fclose (inchdl);
           inchdl = 0;
           continue;
         }
+        sbuf[SBUFMAX-1] = 0;
         ++inclnr;
       } else if (inphdl) {
-	if (!fgets (sbuf, SBUFMAX, inphdl)) {
+	if (!fgets (sbuf, SBUFMAX-1, inphdl)) {
           fclose (inphdl);
           inphdl = 0;
           break;
         }
+        sbuf[SBUFMAX-1] = 0;
         ++inplnr;
       }
     }

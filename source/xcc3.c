@@ -1201,8 +1201,12 @@ register int i, j;
       fprintf (outhdl, "\t.DCW ");
 
     for (j=0; j<16; j++) {
-      fprintf (outhdl, "%d", (i >= litinx) ? 0 : litq[i]);
-      if (++i >= litinx)
+    	if (size == 1)
+	  fprintf (outhdl, "%d", (i >= litinx) ? 0 : litq[i]);
+    	else
+          fprintf (outhdl, "%d", (i >= litinx) ? 0 : ((litq[i+0]<<8) | (litq[i+1] & 0xff)));
+      i += size;
+      if (i >= litinx)
         break;
       if (j != 15)
         fprintf (outhdl, ",");
