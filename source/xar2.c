@@ -93,17 +93,38 @@ char arr[1];
   return arr[0] & 0xff;
 }
 
-read_word()
+read_word(hdl)
+int hdl;
 {
 char arr[2];
+int w;
 
-  if (fread (arr, 1, 2, objhdl) != 2) {
+  if (fread (arr, 1, 2, hdl) != 2) {
     printf("missing .END (use -v to discover where)\n");
     exit(1);
   }
 
-  /* return unsigned */
-  return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
+  /* return signed */
+  w = arr[0] << 8 | (arr[1] & 0xff);
+  w |= -(w & (1 << SBIT));
+  return w;
+}
+
+write_byte(byte)
+char byte;
+{
+  fwrite (&byte, 1, 1, outhdl);
+}
+
+write_word(word)
+int word;
+{
+  char arr[2];
+
+  arr[0] = word>>8;
+  arr[1] = word;
+
+  fwrite (arr, 1, 2, outhdl);
 }
 
 do_lis ()
@@ -132,14 +153,10 @@ register int i;
   outhdl = mustopen (outfn, "w");
 
   /* Writeout */
-  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
-    printf ("error writing .OLB header\n");
-    exit (1);
-  }
-  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
-    printf ("error writing .OLB nametable\n");
-    exit (1);
-  }
+  for (i=0; i<HLAST; i++)
+    write_word(olbhdr[i]);
+  for (i=0; i<olbhdr[HNAME]*NLAST; i++)
+    write_word(name[i]);
 
   /* close and rename */
   fclose (outhdl);
@@ -157,7 +174,10 @@ int error, hash, objinx;
   /* open inputfile */
   open_olb ();
 
-  /* first delete any existing occurences */
+  if (verbose)
+    printf("Loading module %s\n", objfn);
+
+  /* first delete any existing occurrences */
   dohash (modn, &hash);
   for (objinx=0; objinx<olbhdr[HFILE]; objinx++)
     if (file[objinx*FLAST+FNAME] == hash)
@@ -211,7 +231,7 @@ int error, hash, objinx;
           objlen += 2;
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
-          read_word();
+          read_word(objhdl);
           objlen += BPW + 1;
           break;
         case __SYMBOL:
@@ -222,7 +242,7 @@ int error, hash, objinx;
           break;
         case __DSB:
 	  /* skip specified number of bytes in current segment */
-          read_word(); /* skipcount */
+          read_word(objhdl); /* skipcount */
           objlen += 1 + BPW;
           break;
         case __END:
@@ -230,7 +250,7 @@ int error, hash, objinx;
            break;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           /* symbol definition */
-          read_word(); /* symbol offset */
+          read_word(objhdl); /* symbol offset */
           datlen = read_byte(); /* length */
           fread (datbuf, 1, datlen, objhdl); /* symbol */
           objlen += 1 + BPW + 1 + datlen;
@@ -240,7 +260,7 @@ int error, hash, objinx;
           dohash (datbuf, &hash);
           p = &name[hash*NLAST];
           if (p[NLIB] != -1) {
-            /* get name of library already containing suymbol */
+            /* get name of library already containing symbol */
             printf ("Symbol '%s' already defined in module ", datbuf);
             soutname (file[p[NLIB]*FLAST+FNAME], datbuf);
             printf ("%s\n", datbuf);
@@ -253,7 +273,7 @@ int error, hash, objinx;
           }
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          read_word(); /* segment offset */
+          read_word(objhdl); /* segment offset */
           objlen += 1 + BPW;
           break;
         default:
@@ -289,19 +309,17 @@ int error, hash, objinx;
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
+  /* cleanup header */
+  for (i=0; i<olbhdr[HFILE]; i++)
+    file[i*FLAST+FOLDOFS] = 0;
+
   /* Writeout */
-  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
-    printf ("error writing .OLB header\n");
-    exit (1);
-  }
-  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
-    printf ("error writing .OLB nametable\n");
-    exit (1);
-  }
-  if (fwrite (file, BPW, i=olbhdr[HFILE]*FLAST, outhdl) != i) {
-    printf ("error writing .OLB filetable\n");
-    exit (1);
-  }
+  for (i=0; i<HLAST; i++)
+    write_word(olbhdr[i]);
+  for (i=0; i<olbhdr[HNAME]*NLAST; i++)
+    write_word(name[i]);
+  for (i=0; i<olbhdr[HFILE]*FLAST; i++)
+    write_word(file[i]);
  
   /* copy objects and append new object */
   for (i=0; i<olbhdr[HFILE]; i++) {
@@ -370,19 +388,17 @@ int error, hash, objinx;
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
-  /* Writeout */
-  if (fwrite (olbhdr, BPW, HLAST, outhdl) != HLAST) {
-    printf ("error writing .OLB header\n");
-    exit (1);
-  }
-  if (fwrite (name, BPW, i=olbhdr[HNAME]*NLAST, outhdl) != i) {
-    printf ("error writing .OLB nametable\n");
-    exit (1);
-  }
-  if (fwrite (file, BPW, i=olbhdr[HFILE]*FLAST, outhdl) != i) {
-    printf ("error writing .OLB filetable\n");
-    exit (1);
-  }
+  /* cleanup header */
+  for (i=0; i<olbhdr[HFILE]; i++)
+    file[i*FLAST+FOLDOFS] = 0;
+
+	/* Writeout */
+  for (i=0; i<HLAST; i++)
+    write_word(olbhdr[i]);
+  for (i=0; i<olbhdr[HNAME]*NLAST; i++)
+    write_word(name[i]);
+  for (i=0; i<olbhdr[HFILE]*FLAST; i++)
+    write_word(file[i]);
  
   /* copy objects and append new object */
   for (i=0; i<olbhdr[HFILE]; i++) {

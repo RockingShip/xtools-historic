@@ -69,11 +69,11 @@ usage ()
 {
   printf ("X-Archiver, Version %s\n\n", getversion());
 
-  printf ("usage: xar (a|c|d|l|x) <library>[.<ext>] [<object>[.<ext>]\n");
+  printf ("usage: xar (a|c|d|l|x) <library>[.<ext>] [<object>[.<ext>] ... \n");
   printf ("  a  Add a module\n");
   printf ("  c  Create a new library\n");
   printf ("  d  Delete a module\n");
-  printf ("  l  List the library\n");
+  printf ("  t  List the library\n");
   printf ("  x  Extract a module\n");
   printf ("  -v Verbose\n");
   exit (1);
@@ -127,7 +127,7 @@ register int *argv;
           case 'd':
             usercmd = DELCMD;
             break;
-          case 'l':
+          case 't':
             usercmd = LISCMD;
             break;
           case 'x':
@@ -140,8 +140,8 @@ register int *argv;
           usage (); /* one letter commands only */
       } else if (!olbfn[0]) {
 	fext(olbfn, arg, ".xa", 0);
-        fext(bakfn, arg, ".bak", 0);
-        fext(outfn, arg, ".tmp", 0);
+        fext(bakfn, arg, ".bak", 1);
+        fext(outfn, arg, ".tmp", 1);
       } else if (!objfn[0]) {
         fext(objfn, arg, ".xo", 0);
         fext(modn, arg, "", 1);
@@ -199,28 +199,35 @@ open_olb ()
 {
 register int i, *p;
 
-  olbhdl = mustopen (olbfn, "r");
-  if (fread (olbhdr, BPW, HLAST, olbhdl) != HLAST) {
-    printf ("error reading .OLB header\n");
-    exit (1);
+  /* open, allow failure */
+  olbhdl = fopen (olbfn, "r");
+
+  if (!olbhdl) {
+    if (verbose)
+      printf("Creating library %s\n", olbfn);
+
+    /* init header for empty archive */
+    olbhdr[HNAME] = NAMEMAX;
+    /* set all symbols to 'not in library' */
+    for (i=0; i<NAMEMAX; i++)
+      name[i*NLAST+NLIB] = -1;
+    return;
   }
-  if (olbhdr[HNAME] > NAMEMAX) {
-    printf ("name table too large in .OLB\n");
-    exit (1);
-  }
-  if (olbhdr[HFILE] > FILEMAX) {
-    printf ("file table too large in .OLB\n");
-    exit (1);
-  }
-  if (fread (name, BPW, i=olbhdr[HNAME]*NLAST, olbhdl) != i) {
-    printf ("error reading .OLB nametable\n");
-    exit (1);
-  }
+
+  if (verbose)
+    printf("Loading library %s %d\n", olbfn, olbhdl);
+
+  for (i=0; i<HLAST; i++)
+    olbhdr[i] = read_word(olbhdl);
+  if (olbhdr[HNAME] > NAMEMAX)
+    fatal ("name table too large in .OLB\n");
+  if (olbhdr[HFILE] > FILEMAX)
+    fatal ("file table too large in .OLB\n");
+  for (i=0; i<olbhdr[HNAME]*NLAST; i++)
+    name[i] = read_word(olbhdl);
   if (olbhdr[HFILE] > 0)
-    if (fread (file, BPW, i=olbhdr[HFILE]*FLAST, olbhdl) != i) {
-      printf ("error reading .OLB filetable\n");
-      exit (1);
-    }
+    for (i=0; i<olbhdr[HFILE]*FLAST; i++)
+      file[i] = read_word(olbhdl);
 
   /* duplicate offset fields */
   for (i=0; i<olbhdr[HFILE]; i++) {
@@ -229,7 +236,20 @@ register int i, *p;
   }
 }
 
-
+error(msg)
+char *msg;
+{
+  errflag++;
+  printf ("%s");
+}
+
+fatal (msg)
+char *msg;
+{
+error (msg);
+exit (0);
+}
+
 /**********************************************************************/
 /*                                                                    */
 /*    Symboltable routines                                            */

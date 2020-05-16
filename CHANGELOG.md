@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-16 19:30:40 Make `xar` endian aware.
+                    `xar` was one of the last components and received less attention.
 2020-05-16 19:03:54 Completed build scripts.
                     Added scripts for `lib` and seperated `getversion()` for native and sandbox.
 2020-05-15 20:59:00 Got `xcc,xasm,xlnk` to stage 3.

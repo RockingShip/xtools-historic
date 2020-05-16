@@ -46,6 +46,7 @@
 */
 
 #define BPW		2  /* Bytes per word */
+#define SBIT            15 /* Bit number of signed bit */
 
 /*
 ** Definitions for names's
