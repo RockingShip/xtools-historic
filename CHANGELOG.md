@@ -8,23 +8,52 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-16 19:03:54 Completed build scripts.
+                    Added scripts for `lib` and seperated `getversion()` for native and sandbox.
 2020-05-15 20:59:00 Got `xcc,xasm,xlnk` to stage 3.
+                    These finally seem to be fully working.
 2020-05-15 20:56:35 Sandbox exit code.
+                    Allow `make` to detect unexpected situations. 
 2020-05-15 20:38:02 Be less verbose and get version from autoconf.
-2020-05-15 13:49:08 Reduce xcc symbol table size to avoid stack overflow. 
+                    Make `make` less noisy. Renavle with `-v`.
+2020-05-15 13:49:08 Reduce xcc symbol table size to avoid stack overflow.
+                    Late stage of the school project raised the symbol table size to `2003`.
+                    This caused  `___END` to `0xf803` and stack grew down to `0xf3cd`.
 2020-05-15 00:16:20 Fixed issues that broke `xcc` and `xlnk`.
-2020-05-15 00:32:37 Fixed and added missing I/O library routines.  
+                    fgets() with long lines.
+                    Literal pool dump as words was broken.
+                    `REL` command `PUSHB` was broken.
+2020-05-15 00:32:37 Fixed and added missing I/O library routines.
+                    School project was msdos with text/binary mode.
+                    Problem was that text was being processed using calls for binary files.
+                    Now, fread()/fwrite() are binary and fgets()/fputs() are text with obsoleded '\r' handling.  
 2020-05-14 14:00:56 Sandbox argc/argv.
+                    Converted xtools to argc/argv convention. 
 2020-05-13 22:32:58 Stage1 compiles and runs sandboxed `ostest.c`. 
+                    Synced and tested system call use and implementation.
 2020-05-13 17:52:37 Use file extensions `.xs .xo .xa` to not conflict with `.s .o .a .obj .lib`.
+                    Use a different set of file extensions to differentiate from ELF archecture.
 2020-05-12 23:09:16 Got "-Dint=long" working (Yay!).
+                    Xtools assumes "sizeof(int)==sizeof(char*)" which gives problems on 64 bit archecture.
+                    Fix sources to run on 16/64 bits by manually sign extending function argumens and some variables. 
 2020-05-12 22:42:37 Fixed argc/argv.
+                    School project used a single commandline string.
+                    Converted to argc/argv convention. 
 2020-05-12 22:06:26 Fixed+synced `usage()` and friends.
+                    Tune usage/invocation to gcc invocation.
 2020-05-12 21:09:06 Fixed name hashing.
+                    Late bug found in xtools. 
+                    Name chains can be zero terminated if the namech[0] is non-zero. 
 2020-05-12 21:01:46 Conform printf format.
+                    School assignment had different view on field justification.
 2020-05-12 20:19:53 Split `gencode()` to avoid stdargs.
+                    Variadic function have always been a pain because arguments are pushed in order of occurance. 
+                    native/xtools have contradicting assumptions of this.
+                    Solve by splitting the function into the different Variadic flavours.
 2020-05-12 20:19:53 Conform fopen/fread/fwrite/fseek and endianness.
+                    xtools is a MSB architecture and school assignment had different arguments. 
 2020-05-12 19:40:32 Reordered blocks to avoid forward references.
+                    xcc will choke on forward references functions because it treat undeclared identifiers as ints.
 2020-05-09 23:21:52 Reformat native programs, only critical code changes.
 2020-05-12 12:13:53 Add build scripts.
 ```

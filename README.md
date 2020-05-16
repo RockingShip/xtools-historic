@@ -42,7 +42,7 @@ Modern calling standards pass the first 6 arguments through registers, so the fi
 However, because they are in registers, the pushed constant will be in the lower 32 bits, the upper 32 set to zero.
 This will break the signedness of arguments.   
 
-The phenomina is best explained with this code snippet:
+The phenomena is best explained with this code snippet:
 ```
     long main(argc, argv)
     {
@@ -179,10 +179,29 @@ This requires the compiler flags `"-Dint=long"`, possibly `"-fno-inline"` and so
 The makefile supports a number of targets:
 
 ```
-    make pso     # emulator of school assignment
-    make stage1  # build 'xcc' with native compiler
-    make stage2  # build 'xcc' with emulated stage1 compiler 
-    make stage3  # build 'xcc' with emulated stage2 compiler and compare result with stage2
+    make         # Build all the native programs
+    make stage1  # Same as 'make'
+    make stage2  # Build 'xtools/xlib` with emulated stage1 
+    make stage3  # Build 'xtools/xlib` with emulated stage2 and compare result with stage2
+```
+
+After stage 2 the following files should be present:
+```
+    xcc.img     X-C-Compiler
+    xasm.img    X-Asselmber
+    xlnk.img    X-Linker
+    xar.img     X-Archiver
+    xlib.xa     X-Library to be used with "xlnk ... -l xlib"
+    xemu        Native emulator
+```
+
+The try:
+
+```
+    ./xemu xcc cattle.c
+    ./xemu xasm cattle
+    ./xemu xlnk cattle -l xlib
+    ./xemu cattle
 ```
 
 Included example is my 1996 IOCCC submission: [Bulls and Cows](https://en.wikipedia.org/wiki/Bulls_and_Cows),
