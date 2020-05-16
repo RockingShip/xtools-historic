@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-16 19:34:24 Fixed emulator file handling.
+                    Correct return value (NULL) when opening non-existing files for reading.
+                    File offsets and read/write sizes are unsigned.
+                    `pso` now opens at invocation stdin/stdout and stderr using the new call `XFILE::fdopen()`.
+                    `fdopen()` does not pre-load internal buffers or it will block waiting for input on stdin.
 2020-05-16 19:30:40 Make `xar` endian aware.
                     `xar` was one of the last components and received less attention.
 2020-05-16 19:03:54 Completed build scripts.

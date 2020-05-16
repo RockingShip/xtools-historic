@@ -22,7 +22,7 @@ int XFILE::fopen(char *fname, char *mode) {
 			return hdl;
 		this->mode = 'W';
 	} else if (mode[0] == 'r' && mode[1] == 0) {
-		hdl = open(fname, O_RDWR, 0);
+		hdl = open(fname, O_RDONLY, 0);
 		if (hdl < 0)
 			return hdl;
 		this->mode = 'R';
@@ -39,6 +39,30 @@ int XFILE::fopen(char *fname, char *mode) {
 	/* initial load */
 	if (this->mode == 'R')
 		fload();
+
+	return 0;
+}
+
+/* exclusively intended to map stdin/stdout/stderr */
+int XFILE::fdopen(int hdl, const char *mode) {
+	char *cp;
+
+	/* Open file */
+	if (mode[0] == 'w' && mode[1] == 0) {
+		this->hdl = hdl;
+		this->mode = 'W';
+	} else if (mode[0] == 'r' && mode[1] == 0) {
+		this->hdl = hdl;
+		this->mode = 'R';
+	} else {
+		printf("unknown open mode '%c'\n", mode);
+		exit(1);
+	}
+
+	bufpos = filpos = buflen = bufofs = 0;
+	dirty  = 0;
+
+	/* no loadial load or it will block reading stdin */
 
 	return 0;
 }

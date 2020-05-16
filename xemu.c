@@ -376,7 +376,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
 				regs[1] = -1;
 			else
-				regs[1] = fread(addr, ctrl[1], ctrl[2], handles[ctrl[3]]);
+				regs[1] = fread(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
 			break;
 		}
 		case 41: { /* fwrite() */
@@ -390,7 +390,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
 				regs[1] = -1;
 			else
-				regs[1] = fwrite(addr, ctrl[1], ctrl[2], handles[ctrl[3]]);
+				regs[1] = fwrite(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
 			break;
 		}
 		case 42: { /* fopen() */
@@ -409,7 +409,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 				fprintf(stderr, "ERROR: Too many open files\n"), shutdown(1);
 
 			handles[hdl] = fopen(name, mode);
-			regs[1]      = (handles[hdl] == NULL) ? -1 : hdl;
+			regs[1]      = (handles[hdl] == NULL) ? 0 : hdl;
 			break;
 		}
 		case 43: { /* fclose() */
@@ -438,7 +438,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
 			else
-				regs[1] = fseek(handles[ctrl[0]], ofs, ctrl[2]);
+				regs[1] = fseek(handles[ctrl[0]], ofs & 0xffff, ctrl[2]);
 			break;
 		}
 		case 45: { /* unlink() */
@@ -512,7 +512,7 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			printf("unimplemented SVC call\n");
 			disp_opc(pc);
 			disp_dump(pc, cc);
-			break;
+			shutdown(1);
 	}
 }
 
@@ -810,7 +810,7 @@ void run(uint16_t inisp) {
 				disp_dump(pc - 1, cc);
 				if (verbose)
 					printf("lowestSP=%04x\n", lowestSP);
-				break;
+				shutdown(1);
 		}
 	}
 }

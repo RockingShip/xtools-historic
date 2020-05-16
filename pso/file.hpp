@@ -31,6 +31,8 @@ public :
 
 	int fopen(char *fname, char *mode);
 
+	int fdopen(int hdl, const char *mode);
+
 	int fread(ADDRESS addr, int siz, int cnt);
 
 	int fwrite(ADDRESS addr, int siz, int cnt);

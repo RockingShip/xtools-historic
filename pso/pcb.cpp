@@ -8,6 +8,14 @@ PCB::PCB() {
 
 	for (i = 0; i < FILEMAX; i++)
 		files[i] = NULL;
+
+	files[0] = new XFILE(&pagetable);
+	files[0]->fdopen(0, "r");
+	files[1] = new XFILE(&pagetable);
+	files[1]->fdopen(1, "w");
+	files[2] = new XFILE(&pagetable);
+	files[2]->fdopen(2, "w");
+
 	command[0] = 0;
 }
 
@@ -22,7 +30,12 @@ int PCB::fopen(char *fname, char *mode) {
 	if ((fid < 0) || (fid >= FILEMAX))
 		return -1;
 	files[fid] = new XFILE(&pagetable);
-	files[fid]->fopen(fname, mode);
+	if (files[fid]->fopen(fname, mode) == -1) {
+		/* open failed */
+		delete files[fid];
+		files[fid] = NULL;
+		return 0;
+	}
 	return fid;
 }
 
@@ -56,6 +69,7 @@ int PCB::fclose(int fid) {
 
 	int ret = files[fid]->fclose();
 	// release handle
+	delete files[fid];
 	files[fid] = NULL;
 
 	return ret;
