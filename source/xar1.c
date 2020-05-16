@@ -218,22 +218,38 @@ register int i, *p;
     printf("Loading library %s %d\n", olbfn, olbhdl);
 
   for (i=0; i<HLAST; i++)
-    olbhdr[i] = read_word(olbhdl);
+    olbhdr[i] = read_word_olb();
   if (olbhdr[HNAME] > NAMEMAX)
     fatal ("name table too large in .OLB\n");
   if (olbhdr[HFILE] > FILEMAX)
     fatal ("file table too large in .OLB\n");
   for (i=0; i<olbhdr[HNAME]*NLAST; i++)
-    name[i] = read_word(olbhdl);
+    name[i] = read_word_olb();
   if (olbhdr[HFILE] > 0)
     for (i=0; i<olbhdr[HFILE]*FLAST; i++)
-      file[i] = read_word(olbhdl);
+      file[i] = read_word_olb();
 
   /* duplicate offset fields */
   for (i=0; i<olbhdr[HFILE]; i++) {
     p = &file[i*FLAST];
     p[FOLDOFS] = p[FOFFSET];
   }
+}
+
+read_word_olb()
+{
+char arr[2];
+int w;
+
+  if (fread (arr, 1, 2, olbhdl) != 2) {
+    printf("missing .END (use -v to discover where)\n");
+    exit(1);
+  }
+
+  /* return signed */
+  w = arr[0] << 8 | (arr[1] & 0xff);
+  w |= -(w & (1 << SBIT));
+  return w;
 }
 
 error(msg)

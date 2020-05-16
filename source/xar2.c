@@ -93,13 +93,12 @@ char arr[1];
   return arr[0] & 0xff;
 }
 
-read_word(hdl)
-int hdl;
+read_word()
 {
 char arr[2];
 int w;
 
-  if (fread (arr, 1, 2, hdl) != 2) {
+  if (fread (arr, 1, 2, objhdl) != 2) {
     printf("missing .END (use -v to discover where)\n");
     exit(1);
   }
@@ -231,7 +230,7 @@ int error, hash, objinx;
           objlen += 2;
           break;
         case __PUSHW: case __CODEW: case __DATAW: case __UDEFW:
-          read_word(objhdl);
+          read_word();
           objlen += BPW + 1;
           break;
         case __SYMBOL:
@@ -242,7 +241,7 @@ int error, hash, objinx;
           break;
         case __DSB:
 	  /* skip specified number of bytes in current segment */
-          read_word(objhdl); /* skipcount */
+          read_word(); /* skipcount */
           objlen += 1 + BPW;
           break;
         case __END:
@@ -250,7 +249,7 @@ int error, hash, objinx;
            break;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
           /* symbol definition */
-          read_word(objhdl); /* symbol offset */
+          read_word(); /* symbol offset */
           datlen = read_byte(); /* length */
           fread (datbuf, 1, datlen, objhdl); /* symbol */
           objlen += 1 + BPW + 1 + datlen;
@@ -273,7 +272,7 @@ int error, hash, objinx;
           }
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          read_word(objhdl); /* segment offset */
+          read_word(); /* segment offset */
           objlen += 1 + BPW;
           break;
         default:
@@ -308,10 +307,6 @@ int error, hash, objinx;
   /* build new library */
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
-
-  /* cleanup header */
-  for (i=0; i<olbhdr[HFILE]; i++)
-    file[i*FLAST+FOLDOFS] = 0;
 
   /* Writeout */
   for (i=0; i<HLAST; i++)
@@ -388,11 +383,7 @@ int error, hash, objinx;
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
-  /* cleanup header */
-  for (i=0; i<olbhdr[HFILE]; i++)
-    file[i*FLAST+FOLDOFS] = 0;
-
-	/* Writeout */
+  /* Writeout */
   for (i=0; i<HLAST; i++)
     write_word(olbhdr[i]);
   for (i=0; i<olbhdr[HNAME]*NLAST; i++)

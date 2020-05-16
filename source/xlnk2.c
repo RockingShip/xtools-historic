@@ -75,12 +75,15 @@ char arr[1];
 read_word()
 {
 char arr[2];
+int w;
 
   if (fread (arr, 1, 2, inphdl) != 2)
     fatal("missing .END (use -v to discover where)\n");
 
-  /* return unsigned */
-  return (arr[0] & 0xff) << 8 | (arr[1] & 0xff);
+  /* return signed */
+  w = arr[0] << 8 | (arr[1] & 0xff);
+  w |= -(w & (1 << SBIT));
+  return w;
 }
 
 write_byte(byte)

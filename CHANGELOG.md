@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-16 19:41:57 `xlnk` can now handle libraries.
+                    Libraries handling was not endian aware.
 2020-05-16 19:34:24 Fixed emulator file handling.
                     Correct return value (NULL) when opening non-existing files for reading.
                     File offsets and read/write sizes are unsigned.

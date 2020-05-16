@@ -265,28 +265,25 @@ open_olb ()
 {
 register int i, *p;
 
+  if (verbose)
+    printf("Loading library %s\n", inpfn);
+
   inphdl = mustopen (inpfn, "r");
-  if (fread (lbhdr, BPW, LBHLAST, inphdl) != LBHLAST) {
-    printf ("error reading .OLB header\n");
-    exit (1);
-  }
-  if (lbhdr[LBHNAME] > NAMEMAX) {
-    printf ("name table too large in .OLB\n");
-    exit (1);
-  }
-  if (lbhdr[LBHFILE] > FILEMAX) {
-    printf ("file table too large in .OLB\n");
-    exit (1);
-  }
-  if (fread (lbname, BPW, i=lbhdr[LBHNAME]*LBNLAST, inphdl) != i) {
-    printf ("error reading .OLB nametable\n");
-    exit (1);
-  }
+
+  for (i=0; i<LBHLAST; i++)
+    lbhdr[i] = read_word();
+  if (lbhdr[LBHNAME] > NAMEMAX)
+    fatal ("name table too large in .OLB\n");
+  if (lbhdr[LBHFILE] > FILEMAX)
+    fatal ("file table too large in .OLB\n");
+  for (i=0; i<lbhdr[LBHNAME]*LBNLAST; i++)
+    lbname[i] = read_word();
   if (lbhdr[LBHFILE] > 0)
-    if (fread (lbfile, BPW, i=lbhdr[LBHFILE]*LBFLAST, inphdl) != i) {
-      printf ("error reading .OLB filetable\n");
-      exit (1);
-    }
+    for (i=0; i<lbhdr[LBHFILE]*LBFLAST; i++)
+      lbfile[i] = read_word();
+
+  if (verbose)
+    printf("Loaded\n");
 }
 
 
@@ -309,7 +306,8 @@ register char *str;
 {
 register int i;
 
-  if ((i=lbname[hash*LBNLAST+LBNTAB]) != -1)
+  i=lbname[hash*LBNLAST+LBNTAB];
+  if (i)
     str = lbsoutname (i, str);
   *str++ = lbname[hash*LBNLAST+LBNCHAR];
   *str = 0;
@@ -325,7 +323,7 @@ int *retval;
 {
 register int start, hash, tab, len, *p;
 
-  tab = -1;
+  tab = 0;
   len = 0;
   hash = 0;
   while (*ident) {
