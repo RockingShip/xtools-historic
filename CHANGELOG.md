@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Release [1.1.0] 2020-05-17 15:06:26
+
+XTools/XLibrary can compile itself and demo `cattle` under 16 and 64 bits architecture.
+
 ```
 2020-05-17 14:48:16 Got `cattle` working.
                     "make cattle; ./xemu cattle" as described in `README.md`.
@@ -74,7 +78,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 2020-05-12 12:13:53 Add build scripts.
 ```
 
-## 1.0.0 2020-05-09 11:26:17
+## Release 1.0.0 2020-05-09 11:26:17
 
 Original 1991 submitted school assignment.
 
@@ -82,4 +86,5 @@ Original 1991 submitted school assignment.
 2020-05-09 11:26:17 Changed license and '\n' line separators. 
 ```
 
-[Unreleased]: /RockingShip/xtools/compare/v1.0.0...HEAD
+[Unreleased]: /RockingShip/xtools/compare/v1.1.0...HEAD
+[1.1.0]: /RockingShip/xtools/compare/v1.0.0...v1.1.0

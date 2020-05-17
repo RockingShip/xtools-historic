@@ -38,6 +38,15 @@ stage2-local:
 	@echo " ./xemu cattle"
 	@echo 
 
+stage3-local:
+	@echo 
+	@echo "Compile/run the demo 'cattle.c'."
+	@echo "What input the demo is waiting for is described in 'README.md'"
+	@echo 
+	@echo "  make cattle.img"
+	@echo "  ./xemu cattle"
+	@echo 
+
 %.xs: %.c
 	./$(XEMU) xcc -S $@ $<
 
