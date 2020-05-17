@@ -666,11 +666,11 @@ int sname;
   /* Copy line to listing */
   if (lishdl) {
     if (curseg == CODESEG)
-      fprintf (lishdl, ";C%04x: %s\n", curpos[CODESEG], pbuf);
+      fprintf (lishdl, ";C%04x: %s\n", curpos[CODESEG] & 0xffff, pbuf);
     else if (curseg == DATASEG)
-      fprintf (lishdl, ";D%04x: %s\n", curpos[DATASEG], pbuf);
+      fprintf (lishdl, ";D%04x: %s\n", curpos[DATASEG] & 0xffff, pbuf);
     else
-      fprintf (lishdl, ";U%04x: %s\n", curpos[UDEFSEG], pbuf);
+      fprintf (lishdl, ";U%04x: %s\n", curpos[UDEFSEG] & 0xffff, pbuf);
   }
 }
  
@@ -848,10 +848,6 @@ register char *lit;
 error(msg)
 char *msg;
 {
-/*
-  if (errflag++)
-    return 0;
-*/
   if (inchdl)
     printf ("'%s' ", incfn);
   /* Display original line */
@@ -974,9 +970,9 @@ register int i, j, *p;
   sto_cmd (__END, 0);
 
   if (lishdl) {
-    fprintf (lishdl, "CODE         : %04x (%5d)\n", maxpos[CODESEG], maxpos[CODESEG]);
-    fprintf (lishdl, "DATA         : %04x (%5d)\n", maxpos[DATASEG], maxpos[DATASEG]);
-    fprintf (lishdl, "UDEF         : %04x (%5d)\n", maxpos[UDEFSEG], maxpos[UDEFSEG]);
+    fprintf (lishdl, "CODE         : %04x (%5d)\n", maxpos[CODESEG] & 0xffff, maxpos[CODESEG] & 0xffff);
+    fprintf (lishdl, "DATA         : %04x (%5d)\n", maxpos[DATASEG] & 0xffff, maxpos[DATASEG] & 0xffff);
+    fprintf (lishdl, "UDEF         : %04x (%5d)\n", maxpos[UDEFSEG] & 0xffff, maxpos[UDEFSEG] & 0xffff);
     fprintf (lishdl, "Macros       : %5d(%5d)\n", macinx, MACMAX);
     j=0; for (i=0; i<NAMEMAX; i++) if (name[i*NLAST+NCHAR]) j++;
     fprintf (lishdl, "Names        : %5d(%5d)\n", j, NAMEMAX);

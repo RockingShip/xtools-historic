@@ -732,18 +732,21 @@ register char *lit;
 /*
 ** Generate error messages
 */
+warning(msg)
+char *msg;
+{
+if (inchdl)
+printf ("'%s' ", incfn);
+/* Display original line */
+printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
+fprintf (outhdl, ";%% %s\n", msg);
+}
+
 error(msg)
 char *msg;
 {
-/*
-  if (errflag++)
-    return 0;
-*/
-  if (inchdl)
-    printf ("'%s' ", incfn);
-  /* Display original line */
-  printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
-  fprintf (outhdl, ";%% %s\n", msg);
+  warning(msg);
+  errflag = 1;
 }
 
 fatal (msg)

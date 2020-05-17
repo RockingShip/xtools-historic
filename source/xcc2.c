@@ -77,10 +77,8 @@ register int *loc, i;
       /* get number of elements */
       if (!constexpr (&cnt))
         cnt = 0;
-      else if (cnt < 0) {
-        error ("negative size illegal");
-        cnt = 0;
-      }
+      else if (cnt < 0)
+        warning("warning: negative size");
 
       /* Convert empty arrays into pointers */
       if (!cnt) {
@@ -255,10 +253,8 @@ int lval[LLAST];
 
       if (!constexpr (&cnt))
         cnt = 0;
-      else if (cnt < 0) {
-        error ("negative size illegal");
-        cnt = 0;
-      }
+      else if (cnt < 0)
+        warning("warning: negative size");
 
       /* Convert empty arrays into pointers */
       if (!cnt) {

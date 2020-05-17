@@ -53,12 +53,25 @@ int curseg;
 savmaxseg (fp)
 register int *fp;
 {
-  if (fp[FCODEPOS] > fp[FCODELEN])
+/* trying all possibilities shows: */
+/* unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000" */
+
+/*
+  if (fp[FCODEPOS]  > fp[FCODELEN])
     fp[FCODELEN] = fp[FCODEPOS];
   if (fp[FDATAPOS] > fp[FDATALEN])
     fp[FDATALEN] = fp[FDATAPOS];
   if (fp[FUDEFPOS] > fp[FUDEFLEN])
     fp[FUDEFLEN] = fp[FUDEFPOS];
+*/
+
+	if ((fp[FCODELEN]^fp[FCODEPOS])&0x8000 ?  fp[FCODEPOS]&0x8000 : (fp[FCODELEN]-fp[FCODEPOS])&0x8000)
+		fp[FCODELEN] = fp[FCODEPOS];
+	if ((fp[FDATALEN]^fp[FDATAPOS])&0x8000 ?  fp[FDATAPOS]&0x8000 : (fp[FDATALEN]-fp[FDATAPOS])&0x8000)
+		fp[FDATALEN] = fp[FDATAPOS];
+	if ((fp[FUDEFLEN]^fp[FUDEFPOS])&0x8000 ?  fp[FUDEFPOS]&0x8000 : (fp[FUDEFLEN]-fp[FUDEFPOS])&0x8000)
+		fp[FUDEFLEN] = fp[FUDEFPOS];
+
 }
 
 read_byte()

@@ -215,12 +215,25 @@ register int p[];
 
 savmaxpos ()
 {
-  if (curpos[CODESEG] > maxpos[CODESEG])
+  /* trying all possibilities shows: */
+  /* unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000" */
+
+  /*
+  if (curpos[CODESEG] - maxpos[CODESEG] > 0)
     maxpos[CODESEG] = curpos[CODESEG];
-  if (curpos[DATASEG] > maxpos[DATASEG])
+  if (curpos[DATASEG] - maxpos[DATASEG] > 0)
     maxpos[DATASEG] = curpos[DATASEG];
-  if (curpos[UDEFSEG] > maxpos[UDEFSEG])
+  if (curpos[UDEFSEG] - maxpos[UDEFSEG] > 0)
     maxpos[UDEFSEG] = curpos[UDEFSEG];
+  */
+
+	if ((maxpos[CODESEG]^curpos[CODESEG])&0x8000 ?  curpos[CODESEG]&0x8000 : (maxpos[CODESEG]-curpos[CODESEG])&0x8000)
+		maxpos[CODESEG] = curpos[CODESEG];
+	if ((maxpos[DATASEG]^curpos[DATASEG])&0x8000 ?  curpos[DATASEG]&0x8000 : (maxpos[DATASEG]-curpos[DATASEG])&0x8000)
+		maxpos[DATASEG] = curpos[DATASEG];
+	if ((maxpos[UDEFSEG]^curpos[UDEFSEG])&0x8000 ?  curpos[UDEFSEG]&0x8000 : (maxpos[UDEFSEG]-curpos[UDEFSEG])&0x8000)
+		maxpos[UDEFSEG] = curpos[UDEFSEG];
+
 }
 
 do_pseudo (p)
