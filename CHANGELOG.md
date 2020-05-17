@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-17 14:48:16 Got `cattle` working.
+                    "make cattle; ./xemu cattle" as described in `README.md`.
+                    Slight tweaking to the original.
 2020-05-17 14:38:30 Fixed `"for(;;)"` and `"a?b,c:d"`.
                     There were never tested.
 2020-05-17 14:33:28 Handle large data.

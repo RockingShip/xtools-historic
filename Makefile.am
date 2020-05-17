@@ -37,3 +37,12 @@ stage2-local:
 	@echo " ./xemu xlnk cattle -l xlib"
 	@echo " ./xemu cattle"
 	@echo 
+
+%.xs: %.c
+	./$(XEMU) xcc -S $@ $<
+
+%.xo: %.xs
+	./$(XEMU) xasm -c $@ $<
+
+%.img : %.xo
+	./$(XEMU) xlnk -o $@ $^ -l xlib
