@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = LICENSE.txt CHANGELOG.md README.md .gitignore cattle.c
 
-CLEANFILES = xlib.xa
+CLEANFILES = xcc.img xasm.ing xlnk.img xar.img xlib.xa cattle.img
 
 # Directory order
 SUBDIRS = pso . lib source .
@@ -20,6 +20,8 @@ all-local:
 	@echo "run \"make stage2\" to build XTools/XLibrary in this directory"
 	@echo "run \"make stage3\" to verify stage 2 can build itself and produce identical output"
 	@echo 
+
+stage1-local: xemu
 
 stage2-local:
 	@echo 

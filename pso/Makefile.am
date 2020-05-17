@@ -11,3 +11,5 @@ pso_SOURCES = \
 	opcodes.hpp \
 	pcb.cpp pcb.hpp \
 	system.hpp
+
+stage1-local : pso
