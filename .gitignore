@@ -8,11 +8,13 @@ config.h
 config.h.in
 config.status
 configure
+getversion.c
 libtool
 m4/
 Makefile
 Makefile.in
 pso/pso
+source/getversion.c
 source/xas
 source/xasm
 source/xcc
@@ -27,6 +29,7 @@ xemu
 *.log
 *.map
 *.o
+*.xa
 *.xo
 *.xo3
 *.xs

@@ -534,7 +534,7 @@ int sname;
     len = strlen(line);
     while (len && line[len-1] <= ' ')
       len--;
-    fprintf(outhdl, "; %d %.*s\n", inchdl ? inclnr : inplnr, len, line);
+    fprintf(outhdl, "; %d %s\n", inchdl ? inclnr : inplnr, line);
   }
 }
  
@@ -745,15 +745,15 @@ fprintf (outhdl, ";%% %s\n", msg);
 error(msg)
 char *msg;
 {
-  warning(msg);
-  errflag = 1;
+warning(msg);
+errflag = 1;
 }
 
 fatal (msg)
 char *msg;
 {
-  error (msg);
-  exit (1);
+error (msg);
+exit (1);
 }
 
 exprerr ()

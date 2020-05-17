@@ -255,7 +255,7 @@ int w;
 error(msg)
 char *msg;
 {
-  errflag++;
+  errflag = 1;
   printf ("%s");
 }
 

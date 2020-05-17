@@ -460,7 +460,7 @@ char cmd, cval;
           }
           return;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
-          /* symbol definition (skiped in pass2) */
+          /* symbol definition (skipped in pass2) */
           symofs = read_word() & 0xffff; /* symbol offset */
           datlen = read_byte() & 0xff; /* length */
           fread (datbuf, 1, datlen, inphdl); /* symbol */
