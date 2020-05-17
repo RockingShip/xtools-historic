@@ -26,37 +26,36 @@
  * SOFTWARE.
  */
 
-/*
-** xcc.h -- Symbol definitions for X-C-Compiler
-*/
+//*
+//* xcc.h -- Symbol definitions for X-C-Compiler
+//*
 
 /* 
-** Compiler dependent parameters
-*/
+ * Compiler dependent parameters
+ */
 
-/* #define DYNAMIC		/* allocate memory dynamically */
-/* #define UPPER		/* force symbols to uppercase */
+// #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 997		/* Size of nametable !!! MUST BE PRIME !!! */
-#define PBUFMAX 512		/* Size of preprocessor buffer */
-#define SBUFMAX 256		/* Size of source buffer */
-#define MACMAX 300		/* Number of definable macro's */
-#define MACQMAX MACMAX*7	/* Expansiontable for macro's */
-#define GLBMAX 200		/* Number of global symbols */	
-#define LOCMAX 50		/* Number of local symbols */	
-#define SWMAX 100		/* Number of switch cases */	
-#define PATHMAX 80              /* Length of filename */
-
-/*
-** Machine dependent parmeters
-*/
-
-#define BPW		2  /* Bytes per word */
-#define SBIT            15 /* Bit number of signed bit */
+#define NAMEMAX 997		// Size of nametable !!! MUST BE PRIME !!!
+#define PBUFMAX 512		// Size of preprocessor buffer
+#define SBUFMAX 256		// Size of source buffer
+#define MACMAX 300		// Number of definable macro's
+#define MACQMAX MACMAX*7	// Expansiontable for macro's
+#define GLBMAX 200		// Number of global symbols
+#define LOCMAX 50		// Number of local symbols
+#define SWMAX 100		// Number of switch cases
+#define PATHMAX 80              // Length of filename
 
 /*
-** Reserved characters 
-*/
+ * Machine dependent parmeters
+ */
+
+#define BPW		2       // Bytes per word
+#define SBIT            15      // Bit number of signed bit
+
+/*
+ * Reserved characters
+ */
 
 #define BS		8
 #define HT		9
@@ -64,40 +63,40 @@
 #define FF		12
 
 /*
-** Possible values for "TYPE"
-*/
+ * Possible values for "TYPE"
+ */
 
 #define CONSTANT	1
 #define VARIABLE	2
-#define ARRAY		3 /* converted by code generator to VARIABLE */
+#define ARRAY		3       // converted by code generator to VARIABLE
 #define LABEL		4
 #define FUNCTION	5
 #define EXPR		6
 #define BRANCH		7
 
 /*
-** Possible values for "CLASS"
-*/
+ * Possible values for "CLASS"
+ */
 
-#define STATIC		1	/* static global variables */
-#define SP_AUTO		2	/* local variables */
-#define AP_AUTO		3	/* procedure parameters */
-#define EXTERNAL	4	/* external global variables */
-#define AUTOEXT		5	/* referenced names */
-#define GLOBAL		6	/* global variables */
-#define REGISTER	7	/* register variables */
+#define STATIC		1	// static global variables
+#define SP_AUTO		2	// local variables
+#define AP_AUTO		3	// procedure parameters
+#define EXTERNAL	4	// external global variables
+#define AUTOEXT		5	// referenced names
+#define GLOBAL		6	// global variables
+#define REGISTER	7	// register variables
 
 /*
-** Possible values for "EA"
-*/
+ * Possible values for "EA"
+ */
 
 #define EA_ADDR		1
 #define EA_IND		2
 #define EA_REG		3
 
 /*
-** Definitions for lval  (Code generated node)
-*/
+ * Definitions for lval  (Code generated node)
+ */
 
 #define LTYPE		0
 #define LPTR		1
@@ -112,8 +111,8 @@
 #define LLAST		10
 
 /*
-** Definitions for ident (symbol table entry)
-*/
+ * Definitions for ident (symbol table entry)
+ */
 
 #define INAME		0
 #define ITYPE		1
@@ -124,24 +123,24 @@
 #define ILAST		6
 
 /*
-** Definitions for macro's
-*/
+ * Definitions for macro's
+ */
 
 #define MNAME		0
 #define MEXPAND		1
 #define MLAST		2
 
 /*
-** Definitions for switches
-*/
+ * Definitions for switches
+ */
 
 #define SCASE		0
 #define SLABEL		1
 #define SLAST		2
 
 /*
-** Reserved registers 
-*/
+ * Reserved registers
+ */
 
 #define REG_SP		15
 #define REG_AP		14
@@ -152,16 +151,16 @@
 #define REG_RESVD	((1<<REG_SP)|(1<<REG_AP)|(1<<REG_BPW)|(1<<REG_4)|(1<<REG_1)|(1<<REG_0)|(1<<1)|(1<<0))
 
 /*
-** segment names 
-*/
+ * segment names
+ */
 
 #define CODESEG		1
 #define DATASEG		2
 #define UDEFSEG		3
 
 /*
-** Compiler-generated p-codes
-*/
+ * Compiler-generated p-codes
+ */
 
 #define _ILLEGAL	1
 #define _ADD		2
@@ -203,14 +202,14 @@
 #define _LOR		38
 
 /* 
-** Literal pool
-*/
+ * Literal pool
+ */
 
 #define LITMAX		1500
 
 /*
-** Storage
-*/
+ * Storage
+ */
 
 EXTERN int 
 
@@ -230,35 +229,35 @@ EXTERN int
   sw[SWMAX*SLAST],
 #endif
 
-  argcid,argvid,	/* hashvalues of reserved words */
-  swinx,                /* Position in switch table */
-  csp,                  /* stackpointer seen from scope coding */
-  hier_str[30],		/* Array containing hierichal operators */
-  hier_oper[30],	/* Internal translation of the above */
-  locinx,		/* Next free local symbol */
-  glbinx,		/* Next free global symbol */
-  inplnr,		/* Linenumber of .C file */
-  inclnr,		/* Linenumber of .H file */
-  ccode,		/* True for C source, else ASM source */
-  macinx,		/* Next free entry in mac */
-  macqinx,		/* Next free entry in macq */
-  pinx,			/* Position in preprocessor buffer */
-  iflevel,		/* #if nesting level */
-  skiplevel,		/* level at which #if skipping starts */
-  errflag,		/* True if an error has occurred */
-  verbose,		/* Verbose -v specified */
-  maklis,		/* Listing -h specified */
-  outhdl,		/* handle for .ASM file */
-  lishdl, 		/* handle for .LIS file */
-  inphdl,		/* handle for .C file */
-  inchdl,		/* handle for .H file */
-  reguse,		/* Currently used registers */
-  regsum,		/* Summary of all used registers */
-  reglock,		/* Register locked by 'register' vars */
-  nxtlabel,		/* Next label number */
-  currseg,		/* Current output segment */
-  prevseg,		/* Previous output segment */
-  litinx;		/* Index to next entry */
+  argcid,argvid,	// hashvalues of reserved words
+  swinx,                // Position in switch table
+  csp,                  // stackpointer seen from scope coding
+  hier_str[30],		// Array containing hierarchical operators
+  hier_oper[30],	// Internal translation of the above
+  locinx,		// Next free local symbol
+  glbinx,		// Next free global symbol
+  inplnr,		// Linenumber of .C file
+  inclnr,		// Linenumber of .H file
+  ccode,		// True for C source, else ASM source
+  macinx,		// Next free entry in mac
+  macqinx,		// Next free entry in macq
+  pinx,			// Position in preprocessor buffer
+  iflevel,		// #if nesting level
+  skiplevel,		// level at which #if skipping starts
+  errflag,		// True if an error has occurred
+  verbose,		// Verbose -v specified
+  maklis,		// Listing -h specified
+  outhdl,		// handle for .ASM file
+  lishdl, 		// handle for .LIS file
+  inphdl,		// handle for .C file
+  inchdl,		// handle for .H file
+  reguse,		// Currently used registers
+  regsum,		// Summary of all used registers
+  reglock,		// Register locked by 'register' vars
+  nxtlabel,		// Next label number
+  currseg,		// Current output segment
+  prevseg,		// Previous output segment
+  litinx;		// Index to next entry
 
 EXTERN char 
 
@@ -274,10 +273,10 @@ EXTERN char
   macq[MACQMAX],
 #endif
 
-  inpfn[PATHMAX],	/* input filename */
-  incfn[PATHMAX],	/* include filename */
-  outfn[PATHMAX],	/* output filename */
-  *line,		/* Pointer to current input buffer */
-  *lptr,		/* Pointer to current character in input buffer */
-  ch,			/* Current character in line being scanned */
-  nch;			/* Next character in line being scanned */
+  inpfn[PATHMAX],	// input filename
+  incfn[PATHMAX],	// include filename
+  outfn[PATHMAX],	// output filename
+  *line,		// Pointer to current input buffer
+  *lptr,		// Pointer to current character in input buffer
+  ch,			// Current character in line being scanned
+  nch;			// Next character in line being scanned

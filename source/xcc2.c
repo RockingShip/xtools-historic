@@ -26,16 +26,16 @@
  * SOFTWARE.
  */
 
-/*
-** X-C-Compiler.  Part 2, Syntax Control
-*/
+//*
+//* X-C-Compiler.  Part 2, Syntax Control
+//*
 
 #define EXTERN extern
 #include "xcc.h"
 
 /*
-** Declare/define a local symbol
-*/
+ * Declare/define a local symbol
+ */
 declloc (locscope, class)
 int locscope;
 register int class;
@@ -43,7 +43,7 @@ register int class;
 int size, sname, len, ptr, type, cnt;
 register int *loc, i;
 
-  /* get size of type */
+  // get size of type
   if (amatch ("char"))
     size = 1;
   else if (amatch ("int"))
@@ -51,7 +51,7 @@ register int *loc, i;
   else
     return 0;
 
-  /* scan definitions */
+  // scan definitions
   while (1) {
     ptr = (match ("(*") || match ("*"));
     if (!(len = dohash (lptr, &sname)))
@@ -66,42 +66,42 @@ register int *loc, i;
     if (match ("()"))
       type = FUNCTION;
 
-    cnt = 1; /* Number of elements */
+    cnt = 1; // Number of elements
     if (match ("[")) {
-      /* test for valid types */
+      // test for valid types
       if (ptr || (type != VARIABLE))
         error ("array type not supported");
       ptr = 0;
       type = ARRAY;
 
-      /* get number of elements */
+      // get number of elements
       if (!constexpr (&cnt))
         cnt = 0;
       else if (cnt < 0)
         warning("warning: negative size");
 
-      /* Convert empty arrays into pointers */
+      // Convert empty arrays into pointers
       if (!cnt) {
         type = VARIABLE;
         ptr = 1;
       } else if (class == REGISTER)
         error ("register array not allowed");
 
-      /* force single dimension */
+      // force single dimension
       needtoken ("]");
     }
 
-    /* add symbol to symboltable */
+    // add symbol to symboltable
     if (locinx >= LOCMAX)
       fatal ("local symboltable overflow");
     loc = &locsym[locinx++ * ILAST];
     loc[INAME] = sname;
     loc[ITYPE] = type;
-    loc[IPTR] = (ptr || (type == ARRAY)); /* 'true' if *<name> can be used */
+    loc[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
     loc[ICLASS] = class;
     loc[ISIZE] = size;
 
-    /* allocate on stack */
+    // allocate on stack
     if (class == REGISTER) {
       loc[IVALUE] = allocreg ();
       reglock |= (1<<loc[IVALUE]);
@@ -112,19 +112,19 @@ register int *loc, i;
     else
       loc[IVALUE] = (csp -= cnt*BPW);
 
-    /* test for more */
+    // test for more
     if (!match (","))
       break;
   }
 
-  /* done */
+  // done
   ns ();
   return 1;
 }
 
 /*
-** Declare/define a procedure argument
-*/
+ * Declare/define a procedure argument
+ */
 declarg (class, totargc)
 register int class, totargc;
 {
@@ -133,15 +133,15 @@ register int *loc, i;
 
   cnt = 0;
 
-  /* get size of type */
+  // get size of type
   if (amatch ("char"))
-    size = 1; /* char is stored as int on stack */
+    size = 1; // char is stored as int on stack
   else if (amatch ("int"))
     size = 2;
   else
     return cnt;
 
-  /* scan definitions */
+  // scan definitions
   while (1) {
     ptr = (match ("(*") || match ("*"));
     if (!(len = dohash (lptr, &sname)))
@@ -164,22 +164,22 @@ register int *loc, i;
       type = FUNCTION;
 
     if (match ("[")) {
-      /* test for valid types */
+      // test for valid types
       if (ptr || (type != VARIABLE))
         error ("array type not supported");
       ptr = 0;
       type = VARIABLE;
       ptr = 1;
 
-      /* get number of elements */
+      // get number of elements
       if (constexpr (&cnt))
         error ("arraysize not allowed");
 
-      /* force single dimension */
+      // force single dimension
       needtoken ("]");
     }
 
-    /* add symbol to symboltable */
+    // add symbol to symboltable
     ++cnt;
     loc[INAME] = sname;
     loc[ITYPE] = type;
@@ -188,11 +188,11 @@ register int *loc, i;
     loc[ISIZE] = size;
     loc[IVALUE] = (totargc - loc[IVALUE] + 1) * BPW;
 
-    /* modify location if chars */
+    // modify location if chars
     if ((!ptr) && (size == 1))
       loc[IVALUE] += (BPW-1);
 
-    /* generate code for register variables */
+    // generate code for register variables
     if (class == REGISTER) {
       reg = allocreg ();
       reglock |= (1<<reg);
@@ -200,19 +200,19 @@ register int *loc, i;
       loc[IVALUE] = reg;
     }
 
-    /* test for more */
+    // test for more
     if (!match (","))
       break;
   }
 
-  /* done */
+  // done
   ns ();
   return cnt;
 }
 
 /*
-** General global definitions
-*/
+ * General global definitions
+ */
 declgbl (class)
 register int class;
 {
@@ -220,7 +220,7 @@ int size, sname, len, ptr, type, cnt;
 register int *glb, i;
 int lval[LLAST];
 
-  /* get size of type */
+  // get size of type
   if (amatch ("char"))
     size = 1;
   else if (amatch ("int") || (class == EXTERNAL) || (class == STATIC))
@@ -241,7 +241,7 @@ int lval[LLAST];
     type = VARIABLE;
     if (match ("()"))
       type = FUNCTION;
-    cnt = 1; /* Number of elements */
+    cnt = 1; // Number of elements
     if (match ("[")) {
       if (ptr) {
         error ("no pointer arrays");
@@ -256,33 +256,34 @@ int lval[LLAST];
       else if (cnt < 0)
         warning("warning: negative size");
 
-      /* Convert empty arrays into pointers */
+      // Convert empty arrays into pointers
       if (!cnt) {
         type = VARIABLE;
         ptr = 1;
       }
 
-      needtoken ("]");      /* force single dimension */
+      // force single dimension
+      needtoken ("]");
     }
 
-    /* Convert empty arrays into pointers */
+    // Convert empty arrays into pointers
     if ((type == ARRAY) && !cnt) {
       type = VARIABLE;
       ptr = 1;
     }
 
-    /* add symbol to symboltable */
+    // add symbol to symboltable
     if (glbinx >= GLBMAX)
       fatal ("global symboltable overflow");
     glb = &glbsym[glbinx++ * ILAST];
     glb[INAME] = sname;
     glb[ITYPE] = type;
-    glb[IPTR] = (ptr || (type == ARRAY)); /* 'true' if *<name> can be used */
+    glb[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
     glb[ICLASS] = class;
     glb[IVALUE] = 0;
     glb[ISIZE] = size;
 
-    /* Now generate code */
+    // Now generate code
     if (class == EXTERNAL) {
 /* Not needed by assembler 
       fprintf (outhdl, "\t.XREF\t");
@@ -298,10 +299,10 @@ int lval[LLAST];
       if (class != STATIC)
         fprintf (outhdl, ":");
 
-      /* assign value to variable */
+      // assign value to variable
       litinx = 0;
       if (!match ("{")) {
-        /* single value */
+        // single value
         if (!hier1 (lval))
           error ("expected a constant");
         if (lval[LTYPE] == CONSTANT) {
@@ -311,17 +312,17 @@ int lval[LLAST];
         } else if (lval[LTYPE] == LABEL) {
           if ((size != 1) || (!ptr && (type != ARRAY)))
             error ("must assign to char pointers or arrays");
-          /* at this point, literal queue has been filled with string */
+          // at this point, literal queue has been filled with string
         } else {
           error ("expected a constant");
           litinx = 2;
         }
       } else {
-        /* multiple values */
+        // multiple values
         if (!ptr && (type != ARRAY))
           error ("must assign to pointers or arrays");
 
-        /* get values */
+        // get values
         while (1) {
           --cnt;
           if (!hier1 (lval))
@@ -335,7 +336,7 @@ int lval[LLAST];
             error ("expected a constant");
           }
 
-          /* test for reloop */
+          // test for reloop
           if (match (","))
             continue;
           else if (match ("}"))
@@ -345,14 +346,14 @@ int lval[LLAST];
         }
       }
 
-      /* dump literal pool */
+      // dump literal pool
       if (ptr) {
         fprintf (outhdl, "\t.DCW\t_%d", ++nxtlabel);
         fprintf (outhdl, "_%d:", nxtlabel);
       }
       dumplits (size);
 
-      /* if array and not all elements have been supplied, then pad */
+      // if array and not all elements have been supplied, then pad
       if (!ptr && (cnt > 0))
         if (size == 1)
           fprintf (outhdl, "\t.DSB\t%d\n", cnt);
@@ -373,19 +374,19 @@ int lval[LLAST];
         fprintf (outhdl, "\t.DSW\t%d\n", cnt);
     }
 
-    /* test for more */
+    // test for more
     if (!match (","))
       break;
   }
 
-  /* done */
+  // done
   ns ();
   return 1;
 }
 
 /*
-** open an include file
-*/
+ * open an include file
+ */
 doinclude ()
 {
 register char *p;
@@ -396,27 +397,27 @@ register char *p;
   else if (inchdl)
     error("Nested #include not allowed");
   else {
-    /* Modify sourceline to extract filename */
+    // Modify sourceline to extract filename
     p = incfn;
-    gch (); /* Skip delimiter */
+    gch (); // Skip delimiter
     while ((*p++ = gch ()) != '"') ;
-    *--p = 0; /* Remove delimiter */
+    *--p = 0; // Remove delimiter
     
-    /* Open file */
+    // Open file
     inchdl = mustopen (incfn, "r");
     }
 
-  /* make next read come from new file (if open) */
+  // make next read come from new file (if open)
   kill ();
 }
 
 /*
-** Copy assembler source directly to the output file
-*/
+ * Copy assembler source directly to the output file
+ */
 doasm ()
 {
-  ccode = 0; /* mark mode as "asm" */
-  readline (); /* skip #asm */
+  ccode = 0; // mark mode as "asm"
+  readline (); // skip #asm
   while (inphdl) {
     white ();
     if (ch && amatch("#endasm"))
@@ -424,13 +425,13 @@ doasm ()
     fprintf (outhdl, "%s\n", line);
     readline ();
   }
-  kill (); /* erase to eoln */
+  kill (); // erase to eoln
   ccode = 1;
 }
 
 /*
-** Declare/define a macro
-*/
+ * Declare/define a macro
+ */
 declmac ()
 {
 int sname;
@@ -443,11 +444,11 @@ register int *mptr;
   else if (macinx >= MACMAX)
     fatal ("#define overflow");
   else {
-    /* copy macroname */
+    // copy macroname
     mptr = &mac[macinx++ * MLAST];
     mptr[MNAME] = sname; 
     mptr[MEXPAND] = &macq[macqinx];
-    /* Copy expansion */
+    // Copy expansion
     bump (len);
     white ();
     while (ch) {
@@ -456,31 +457,31 @@ register int *mptr;
       gch ();
     }
     if (macqinx < MACQMAX)
-      macq[macqinx++] = 0; /* Terminator */
+      macq[macqinx++] = 0; // Terminator
     if (macqinx >= MACQMAX)
       fatal ("#define string overflow");
   }
 }
 
 /*
-**
-*/
+ *
+ */
 newfunc ()
 {
 int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc;
 register int *p, i, argc;
 
   returnlbl = ++nxtlabel;
-  locinx = 0; /* reset locals */
-  reguse = regsum = reglock = 1<<REG_AP; /* reset all registers */
-  csp = -1; /* reset stack */
+  locinx = 0; // reset locals
+  reguse = regsum = reglock = 1<<REG_AP; // reset all registers
+  csp = -1; // reset stack
   argc = 0;
   swinx = 1;
   toseg (CODESEG);
   if (verbose)
     printf ("%s\n", lptr);
 
-  /* get procedure name */
+  // get procedure name
   if (!(len = dohash (lptr, &sname))) {
     error ("illegal function name or declaration");
     kill ();
@@ -494,14 +495,14 @@ register int *p, i, argc;
     p = &glbsym[glbinx++ * ILAST];
   } else if (p[ICLASS] != AUTOEXT)
     multidef ();
-  /* (re)define procedure */
+  // (re)define procedure
   p[INAME] = sname;
   p[ITYPE] = FUNCTION;
   p[IPTR] = 0;
   p[ICLASS] = GLOBAL;
   p[IVALUE] = 0;
   p[ISIZE] = BPW;
-  /* Generate global label */
+  // Generate global label
   fprintf (outhdl, "_");
   symname (sname);
   fprintf (outhdl, "::");
@@ -511,12 +512,12 @@ register int *p, i, argc;
   gencode_I (_PSHR, 0, 0);
   gencode_R (_LODR, REG_AP, 1);
 
-  /* get arguments */
+  // get arguments
   if (!match ("("))
     error ("no open parent");
   blanks ();
   while (ch != ')') {
-    /* get argument */
+    // get argument
     blanks ();
     if (!(len = dohash (lptr, &sname))) {
       error ("illegal argument name");
@@ -534,12 +535,12 @@ register int *p, i, argc;
         fatal ("local symboltable overflow");
       else
         p = &locsym[locinx++ * ILAST];
-      /* define argument */
+      // define argument
       p[INAME] = sname;
-      p[ITYPE] = CONSTANT;  /* Mark as undefined */
+      p[ITYPE] = CONSTANT;  // Mark as undefined
       p[IPTR] = 0;
       p[ICLASS] = AP_AUTO;
-      p[IVALUE] = argc; /* argument ID (starts at 0) */
+      p[IVALUE] = argc; // argument ID (starts at 0)
       p[ISIZE] = BPW;
       ++argc;
     }
@@ -549,7 +550,7 @@ register int *p, i, argc;
   }
   needtoken (")");
 
-  /* now define arguments */
+  // now define arguments
   sav_argc = argc;
   while (1) {
     if (amatch ("register"))
@@ -563,7 +564,7 @@ register int *p, i, argc;
       break;
   }
 
-  /* get statement */
+  // get statement
   inireg = reglock;
   statement (swinx, returnlbl, 0, 0, csp, csp);
   if (csp != -1)
@@ -571,7 +572,7 @@ register int *p, i, argc;
   if (reglock != inireg)
     error ("internal error. registers not unlocked");
 
-  /* trailing statements */
+  // trailing statements
   lbl2 = ++nxtlabel;
   fprintf (outhdl, "_%d:\t.ORG\t_%d\n", lbl2, lbl1);
   gencode_I (_PSHR, 0, regsum);
@@ -581,10 +582,9 @@ register int *p, i, argc;
   gencode (_RSB);
 }
 
-
 /*
-** process one statement
-*/
+ * process one statement
+ */
 statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp)
 int swbase, returnlbl, breaklbl, contlbl, breaksp, contsp;
 {
@@ -599,7 +599,7 @@ int lbl1, lbl2, lbl3;
       if (ch <= ' ')
         blanks ();
       if (!ch) {
-        error ("no closing }"); /* EOF */
+        error ("no closing }"); // EOF
         return;
       } else if (amatch ("register")) {
         declloc (sav_loc, REGISTER);
@@ -609,7 +609,7 @@ int lbl1, lbl2, lbl3;
         if (sav_csp > 0)
           error ("Definitions not allowed here");
       } else {
-        /* allocate locals */
+        // allocate locals
         if ((sav_csp < 0) && (csp != sav_csp)) {
           gencode_ADJSP (csp-sav_csp);
           sav_csp = -sav_csp;
@@ -617,14 +617,14 @@ int lbl1, lbl2, lbl3;
         statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
       }
     }
-    /* done */
+    // done
     if (sav_csp > 0)
       sav_csp = -sav_csp;
     if (csp != sav_csp) {
       gencode_ADJSP (sav_csp-csp);
       csp = sav_csp;
     }
-    /* free local registers */
+    // free local registers
     for (i=sav_loc; i<locinx; i++) {
       ptr = &locsym[i*ILAST];
       if (ptr[ICLASS] == REGISTER)
@@ -763,7 +763,7 @@ int lbl1, lbl2, lbl3;
     sav_sw = swinx;
     if (swinx >= SWMAX)
       fatal ("switch table overflow");
-    sw[swinx++*SLAST+SLABEL] = 0; /* enable default */
+    sw[swinx++*SLAST+SLABEL] = 0; // enable default
     statement (sav_sw, returnlbl, lbl2, contlbl, csp, contsp);
     gencode_L (_JMP, lbl2);
     dumpsw (sav_sw, lbl1, lbl2);
@@ -797,7 +797,7 @@ int lbl1, lbl2, lbl3;
     ptr[SLABEL] = lbl1;
   } else if (amatch ("return")) { 
     if (!endst ()) {
-      /* generate a return value in R1 */
+      // generate a return value in R1
       expression (lval, 1);
       loadlval (lval, 1);
     }
@@ -820,7 +820,7 @@ int lbl1, lbl2, lbl3;
     gencode_L (_JMP, contlbl);
     ns ();
   } else if (!ch) {
-    return; /* EOF */
+    return; // EOF
   } else if (amatch ("#asm")) {
     doasm();
   } else if (ch != ';') {
@@ -832,8 +832,8 @@ int lbl1, lbl2, lbl3;
 }
 
 /*
-** Dump the switch map and decoding
-*/
+ * Dump the switch map and decoding
+ */
 dumpsw (swbase, codlbl, endlbl)
 int swbase, codlbl, endlbl;
 {
@@ -841,14 +841,14 @@ register int lo, hi, i, j, cnt, *ptr;
 int maplbl, deflbl, lbl, lval[LLAST];
 
   if (swbase+1 == swinx) {
-    /* no cases specified */
+    // no cases specified
     ptr = &sw[swbase*SLAST];
     if (ptr[SLABEL])
       gencode_L (_JMP, ptr[SLABEL]);
     return;
   }
 
-  /* get lo/hi bounds */
+  // get lo/hi bounds
   ptr = &sw[(swbase+1)*SLAST];
   lo = hi = ptr[SCASE];
   for (i=swbase+1; i<swinx; i++) {
@@ -859,11 +859,11 @@ int maplbl, deflbl, lbl, lval[LLAST];
       lo = ptr[SCASE];
   }
 
-  /* setup default */
+  // setup default
   if (!(deflbl = sw[swbase*SLAST+SLABEL]))
     deflbl = endlbl;
 
-  /* generate map */
+  // generate map
   maplbl = ++nxtlabel;
   toseg (DATASEG);
   fprintf (outhdl, "_%d:", maplbl);
@@ -890,7 +890,7 @@ int maplbl, deflbl, lbl, lval[LLAST];
     fprintf (outhdl, "\n");
   toseg (prevseg);
 
-  /* generate code (use j as reg) */
+  // generate code (use j as reg)
   fprintf (outhdl, "_%d:", codlbl);
   j = allocreg ();
   gencode_I (_LEA,  j, lo);
@@ -910,12 +910,12 @@ int maplbl, deflbl, lbl, lval[LLAST];
 }
 
 /*
-** process all input text
-**
-** At this level, only static declarations,
-**      defines, includes and function
-**      definitions are legal...
-*/
+ * process all input text
+ *
+ * At this level, only static declarations,
+ *      defines, includes and function
+ *      definitions are legal...
+ */
 parse ()
 {
   blanks ();

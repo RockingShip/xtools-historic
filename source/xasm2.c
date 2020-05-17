@@ -26,9 +26,9 @@
  * SOFTWARE.
  */
 
-/*
-** X-Assembler.  Part 2, Syntax control
-*/
+//*
+//* X-Assembler.  Part 2, Syntax control
+//*
 
 #define EXTERN extern
 #include "xasm.h"
@@ -72,7 +72,7 @@ register int len, *p;
     } else 
       reg = p[NVALUE];
   }
-  /* process reg */
+  // process reg
   sto_data (reg, 1);
 }
 
@@ -97,28 +97,28 @@ int lval[LLAST];
   if (ch != '(')
     get_imm ();
   else
-    sto_data (0, BPW); /* no address */
+    sto_data (0, BPW); // no address
 
-  /* test for registers */
+  // test for registers
   if (ch <= ' ') white ();
   if (ch != '(') {
-    sto_data (0, 1); /* dummy lreg */
-    sto_data (0, 1); /* dummy rreg */
+    sto_data (0, 1); // dummy lreg
+    sto_data (0, 1); // dummy rreg
   } else {
     gch (); if (ch <= ' ') white ();
     if ((ch == ',') || (ch == ')'))
-      sto_data (0, 1); /* dummy lreg */
+      sto_data (0, 1); // dummy lreg
     else
       get_reg ();
     if (ch <= ' ') white ();
     if (ch == ',') {
       gch (); if (ch <= ' ') white ();
       if (ch == ')')
-        sto_data (0, 1); /* dummy rreg */
+        sto_data (0, 1); // dummy rreg
       else
         get_reg ();
     } else
-      sto_data (0, 1); /* dummy rreg */
+      sto_data (0, 1); // dummy rreg
     if (ch <= ' ') white ();
     if (ch == ')')
       gch ();
@@ -273,7 +273,7 @@ register int size;
               sto_data (val, size);
             curpos[curseg] += size;
           }
-          gch (); /* skip terminator */
+          gch (); // skip terminator
         } else {
           expression (lval);
           if (pass == 2) {
@@ -360,7 +360,7 @@ int lval[LLAST];
       if (ch <= ' ')
         white ();
       if (!ch) 
-        break; /* end of line */
+        break; // end of line
       len = dohash (lptr, &hash);
       if (!len) {
         if (pass == 1)
@@ -402,7 +402,7 @@ int lval[LLAST];
               p[NTYPE] = LINK;
               p = &name[p[NVALUE]*NLAST];
               if (!p[NTYPE])
-                p[NTYPE] = UNDEF; /* Initial value */
+                p[NTYPE] = UNDEF; // Initial value
             }
             break;
           } else { 
@@ -460,13 +460,13 @@ int lval[LLAST];
           break;
         case PSEUDO:
           if (p[NVALUE] == _END)
-            return; /* DONE */
+            return; // DONE
           do_pseudo (p);
           break;
         case LINK:
           if (pass == 1)
             error ("multiply defined");
-          kill (); /* errors displayed in pass 1 */
+          kill (); // errors displayed in pass 1
           break;
         default:
           if (pass == 1)
@@ -474,13 +474,13 @@ int lval[LLAST];
           break;
       }
 
-      /* test for junk */
+      // test for junk
       if (ch <= ' ')
         white ();
       if (ch)
         error ("encountered junk");
       break;
     }
-    preprocess ();  /* fetch next line */
+    preprocess ();  // fetch next line
   }
 }

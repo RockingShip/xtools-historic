@@ -26,23 +26,22 @@
  * SOFTWARE.
  */
 
-/*
-** X-Assembler.  Part 1, I/O Support
-*/
+//*
+//* X-Assembler.  Part 1, I/O Support
+//*
 
 #define EXTERN
 #include "xasm.h"
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Compiler startup routines                                       */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Compiler startup routines
+//*
+//*
 
 /*
-** Initialize all variables 
-*/
+ * Initialize all variables
+ */
 add_res (opc, typ, val)
 char *opc;
 int typ, val;
@@ -52,13 +51,13 @@ int hash;
 register int *p;
 register char *cp1, *cp2;
 
-  /* upper case */
+  // upper case
   dohash (opc, &hash);
   p = &name[hash*NLAST];
   p[NTYPE] = typ;
   p[NVALUE] = val;
 
-  /* AND lowercase */
+  // AND lowercase
   cp1 = opc;
   cp2 = buf;
   while (*cp1)
@@ -70,6 +69,9 @@ register char *cp1, *cp2;
   p[NVALUE] = val;
 }
 
+/*
+ *
+ */
 initialize ()
 {
 register int i,*p;
@@ -94,22 +96,22 @@ register int i,*p;
   locsym = calloc (LOCMAX*BPW*ILAST);
 #endif;
 
-  /* reset table */
+  // reset table
   for (i=0; i<NAMEMAX; i++) {
     p = &name[i*NLAST];
     p[NCHAR] = p[NTYPE] = 0;
   }
 
-  /* reserve first entry so it terminates lists */
+  // reserve first entry so it terminates lists
   name[0*NLAST+NCHAR] = '?';
 
-  /* reset positions */
+  // reset positions
   pass = 1;
   curseg = CODESEG;
   curpos[CODESEG] = curpos[DATASEG] = curpos[UDEFSEG] = 0;
   maxpos[CODESEG] = maxpos[DATASEG] = maxpos[UDEFSEG] = 0;
 
-  /* reserved words */
+  // reserved words
   add_res ("ILLEGAL",	OPCODE, _ILLEGAL);
   add_res ("ADD",	OPCODE, _ADD);
   add_res ("SUB",	OPCODE, _SUB);
@@ -172,27 +174,27 @@ register int i,*p;
   add_res ("R15",	REGISTER, 15);
   add_res (".",		POINT, 0);
 
-  hier_str[ 0] = "|";  hier_oper[ 0] = __OR;   /* hier1 */
+  hier_str[ 0] = "|";  hier_oper[ 0] = __OR;    // hier1
   hier_str[ 1] = 0;                                   
-  hier_str[ 2] = "^";  hier_oper[ 2] = __XOR;  /* hier2 */
+  hier_str[ 2] = "^";  hier_oper[ 2] = __XOR;   // hier2
   hier_str[ 3] = 0;                                   
-  hier_str[ 4] = "&";  hier_oper[ 4] = __AND;  /* hier3 */
+  hier_str[ 4] = "&";  hier_oper[ 4] = __AND;   // hier3
   hier_str[ 5] = 0;                                   
-  hier_str[ 6] = ">>"; hier_oper[ 6] = __LSR;  /* hier4 */
+  hier_str[ 6] = ">>"; hier_oper[ 6] = __LSR;   // hier4
   hier_str[ 7] = "<<"; hier_oper[ 7] = __LSL;            
   hier_str[ 8] = 0;                                   
-  hier_str[ 9] = "+";  hier_oper[ 9] = __ADD;  /* hier5 */
+  hier_str[ 9] = "+";  hier_oper[ 9] = __ADD;   // hier5
   hier_str[10] = "-";  hier_oper[10] = __SUB;            
   hier_str[11] = 0;                                   
-  hier_str[12] = "*";  hier_oper[12] = __MUL;  /* hier6 */
+  hier_str[12] = "*";  hier_oper[12] = __MUL;   // hier6
   hier_str[13] = "/";  hier_oper[13] = __DIV;            
   hier_str[14] = "%";  hier_oper[14] = __MOD;            
   hier_str[15] = 0;
 }
 
 /*
-** Process commandline
-*/
+ * Process commandline
+ */
 usage ()
 {
   printf ("X-Assembler, Version %s\n\n", getversion());
@@ -234,7 +236,7 @@ int force;
 startup (argv)
 register int *argv;
 {
-  argv++; /* skip argv[0] */
+  argv++; // skip argv[0]
   while (*argv) {
     register char *arg;
     arg = *argv++;
@@ -244,7 +246,7 @@ register int *argv;
       if (!outfn[0])
         fext(outfn, arg, ".xo", 1);
     } else {
-      /* Process option */
+      // Process option
       arg++;
       switch (*arg++) {
 	case 'a':
@@ -276,14 +278,14 @@ register int *argv;
     }
   }
 
-  /* filename MUST be supplied */
+  // filename MUST be supplied
   if (!outfn[0])
     usage ();
 }
 
 /*
-** Open all files
-*/
+ * Open all files
+ */
 mustopen(fn, mode)
 char *fn;
 char *mode;
@@ -305,16 +307,15 @@ openfile ()
     lishdl = mustopen (lisfn, "w");
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Input support routines                                          */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Input support routines
+//*
+//*
 
 /*
-** Get next character from current line
-*/
+ * Get next character from current line
+ */
 gch ()
 {
 register int c;
@@ -325,8 +326,8 @@ register int c;
 }
 
 /*
-** Erase current line
-*/
+ * Erase current line
+ */
 kill ()
 {
   *line = 0;
@@ -334,8 +335,8 @@ kill ()
 }
 
 /*
-** Bump next characters in line (n = #chars or 0 for initialization)
-*/
+ * Bump next characters in line (n = #chars or 0 for initialization)
+ */
 bump (n)
 register int n;
 {
@@ -343,12 +344,11 @@ register int n;
   nch = (ch = lptr[0]) ? lptr[1] : 0;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Symboltable routines                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Symboltable routines
+//*
+//*
 
 foutname (hash)
 register int hash;
@@ -384,8 +384,8 @@ register int i;
 }
 
 /*
-** Get the (unique) hashed value for symbol, return length
-*/
+ * Get the (unique) hashed value for symbol, return length
+ */
 dohash (ident, retval)
 register char *ident;
 int *retval;
@@ -393,7 +393,7 @@ int *retval;
 register int start, hash, tab, len, *p;
 
   if (!alpha (*ident))
-    return 0; /* Not a symbol */
+    return 0; // Not a symbol
 
   tab = 0;
   len = 0;
@@ -404,12 +404,12 @@ register int start, hash, tab, len, *p;
       p = &name[hash*NLAST];
       if ((p[NCHAR] == *ident) && (p[NTAB] == tab)) {
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[NCHAR]) {
         p[NCHAR] = *ident;
         p[NTAB] = tab;
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += *ident;
         if (hash >= NAMEMAX)
@@ -425,16 +425,15 @@ register int start, hash, tab, len, *p;
   return len;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Preprocessor                                                    */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Preprocessor
+//*
+//*
 
 /*
-** open an include file
-*/
+ * open an include file
+ */
 doinclude ()
 {
 register char *p;
@@ -445,23 +444,23 @@ register char *p;
   else if (inchdl)
     error("Nested #include not allowed");
   else {
-    /* Modify sourceline to extract filename */
+    // Modify sourceline to extract filename
     p = incfn;
-    gch (); /* Skip delimiter */
+    gch (); // Skip delimiter
     while ((*p++ = gch ()) != '"') ;
-    *--p = 0; /* Remove delimiter */
+    *--p = 0; // Remove delimiter
     
-    /* Open file */
+    // Open file
     inchdl = mustopen (incfn, "r");
     }
 
-  /* make next read come from new file (if open) */
+  // make next read come from new file (if open)
   kill ();
 }
 
 /*
-** Declare/define a macro
-*/
+ * Declare/define a macro
+ */
 declmac ()
 {
 int sname;
@@ -474,11 +473,11 @@ register int *mptr;
   else if (macinx >= MACMAX)
     fatal ("#define overflow");
   else {
-    /* copy macroname */
+    // copy macroname
     mptr = &mac[macinx++ * MLAST];
     mptr[MNAME] = sname; 
     mptr[MEXPAND] = &macq[macqinx];
-    /* Copy expansion */
+    // Copy expansion
     bump (len);
     white ();
     while (ch) {
@@ -487,7 +486,7 @@ register int *mptr;
       gch ();
     }
     if (macqinx < MACQMAX)
-      macq[macqinx++] = 0; /* Terminator */
+      macq[macqinx++] = 0; // Terminator
     if (macqinx >= MACQMAX)
       fatal ("#define string overflow");
   }
@@ -536,7 +535,7 @@ readline ()
       }
     }
 
-  /* Make buffer available */
+  // Make buffer available
   line = sbuf;
   bump (0);
 }
@@ -551,7 +550,7 @@ int sname;
       break;
     white ();
     if (!ch)
-      continue; /* Try again */
+      continue; // Try again
 
     if (amatch ("#ifdef")) {
       ++iflevel;
@@ -587,7 +586,7 @@ int sname;
       } else
         error("no matching #if...");
     } else if (!skiplevel)
-      return 0; /* Process this line */
+      return 0; // Process this line
   }
 }
 
@@ -598,12 +597,12 @@ register int i, len;
 int *mptr;
 int sname;
 
-  /* get inputline */
+  // get inputline
   ifline ();
   if (!inphdl)
     return;
 
-  /* Now expand current line */
+  // Now expand current line
   pinx = 0;
   while (ch) {
     if (ch <= ' ') {
@@ -656,14 +655,14 @@ int sname;
       keepch (gch ());
   }
 
-  /* make line available */
+  // make line available
   keepch (0);
   if (pinx == PBUFMAX)
     error("line too long");
   line = pbuf;
   bump (0);
 
-  /* Copy line to listing */
+  // Copy line to listing
   if (lishdl) {
     if (curseg == CODESEG)
       fprintf (lishdl, ";C%04x: %s\n", curpos[CODESEG] & 0xffff, pbuf);
@@ -674,16 +673,15 @@ int sname;
   }
 }
  
-
-/**********************************************************************/
-/*                                                                    */
-/*    Converts and Matches                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Converts and Matches
+//*
+//*
 
 /* 
-** Skip all spaces in current line
-*/
+ * Skip all spaces in current line
+ */
 white ()
 {
   while (ch && (ch <= ' '))
@@ -691,8 +689,8 @@ white ()
 }
 
 /*
-** Convert a character to uppercase 
-*/
+ * Convert a character to uppercase
+ */
 toupper (c)
 register int c;
 {
@@ -700,8 +698,8 @@ register int c;
 }
 
 /*
-** Return 'true' if c is a decimal digit
-*/
+ * Return 'true' if c is a decimal digit
+ */
 isdigit (c)
 register int c;
 {
@@ -709,9 +707,8 @@ register int c;
 }
 
 /*
-** Return 'true' if c is a hexadecimal digit
-** (0-9, A-F, or a-f)
-*/
+ * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
+ */
 isxdigit (c)
 register int c;
 {
@@ -721,8 +718,8 @@ register int c;
 }
 
 /*
-** Return 'true' if c is alphanumeric
-*/
+ * Return 'true' if c is alphanumeric
+ */
 an (c)
 register int c;
 {
@@ -733,8 +730,8 @@ register int c;
 }
 
 /*
-** Return 'true' if c is alphabetic
-*/
+ * Return 'true' if c is alphabetic
+ */
 alpha (c)
 register int c;
 {
@@ -744,8 +741,8 @@ register int c;
 }
 
 /*
-** Return 'index' if both strings match 
-*/
+ * Return 'index' if both strings match
+ */
 streq (str1,str2)
 register char *str1,*str2;
 {
@@ -761,8 +758,8 @@ register int i;
 }
 
 /*
-** Return 'index' if str2 matches alphanumeric token str1
-*/
+ * Return 'index' if str2 matches alphanumeric token str1
+ */
 astreq (str1,str2)
 register char *str1,*str2;
 {
@@ -780,8 +777,8 @@ register int i;
 }
 
 /*
-** Return 'index' if start next token equals 'lit'
-*/
+ * Return 'index' if start next token equals 'lit'
+ */
 match (lit)
 char *lit;
 {
@@ -797,8 +794,8 @@ register int i;
 }
 
 /*
-** Return 'index' if next token equals 'lit'
-*/
+ * Return 'index' if next token equals 'lit'
+ */
 amatch (lit)
 char *lit;
 {
@@ -814,8 +811,8 @@ register int i;
 }
 
 /*
-** Return 'true' if next operator equals 'lit'
-*/
+ * Return 'true' if next operator equals 'lit'
+ */
 omatch (lit)
 register char *lit;
 {
@@ -835,22 +832,21 @@ register char *lit;
   return 1;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Error routines                                                  */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Error routines
+//*
+//*
 
 /*
-** Generate error messages
-*/
+ * Generate error messages
+ */
 error(msg)
 char *msg;
 {
   if (inchdl)
     printf ("'%s' ", incfn);
-  /* Display original line */
+  // Display original line
   printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
   if (lishdl)
     fprintf (lishdl, ";%d %%%s\n", inchdl ? inclnr : inplnr, msg);
@@ -880,15 +876,15 @@ char txt[32], *p1, *p2;
     p1 = txt; 
     p2 = "Expected "; 
     while (*p1++ = *p2++) ;
-    --p1; /* Overwrite terminator */
+    --p1; // Overwrite terminator
     while (*p1++ = *str++) ;
     error(txt);
   }
 }
 
 /*
-** Skip current symbol
-*/
+ * Skip current symbol
+ */
 junk ()
 {
   if (an (ch)) {
@@ -902,8 +898,8 @@ junk ()
 }
 
 /*
-** semicolon enforcer
-*/
+ * semicolon enforcer
+ */
 ns ()
 {
   if (!match(";")) {
@@ -913,34 +909,33 @@ ns ()
     errflag = 0;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Main                                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Main
+//*
+//*
 
 /*
-** Execution starts here
-*/
+ * Execution starts here
+ */
 main (argc, argv)
 int argc;
 int *argv;
 {
 register int i, j, *p;
 
-  initialize (); /* initialize all variables */
+  initialize ();        // initialize all variables
   
-  startup (argv); /* Process commandline options */
-  openfile ();       /* Open all files */
-  preprocess ();     /* fetch first line */
+  startup (argv);       // Process commandline options
+  openfile ();          // Open all files
+  preprocess ();        // fetch first line
 
   pass = 1;
   if (verbose)
     printf ("Pass 1\n");
   if (lishdl)
     fprintf (lishdl, "Pass 1\n");
-  parse ();          /* GO !!! */
+  parse (); // GO !!!
   if (iflevel)
    error ("no closing #endif");
   
@@ -963,7 +958,7 @@ register int i, j, *p;
     printf ("Pass 2\n");
   if (lishdl)
   fprintf (lishdl, "Pass 2\n");
-  parse ();          /* GO !!! */
+  parse (); // GO !!!
   if (iflevel)
    error ("no closing #endif");
 
@@ -981,13 +976,11 @@ register int i, j, *p;
   return errflag;
 }
 
-
-
-/**********************************************************************/
-/*                                                                    */
-/*    General output routines                                         */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* General output routines
+//*
+//*
 
 write_byte(byte)
 char byte;
@@ -1037,12 +1030,12 @@ sto_data (val, size)
 int val, size;
 {
   if (size == BPW) {
-    /* store upper byte */
+    // store upper byte
     if (datlen == 128)
       sto_flush ();
     datbuf[datlen++] = val>>8;
   }
-    /* store lower byte */
+    // store lower byte
   if (datlen == 128)
     sto_flush ();
   datbuf[datlen++] = val;

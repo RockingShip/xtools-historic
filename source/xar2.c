@@ -26,9 +26,9 @@
  * SOFTWARE.
  */
 
-/*
-** X-Archiver.  Part 2, Actions
-*/
+//*
+//* X-Archiver.  Part 2, Actions
+//*
 
 #define EXTERN extern
 #include "xar.h"
@@ -68,9 +68,9 @@ register int ch, *p, hash, tab;
           printf ("\n");
         }
         symmap (hash);
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[NCHAR]) {
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += ch;
         if (hash >= olbhdr[HNAME])
@@ -89,7 +89,7 @@ char arr[1];
     exit(1);
   }
 
-  /* return unsigned */
+  // return unsigned
   return arr[0] & 0xff;
 }
 
@@ -103,7 +103,7 @@ int w;
     exit(1);
   }
 
-  /* return signed */
+  // return signed
   w = arr[0] << 8 | (arr[1] & 0xff);
   w |= -(w & (1 << SBIT));
   return w;
@@ -140,24 +140,24 @@ do_cre ()
 {
 register int i;
 
-  /* initialize header */
+  // initialize header
   olbhdr[HNAME] = NAMEMAX;
   olbhdr[HFILE] = 0;
-  /* Initialize nametable */
+  // Initialize nametable
   for (i=0; i<NAMEMAX; i++) 
     name[i*NLAST+NLIB] = -1;
 
-  /* open outputfile */
+  // open outputfile
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
-  /* Writeout */
+  // Writeout
   for (i=0; i<HLAST; i++)
     write_word(olbhdr[i]);
   for (i=0; i<olbhdr[HNAME]*NLAST; i++)
     write_word(name[i]);
 
-  /* close and rename */
+  // close and rename
   fclose (outhdl);
   unlink (bakfn);
   rename (olbfn, bakfn);
@@ -170,44 +170,44 @@ char cmd;
 register int objlen, olblen, *p, i;
 int error, hash, objinx;
 
-  /* open inputfile */
+  // open inputfile
   open_olb ();
 
   if (verbose)
     printf("Loading module %s\n", objfn);
 
-  /* first delete any existing occurrences */
+  // first delete any existing occurrences
   dohash (modn, &hash);
   for (objinx=0; objinx<olbhdr[HFILE]; objinx++)
     if (file[objinx*FLAST+FNAME] == hash)
       break;
   if (objinx<olbhdr[HFILE]) {
-    /* found existing entry, overwrite */
+    // found existing entry, overwrite
     for (i=0; i<olbhdr[HNAME]; i++) {
       p = &name[i*NLAST];
       if (p[NLIB] == objinx)
         p[NLIB] = -1;
     }
-    /* update file entry */
+    // update file entry
     p = &file[objinx*FLAST];
     p[FOLDOFS] = 0;
   } else {
     objinx = olbhdr[HFILE]++;
-    /* create new object at end of list */
+    // create new object at end of list
     if (objinx >= FILEMAX) {
       printf ("Too many modules in library\n");
       exit (1);
     }
-    /* update file entry */
+    // update file entry
     p = &file[objinx*FLAST];
     dohash (modn, &p[FNAME]);
     p[FOLDOFS] = 0;
   }
 
-  /* open objectfile */
+  // open objectfile
   objhdl = mustopen (objfn, "r");
 
-  /* read object, calc length and insert all found symbols */
+  // read object, calc length and insert all found symbols
   error = 0;
   objlen = 0;
   cmd = -1;
@@ -234,45 +234,45 @@ int error, hash, objinx;
           objlen += BPW + 1;
           break;
         case __SYMBOL:
-          /* Push symbol value on stack */
-          datlen = read_byte(); /* length */
-          fread (datbuf, 1, datlen, objhdl); /* symbol */
+          // Push symbol value on stack
+          datlen = read_byte(); // length
+          fread (datbuf, 1, datlen, objhdl); // symbol
           objlen += 2 + datlen;
           break;
         case __DSB:
-	  /* skip specified number of bytes in current segment */
-          read_word(); /* skipcount */
+	  // skip specified number of bytes in current segment
+          read_word(); // skipcount
           objlen += 1 + BPW;
           break;
         case __END:
            objlen += 1;
            break;
         case __CODEDEF: case __DATADEF: case __UDEFDEF:
-          /* symbol definition */
-          read_word(); /* symbol offset */
-          datlen = read_byte(); /* length */
-          fread (datbuf, 1, datlen, objhdl); /* symbol */
+          // symbol definition
+          read_word(); // symbol offset
+          datlen = read_byte(); // length
+          fread (datbuf, 1, datlen, objhdl); // symbol
           objlen += 1 + BPW + 1 + datlen;
 
-          /* locate symbol in table and insert */
+          // locate symbol in table and insert
           datbuf[datlen] = 0;
           dohash (datbuf, &hash);
           p = &name[hash*NLAST];
           if (p[NLIB] != -1) {
-            /* get name of library already containing symbol */
+            // get name of library already containing symbol
             printf ("Symbol '%s' already defined in module ", datbuf);
             soutname (file[p[NLIB]*FLAST+FNAME], datbuf);
             printf ("%s\n", datbuf);
             ++error;
           } else {
-            /* new symbol */
+            // new symbol
             p[NLIB] = objinx;
             if (debug)
               printf ("SYMDEF: %s\n", datbuf);
           }
           break;
         case __CODEORG: case __DATAORG: case __UDEFORG:
-          read_word(); /* segment offset */
+          read_word(); // segment offset
           objlen += 1 + BPW;
           break;
         default:
@@ -283,10 +283,10 @@ int error, hash, objinx;
     }
   }
 
-  /* save length of module */
+  // save length of module
   file[objinx*FLAST+FLENGTH] = objlen;
 
-  /* generate new offsets for existing modules */
+  // generate new offsets for existing modules
   olblen = (HLAST*BPW) +
            (olbhdr[HNAME]*NLAST*BPW) + 
            (olbhdr[HFILE]*FLAST*BPW) ;
@@ -296,7 +296,7 @@ int error, hash, objinx;
     olblen += p[FLENGTH];
   }
 
-  /* if no errors occurred then generate new library */
+  // if no errors occurred then generate new library
   if (error) {
     printf ("module not inserted\n");
     exit (1);
@@ -304,11 +304,11 @@ int error, hash, objinx;
   if (debug)
     printf ("module length: %d\n", objlen);
 
-  /* build new library */
+  // build new library
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
-  /* Writeout */
+  // Writeout
   for (i=0; i<HLAST; i++)
     write_word(olbhdr[i]);
   for (i=0; i<olbhdr[HNAME]*NLAST; i++)
@@ -316,7 +316,7 @@ int error, hash, objinx;
   for (i=0; i<olbhdr[HFILE]*FLAST; i++)
     write_word(file[i]);
  
-  /* copy objects and append new object */
+  // copy objects and append new object
   for (i=0; i<olbhdr[HFILE]; i++) {
     p = &file[i*FLAST];
     if (p[FOLDOFS])
@@ -325,7 +325,7 @@ int error, hash, objinx;
       copy_obj (objhdl, 0, p[FLENGTH]);
   }
 
-  /* close and rename */
+  // close and rename
   fclose (outhdl);
   unlink (bakfn);
   rename (olbfn, bakfn);
@@ -338,10 +338,10 @@ char cmd;
 register int olblen, *p, i;
 int error, hash, objinx;
 
-  /* open inputfile */
+  // open inputfile
   open_olb ();
 
-  /* locate module in filetable */
+  // locate module in filetable
   dohash (modn, &hash);
   for (objinx=0; objinx<olbhdr[HFILE]; objinx++)
     if (file[objinx*FLAST+FNAME] == hash)
@@ -351,7 +351,7 @@ int error, hash, objinx;
     exit (1);
   }
 
-  /* remove all symbol references */
+  // remove all symbol references
   for (i=0; i<olbhdr[HNAME]; i++) {
     p = &name[i*NLAST];
     if (p[NLIB] == objinx)
@@ -360,7 +360,7 @@ int error, hash, objinx;
       --p[NLIB];
   }
 
-  /* remove fileentry */
+  // remove fileentry
   for (i=objinx; i<olbhdr[HFILE]; i++) {
     p = &file[i*FLAST];
     p[FNAME]   = p[FNAME+FLAST];
@@ -369,7 +369,7 @@ int error, hash, objinx;
   }
   --olbhdr[HFILE];
 
-  /* generate new offsets for remaining modules */
+  // generate new offsets for remaining modules
   olblen = (HLAST*BPW) +
            (olbhdr[HNAME]*NLAST*BPW) + 
            (olbhdr[HFILE]*FLAST*BPW) ;
@@ -379,11 +379,11 @@ int error, hash, objinx;
     olblen += p[FLENGTH];
   }
 
-  /* build new library */
+  // build new library
   unlink (outfn);
   outhdl = mustopen (outfn, "w");
 
-  /* Writeout */
+  // Writeout
   for (i=0; i<HLAST; i++)
     write_word(olbhdr[i]);
   for (i=0; i<olbhdr[HNAME]*NLAST; i++)
@@ -391,13 +391,13 @@ int error, hash, objinx;
   for (i=0; i<olbhdr[HFILE]*FLAST; i++)
     write_word(file[i]);
  
-  /* copy objects and append new object */
+  // copy objects and append new object
   for (i=0; i<olbhdr[HFILE]; i++) {
     p = &file[i*FLAST];
     copy_obj (olbhdl, p[FOLDOFS], p[FLENGTH]);
   }
 
-  /* close and rename */
+  // close and rename
   fclose (outhdl);
   unlink (bakfn);
   rename (olbfn, bakfn);
@@ -410,10 +410,10 @@ char cmd;
 register int olblen, *p, i;
 int error, hash, objinx;
 
-  /* open inputfile */
+  // open inputfile
   open_olb ();
 
-  /* locate module in filetable */
+  // locate module in filetable
   dohash (modn, &hash);
   for (objinx=0; objinx<olbhdr[HFILE]; objinx++) {
     p = &file[objinx*FLAST];
@@ -425,7 +425,7 @@ int error, hash, objinx;
     exit (1);
   }
 
-  /* open object file as outhdl (used by copy_obj) */
+  // open object file as outhdl (used by copy_obj)
   outhdl = mustopen (objfn, "w");
   copy_obj (olbhdl, p[FOFFSET], p[FLENGTH]);
 

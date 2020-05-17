@@ -26,16 +26,16 @@
  * SOFTWARE.
  */
 
-/*
-** X-Assembler.  Part 3, Expression evaluation
-*/
+//*
+//* X-Assembler.  Part 3, Expression evaluation
+//*
 
 #define EXTERN extern
 #include "xasm.h"
 
 /*
-** Process a constant evaluation
-*/
+ * Process a constant evaluation
+ */
 calc (left, oper, right)
 register int left, right;
 int oper;
@@ -87,20 +87,20 @@ register int *p;
 }
 
 /*
-** generic processing for <lval> { <operation> <rval> }
-*/
+ * generic processing for <lval> { <operation> <rval> }
+ */
 xplng1 (hier, start, lval)
 register int (*hier)(), start, lval[];
 {
 register char *cptr, entry;
 int rval[LLAST];
 
-  /* Load lval */
+  // Load lval
   if (!(*hier)(lval))
     return 0;
   
   while (1) {
-    /* Locate operation */
+    // Locate operation
     entry = start;
     while (1) { 
       if (!(cptr = hier_str[entry]))
@@ -110,13 +110,13 @@ int rval[LLAST];
       ++entry;
     }
 
-    /* Load rval */
+    // Load rval
     if (!(*hier)(rval)) {
       exprerr ();
       return 1;
     }
   
-    /* Generate code */
+    // Generate code
     if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
       lval[LVALUE] = calc (lval[LVALUE], hier_oper[entry], rval[LVALUE]);
     } else {
@@ -141,13 +141,13 @@ register int lval[];
 register int *p, len;
 int hash;
 
-  if (match ("<")) {  /* <expression,...> */
+  if (match ("<")) {  // <expression,...>
     expression (lval);
     needtoken (">");
     return 1;
   }
 
-  /* test for identifier */
+  // test for identifier
   len = dohash (lptr, &hash);
   if (len) {
     bump (len);
@@ -159,7 +159,7 @@ int hash;
         hash = p[NVALUE];
     }
     if (!p[NTYPE])
-      p[NTYPE] = UNDEF; /* Initial value */
+      p[NTYPE] = UNDEF; // Initial value
 
     switch (p[NTYPE]) {
       case UNDEF:
@@ -192,7 +192,7 @@ int hash;
     return 1;
   }
 
-  /* test for constant */
+  // test for constant
   return constant (lval);  
 }
 
@@ -200,7 +200,7 @@ hier7 (lval)
 register int lval[];
 {
 
-  if (match ("~")) { /* ~lval */
+  if (match ("~")) {
     if (!hier7 (lval)) {
       exprerr ();
       return 0;
@@ -212,7 +212,7 @@ register int lval[];
         loadlval (lval);
       sto_cmd (__NOT, 0);
     }
-  } else if (match ("-")) { /* - */
+  } else if (match ("-")) {
     if (!hier7 (lval)) {
       exprerr ();
       return 0;
@@ -224,7 +224,7 @@ register int lval[];
         loadlval (lval);
       sto_cmd (__NEG, 0);
     }
-  } else if (match ("+")) { /* + */
+  } else if (match ("+")) {
     if (!hier7 (lval)) {
       exprerr ();
       return 0;
@@ -271,9 +271,8 @@ register int lval[];
 }
 
 /*
-** Load a numerical expression seperated by comma's
-*/
-
+ * Load a numerical expression seperated by comma's
+ */
 expression(lval)
 register int lval[];
 {
@@ -281,9 +280,9 @@ register int lval[];
     error ("expression required");
 }
 
-/* 
-** Load a constant expression 
-*/
+/*
+ * Load a constant expression
+ */
 constexpr (val)
 register int *val;
 {
@@ -299,8 +298,8 @@ int lval[LLAST];
 }
 
 /*
-** Load a constant value
-*/
+ * Load a constant value
+ */
 constant (lval)
 register int lval[];
 {
@@ -313,8 +312,8 @@ register int lval[];
 }
 
 /*
-** Get a numerical constant 
-*/
+ * Get a numerical constant
+ */
 number (val)
 register int *val;
 {
@@ -342,8 +341,8 @@ register int i, minus;
 }
 
 /*
-** Get a character constant 
-*/
+ * Get a character constant
+ */
 pstr (val)
 int *val;
 {
@@ -360,8 +359,8 @@ register int i;
 }
 
 /*
-** Return current literal character and bump lptr
-*/
+ * Return current literal character and bump lptr
+ */
 litchar ()
 {
 register int i,oct;

@@ -26,9 +26,9 @@
  * SOFTWARE.
  */
 
-/*
-** X-C-Compiler.  Part 3, Expression evaluation
-*/
+//*
+//* X-C-Compiler.  Part 3, Expression evaluation
+//*
 
 #define EXTERN extern
 #include "xcc.h"
@@ -41,8 +41,8 @@
 #define lval_ISIPTR (lval[LPTR]  && (lval[LSIZE] == BPW))
 
 /*
-** Get the inverse of an compare 
-*/
+ * Get the inverse of an compare
+ */
 negop (op)
 register int op;
 {
@@ -60,13 +60,13 @@ register int op;
     case _LE:
       return _GT;
     default:
-      return op; /* No negation */
+      return op; // No negation
   }
 }
 
 /*
-** Process a constant evaluation
-*/
+ * Process a constant evaluation
+ */
 calc (left, oper, right)
 register int left, right;
 int oper;
@@ -94,16 +94,9 @@ int oper;
     }
   }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*                                                                    */
-/**********************************************************************/
-
-
 /*
-** Allocate a free register
-*/ 
+ * Allocate a free register
+ */
 allocreg ()
 {
 register int i, mask;  
@@ -116,12 +109,12 @@ register int i, mask;
     }
   }
   error ("out of registers");
-  return 2; /* First modifiable reg */
+  return 2; // First modifiable reg
 }
 
 /*
-** Return a register into the free list
-*/
+ * Return a register into the free list
+ */
 freereg (reg)
 register int reg;
 {
@@ -138,22 +131,22 @@ register int mask;
 }
 
 /*
-** Load a lval into a register
-**
-** If 'reg' == -1 then register is mode is 'register read'. This 
-** mode is same as 'reg' == 0 except reserved registers are not
-** copied to 'free' registers
-*/
+ * Load a lval into a register
+ *
+ * If 'reg' == -1 then register is mode is 'register read'. This
+ * mode is same as 'reg' == 0 except reserved registers are not
+ * copied to 'free' registers
+ */
 loadlval (lval, reg)
 register int lval[], reg;
 {
 register int srcreg;
 
-  /* Sign extend to fix being called with negative constant when copiled with -Dint=long */
+  // Sign extend to fix being called with negative constant when copiled with "-Dint=long"
   reg |= -(reg & (1<<SBIT));
 
   if (lval[LTYPE] == CONSTANT) {
-    /* test for a predefined register */
+    // test for a predefined register
     if (reg > 0)
       gencode_I (_LEA, reg , lval[LVALUE]);
     else {
@@ -180,7 +173,7 @@ register int srcreg;
       }
     }
 
-    /* Modify lval */
+    // Modify lval
     lval[LTYPE] = EXPR;
     lval[LPTR]  = 0;
     lval[LEA]   = EA_REG;
@@ -243,8 +236,8 @@ register int srcreg;
 }
 
 /*
-** Free all registers assigned to a lval
-*/
+ * Free all registers assigned to a lval
+ */
 freelval (lval)
 register int lval[];
 {
@@ -259,20 +252,20 @@ register int lval[];
 
 
 /*
-** generic processing for <lval> { <operation> <rval> }
-*/
+ * generic processing for <lval> { <operation> <rval> }
+ */
 xplng1 (hier, start, lval)
 register int (*hier)(), start, lval[];
 {
 register char *cptr, entry;
 int rval[LLAST];
 
-  /* Load lval */
+  // Load lval
   if (!(*hier)(lval))
     return 0;
 
   while (1) {
-    /* Locate operation */
+    // Locate operation
     entry = start;
     while (1) {
       if (!(cptr = hier_str[entry]))
@@ -282,32 +275,32 @@ int rval[LLAST];
       ++entry;
     }
 
-    /* Put lval into a register */
+    // Put lval into a register
     if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
       error ("Invalid function use");
 
-    /* Load rval */
+    // Load rval
     if (!(*hier)(rval)) {
       exprerr ();
       return 1;
     }
 
-    /* Put rval into a register */
+    // Put rval into a register
     if (!rval[LPTR] && (rval[LTYPE] == FUNCTION))
       error ("Invalid function use");
 
-    /* Generate code */
+    // Generate code
     if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
       lval[LVALUE] = calc (lval[LVALUE], hier_oper[entry], rval[LVALUE]);
     } else {
       loadlval (lval, 0);
       loadlval (rval, -1);
 
-      /* Execute operation and release rval */
+      // Execute operation and release rval
       gencode_R (hier_oper[entry], lval[LREG1], rval[LREG1]);
       freelval (rval);
 
-      /* Modify lval */
+      // Modify lval
       lval[LTYPE] = EXPR;
       lval[LPTR] = 0;
       lval[LEA] = EA_REG;
@@ -316,19 +309,19 @@ int rval[LLAST];
 }
 
 /*
-** generic processing for <lval> <comparison> <rval>
-*/
+ * generic processing for <lval> <comparison> <rval>
+ */
 xplng2 (hier, start, lval)
 register int (*hier)(), start, lval[];
 {
 register char *cptr, entry;
 int rval[LLAST];
 
-  /* Load lval */
+  // Load lval
   if (!(*hier)(lval))
     return 0;
 
-  /* Locate operation */
+  // Locate operation
   entry = start;
   while (1) {
     if (!(cptr = hier_str[entry]))
@@ -338,25 +331,25 @@ int rval[LLAST];
     ++entry;
   }
 
-  /* Load rval */
+  // Load rval
   if (!(*hier)(rval)) {
     exprerr ();
     return 1;
   }
 
-  /* Generate code */
+  // Generate code
   if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
     lval[LVALUE] = calc (lval[LVALUE], hier_oper[entry], rval[LVALUE]);
   } else {
     loadlval (lval, -1);
     loadlval (rval, -1);
 
-    /* Compare and release values */
+    // Compare and release values
     gencode_R (_CMP, lval[LREG1], rval[LREG1]);
     freelval (lval);
     freelval (rval);
 
-    /* Change lval to "BRANCH" */
+    // Change lval to "BRANCH"
     lval[LTYPE] = BRANCH;
     lval[LVALUE] = negop (hier_oper[entry]);
     lval[LFALSE] = lval[LTRUE] = 0;
@@ -365,8 +358,8 @@ int rval[LLAST];
 }
 
 /*
-** generic processing for <lval> { ('||' | '&&') <rval> }
-*/
+ * generic processing for <lval> { ('||' | '&&') <rval> }
+ */
 xplng3 (hier, start, lval)
 register int (*hier)(), start, lval[];
 {
@@ -374,14 +367,14 @@ register char *cptr, entry;
 register int lbl;
 int once;
 
-  /* Load lval */
+  // Load lval
   if (!(*hier)(lval))
     return 0;
 
   once = 1;
   entry = start;
   while (1) {
-    /* Locate operation */
+    // Locate operation
     while (1) {
       if (!(cptr = hier_str[entry]))
         return 1;
@@ -390,14 +383,14 @@ int once;
       ++entry;
     }
 
-    /* Put lval into a register */
+    // Put lval into a register
     if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
       error ("Invalid function use");
 
     if (once) {
-      /* One time only: process lval and jump */
+      // One time only: process lval and jump
 
-      /* lval must be BRANCH */
+      // lval must be BRANCH
       if (lval[LTYPE] != BRANCH) {
         loadlval (lval, 0);
         freelval (lval);
@@ -416,11 +409,11 @@ int once;
         lbl = lval[LTRUE];
       }
 
-      /* Mark done */
+      // Mark done
       once = 0;
     }
 
-    /* postprocess last lval */
+    // postprocess last lval
     if (hier_oper[entry] == _LAND) {
       gencode_L (lval[LVALUE], lval[LFALSE]);
       if (lval[LTRUE])
@@ -431,17 +424,17 @@ int once;
         fprintf (outhdl, "_%d:", lval[LFALSE]);
     }
 
-    /* Load next lval */
+    // Load next lval
     if (!(*hier)(lval)) {
       exprerr ();
       return 1;
     }
 
-    /* Put lval into a register */
+    // Put lval into a register
     if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
       error ("Invalid function use");
 
-    /* lval must be BRANCH */
+    // lval must be BRANCH
     if (lval[LTYPE] != BRANCH) {
       loadlval (lval, 0);
       freelval (lval);
@@ -462,13 +455,9 @@ int once;
   }
 }
 
-
-
 /*
-** Do a hierichal evaluation
-
-*/
-
+ * Auto increment/decrement
+ */
 step (pre, lval, post)
 register int pre, lval[], post;
 {
@@ -478,7 +467,7 @@ register int reg;
   if ((lval[LTYPE] == EXPR) || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
     error ("non-modifiable variable");
 
-  /* Copy lval */
+  // Copy lval
   dest[LTYPE]  = lval[LTYPE];
   dest[LPTR]   = lval[LPTR];
   dest[LSIZE]  = lval[LSIZE];
@@ -510,27 +499,26 @@ register int reg;
 }
 
 /*
-** Load primary expression
-*/
-
+ * Load primary expression
+ */
 primary (lval)
 register int lval[];
 {
 register int *ident, i, *glb;
 int sname, len;
 
-  if (match ("(")) {  /* (expression,...) */
+  if (match ("(")) {  // (expression,...)
     expression (lval, 1);
     needtoken (")");
     return 1;
   }
 
-  /* load identifier */
+  // load identifier
   if (!(len = dohash (lptr, &sname)))
     return constant (lval);
-  bump(len); /* Skip identifier */
+  bump(len); // Skip identifier
 
-  /* test for local symbol */
+  // test for local symbol
   for (i=locinx-1; i>=0; i--) {
     ident = &locsym[i*ILAST];
     if (ident[INAME] == sname) {
@@ -550,7 +538,7 @@ int sname, len;
         lval[LVALUE] = ident[IVALUE];
         lval[LEA] = EA_IND;
       }
-      /* Convert arrays into pointers */
+      // Convert arrays into pointers
       if (ident[ITYPE] == ARRAY) {
         lval[LTYPE] = VARIABLE;
         lval[LEA] = EA_ADDR;
@@ -559,7 +547,7 @@ int sname, len;
     }
   }
 
-  /* test for global symbol */
+  // test for global symbol
   for (i=0; i<glbinx; i++) {
     ident = &glbsym[i*ILAST];
     if (ident[INAME] == sname) {
@@ -581,9 +569,9 @@ int sname, len;
     }
   }
 
-  /* test for reserved words */
+  // test for reserved words
   if (sname == argcid) {
-    /* generate (2(AP)-BPW)/BPW */
+    // generate (2(AP)-BPW)/BPW
     lval[LTYPE] = EXPR;
     lval[LPTR] = 0;
     lval[LSIZE] = BPW;
@@ -601,7 +589,7 @@ int sname, len;
     return 0;
   }
 
-  /* make it AUTOEXT */
+  // make it AUTOEXT
   lval[LTYPE] = FUNCTION;
   lval[LPTR] = 0;
   lval[LSIZE] = BPW;
@@ -609,7 +597,7 @@ int sname, len;
   lval[LNAME] = sname;
   lval[LREG1] = lval[LREG2] = lval[LVALUE] = 0;
 
-  /* add symbol to symboltable */
+  // add symbol to symboltable
   if (glbinx >= GLBMAX)
     fatal ("global symboltable overflow");
   glb = &glbsym[glbinx++ * ILAST];
@@ -623,6 +611,9 @@ int sname, len;
   return 1;
 }
 
+/*
+ * Do a hierarchical evaluation
+ */
 hier14 (lval)
 register int lval[];
 {
@@ -631,7 +622,7 @@ register int argc, reg;
 
   if (!primary (lval))
     return 0;
-  if (match("[")) { /* [subscript] */
+  if (match("[")) { // [subscript]
     if (!lval[LPTR])
       error ("can't subscript");
     else if (!hier1 (lval2))
@@ -639,28 +630,28 @@ register int argc, reg;
     else {
       if (lval2[LTYPE] == CONSTANT) {
         if (lval[LEA] == EA_IND)
-          loadlval (lval, 0); /* make LVALUE available */
-        /* Subscript is a constant */
+          loadlval (lval, 0); // make LVALUE available
+        // Subscript is a constant
         lval[LVALUE] += lval2[LVALUE] * lval[LSIZE];
       } else {
-        /* Subscript is a variable/complex-expression */
+        // Subscript is a variable/complex-expression
         if ((lval[LEA] == EA_IND) || lval[LREG2])
-          loadlval (lval, 0); /* make LREG2 available */
+          loadlval (lval, 0); // make LREG2 available
         loadlval (lval2, 0);
         if (lval[LSIZE] == BPW)
-          gencode_R (_MUL, lval2[LREG1], REG_BPW); /* size index */
+          gencode_R (_MUL, lval2[LREG1], REG_BPW); // size index
         if (!lval[LREG1])
           lval[LREG1] = lval2[LREG1];
         else
           lval[LREG2] = lval2[LREG1];
       }
-      /* Update data type */
+      // Update data type
       lval[LPTR] = 0;
       lval[LEA] = EA_IND;
     }
     needtoken ("]");
   }
-  if (match ("(")) { /* function (...) */
+  if (match ("(")) { // function (...)
     if (lval[LPTR] || (lval[LTYPE] != FUNCTION))
       error ("Illegal function");
 
@@ -668,7 +659,7 @@ register int argc, reg;
     sav_csp = csp;
     blanks ();
     while (ch != ')') {
-      /* Get expression */
+      // Get expression
       expression(lval2, 0);
       if (lval2[LTYPE] == CONSTANT) {
         gencode_I (_PSHA, 0, lval2[LVALUE]);
@@ -676,13 +667,13 @@ register int argc, reg;
         if (lval2[LTYPE] == BRANCH)
           loadlval (lval2, 0);
         freelval (lval2);
-        /* Push onto stack */
+        // Push onto stack
         if (lval2[LEA] != EA_IND)
           gencode_M (_PSHA, 0, lval2);
         else
           gencode_M (lval2_ISBPW ? _PSHW : _PSHB, 0, lval2);
       }
-      /* increment ARGC */
+      // increment ARGC
       csp -= BPW;
       argc += BPW;
 
@@ -690,7 +681,7 @@ register int argc, reg;
         break;
     }
     needtoken (")");
-    /* Push ARGC */
+    // Push ARGC
     if (argc == BPW)
       reg = REG_BPW;
     else if (argc == 4)
@@ -700,10 +691,10 @@ register int argc, reg;
       gencode_I (_LEA, reg, argc);
     }
     gencode_IND (_PSHA, 0, 0, reg);
-    /* call */
+    // call
     gencode_M (_JSB, 0, lval);
     freelval (lval);
-    /* Pop args */
+    // Pop args
     gencode_R (_ADD, REG_SP, reg);
     if (reg < REG_0)
       freereg (reg);
@@ -724,19 +715,19 @@ hier13 (lval)
 register int lval[];
 {
 
-  if (match ("++")) {  /* ++lval */
+  if (match ("++")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
     }
     step (_ADD, lval, 0);
-  } else if (match ("--")) { /* --lval */
+  } else if (match ("--")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
     }
     step (_SUB, lval, 0);
-  } else if (match ("~")) { /* ~lval */
+  } else if (match ("~")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
@@ -747,7 +738,7 @@ register int lval[];
       loadlval (lval, 0);
       gencode_R (_NOT, 0, lval[LREG1]);
     }
-  } else if (match ("!")) { /* !lval */
+  } else if (match ("!")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
@@ -757,14 +748,14 @@ register int lval[];
     else if (lval[LTYPE] == BRANCH)
       lval[LVALUE] = negop(lval[LVALUE]);
     else {
-      /* convert CC bits into a BRANCH */
+      // convert CC bits into a BRANCH
       loadlval (lval, 0);
       freelval (lval);
       lval[LTYPE] = BRANCH;
       lval[LVALUE] = _NE;
       lval[LFALSE] = lval[LTRUE] = 0;
     }
-  } else if (match ("-")) { /* - */
+  } else if (match ("-")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
@@ -775,12 +766,12 @@ register int lval[];
       loadlval (lval, 0);
       gencode_R (_NEG, 0, lval[LREG1]);
     }
-  } else if (match ("+")) { /* + */
+  } else if (match ("+")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
     }
-  } else if (match ("*")) { /* * */
+  } else if (match ("*")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
@@ -793,7 +784,7 @@ register int lval[];
       lval[LPTR] = 0;
       lval[LEA] = EA_IND;
     }
-  } else if (match ("&")) { /* & */
+  } else if (match ("&")) {
     if (!hier13 (lval)) {
       exprerr ();
       return 0;
@@ -809,9 +800,9 @@ register int lval[];
   } else {
     if (!hier14 (lval))
       return 0;
-    if (match ("++")) {  /* lval++ */
+    if (match ("++")) {
       step (0, lval, _ADD);
-    } else if (match ("--")) { /* lval-- */
+    } else if (match ("--")) {
       step (0, lval, _SUB);
     }
   }
@@ -888,7 +879,7 @@ register int lbl, reg;
   if (!match ("?"))
     return 1;
 
-  /* If not a BRANCH then convert it into one */
+  // If not a BRANCH then convert it into one
   if (lval[LTYPE] != BRANCH) {
     loadlval (lval, 0);
     freelval (lval);
@@ -896,32 +887,32 @@ register int lbl, reg;
     lval[LVALUE] = _EQ;
     lval[LFALSE] = lval[LTRUE] = 0;
   }
-  /* alloc labels */
+  // alloc labels
   if (!lval[LFALSE])
     lval[LFALSE] = ++nxtlabel;
 
-  /* process 'true' variant */
+  // process 'true' variant
   gencode_L (lval[LVALUE], lval[LFALSE]);
   if (lval[LTRUE])
     fprintf (outhdl, "_%d:", lval[LTRUE]);
   expression(lval, 1);
-  loadlval (lval, reg=allocreg()); /* Needed to assign a dest reg */
+  loadlval (lval, reg=allocreg()); // Needed to assign a dest reg
 
   needtoken (":");
-  /* jump to end */
+  // jump to end
   lbl = ++nxtlabel;
   gencode_L (_JMP, lbl);
 
-  /* process 'false' variant */
+  // process 'false' variant
   fprintf (outhdl, "_%d:", lval[LFALSE]);
   if (!hier1 (lval))
     exprerr ();
   else
-    loadlval (lval, reg); /* Needed for result to occupy same reg */
+    loadlval (lval, reg); // Needed for result to occupy same reg
 
   fprintf (outhdl, "_%d:", lbl);
 
-  /* resulting type is undefined, so modify LTYPE */
+  // resulting type is undefined, so modify LTYPE
   lval[LTYPE] = EXPR;
   lval[LPTR] = 0;
   lval[LEA] = EA_REG;
@@ -938,7 +929,7 @@ register int oper;
   if (!hier2(lval))
     return 0;
 
-  /* Test for assignment */
+  // Test for assignment
        if (omatch ("="))  oper = -1;
   else if (match ("|="))  oper = _BOR;
   else if (match ("^="))  oper = _XOR;
@@ -953,11 +944,11 @@ register int oper;
   else
     return 1;
 
-  /* test if lval modifiable */
+  // test if lval modifiable
   if ((lval[LTYPE] == EXPR) || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
     error ("Inproper lvalue");
 
-  /* Get rval */
+  // Get rval
   if (!hier1 (rval)) {
     exprerr ();
     return 1;
@@ -975,7 +966,7 @@ register int oper;
     lval[LREG1] = rval[LREG1];
     lval[LREG2] = 0;
   } else {
-    /* Copy lval */
+    // Copy lval
     dest[LTYPE]  = lval[LTYPE];
     dest[LPTR]   = lval[LPTR];
     dest[LSIZE]  = lval[LSIZE];
@@ -985,8 +976,8 @@ register int oper;
     dest[LREG1]  = lval[LREG1];
     dest[LREG2]  = lval[LREG2];
 
-    /* load lval into reg, modify it with rval and copy result into dest */
-    loadlval (lval, allocreg ()); /* don't reuse regs for dest */
+    // load lval into reg, modify it with rval and copy result into dest
+    loadlval (lval, allocreg ()); // don't reuse regs for dest
     gencode_R (oper, lval[LREG1], rval[LREG1]);
     freelval (rval);
     if (dest[LEA] == EA_REG)
@@ -995,7 +986,7 @@ register int oper;
       gencode_M (lval_ISBPW ? _STOW : _STOB, lval[LREG1], dest);
   }  
 
-  /* resulting type is undefined, so modify LTYPE */
+  // resulting type is undefined, so modify LTYPE
   lval[LTYPE] = EXPR;
   lval[LPTR] = 0;
   lval[LEA] = EA_REG;
@@ -1004,9 +995,8 @@ register int oper;
 }
 
 /*
-** Load a numerical expression seperated by comma's
-*/
-
+ * Load a numerical expression seperated by comma's
+ */
 expression(lval, comma)
 register int lval[], comma;
 {
@@ -1020,8 +1010,8 @@ register int lval[], comma;
 }
 
 /* 
-** Load a constant expression 
-*/
+ * Load a constant expression
+ */
 constexpr (val)
 register int *val;
 {
@@ -1040,8 +1030,8 @@ int lval[LLAST];
 
 
 /*
-** Load a constant value
-*/
+ * Load a constant value
+ */
 constant (lval)
 register int lval[];
 {
@@ -1051,14 +1041,14 @@ register int lval[];
   if (pstr(&lval[LVALUE]))
     return 1;
   if (qstr()) {
-    /* Convert to char pointer */
+    // Convert to char pointer
     lval[LTYPE] = LABEL;
     lval[LPTR] = 1;
     lval[LSIZE] = 1; 
     lval[LEA] = EA_ADDR;
     lval[LNAME] = ++nxtlabel;
     lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
-    /* Generate data */
+    // Generate data
     toseg (DATASEG);
     fprintf (outhdl, "_%d:", lval[LNAME]);
     dumplits (1);
@@ -1069,8 +1059,8 @@ register int lval[];
 }
 
 /*
-** Get a numerical constant 
-*/
+ * Get a numerical constant
+ */
 number (val)
 register int *val;
 {
@@ -1098,8 +1088,8 @@ register int i, minus;
 }
 
 /*
-** Get a character constant 
-*/
+ * Get a character constant
+ */
 pstr (val)
 int *val;
 {
@@ -1116,8 +1106,8 @@ register int i;
 }
 
 /* 
-** Get a string constant 
-*/
+ * Get a string constant
+ */
 qstr ()
 {
   if (!match ("\""))
@@ -1126,14 +1116,14 @@ qstr ()
   litinx = 0;
   while (ch && (ch != '"'))
     addlits (litchar (), 1);
-  gch (); /* skip terminator */
+  gch (); // skip terminator
   addlits (0, 1);
   return 1;
 }
 
 /*
-** Return current literal character and bump lptr
-*/
+ * Return current literal character and bump lptr
+ */
 litchar ()
 {
 register int i,oct;
@@ -1165,8 +1155,8 @@ register int i,oct;
 }
 
 /*
-** Add a value to the literal pool
-*/
+ * Add a value to the literal pool
+ */
 addlits (val, size)
 register int val, size;
 {
@@ -1181,8 +1171,8 @@ register int val, size;
 }
 
 /*
-** dump the literal pool
-*/
+ * dump the literal pool
+ */
 dumplits(size)
 int size;
 {

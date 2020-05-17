@@ -26,31 +26,30 @@
  * SOFTWARE.
  */
 
-/*
-** xar.h -- Symbol definitions for X-ObjectArchiver
-*/
+//*
+//* xar.h -- Symbol definitions for X-ObjectArchiver
+//*
 
 /* 
-** Compiler dependent parameters
-*/
+ * Compiler dependent parameters
+ */
 
-/* #define DYNAMIC		/* allocate memory dynamically */
-/* #define UPPER		/* force symbols to uppercase */
+// #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
-#define FILEMAX 50		/* Size of filetable */
-#define PATHMAX 80		/* length of filename */
-
-/*
-** Machine dependent parmeters
-*/
-
-#define BPW		2  /* Bytes per word */
-#define SBIT            15 /* Bit number of signed bit */
+#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
+#define FILEMAX 50		// Size of filetable
+#define PATHMAX 80		// length of filename
 
 /*
-** Definitions for names's
-*/
+ * Machine dependent parmeters
+ */
+
+#define BPW		2       // Bytes per word
+#define SBIT            15      // Bit number of signed bit
+
+/*
+ * Definitions for names's
+ */
 
 #define NTAB		0
 #define NCHAR		1
@@ -58,8 +57,8 @@
 #define NLAST		3
 
 /*
-** Definitions for files's
-*/
+ * Definitions for files's
+ */
 
 #define FNAME		0
 #define FLENGTH		1
@@ -68,16 +67,16 @@
 #define FLAST		4
 
 /*
-** Definitions for .OLB header
-*/
+ * Definitions for .OLB header
+ */
 
 #define HNAME		0
 #define HFILE		1
 #define HLAST		2
 
 /*
-** User commands
-*/
+ * User commands
+ */
 
 #define ADDCMD		1
 #define DELCMD		2
@@ -86,8 +85,8 @@
 #define EXTCMD		5
 
 /*
-** Object commands 
-*/
+ * Object commands
+ */
 
 #define __ADD		 1
 #define __SUB		 2
@@ -124,8 +123,8 @@
 #define __UDEFORG	83
 
 /*
-** Storage
-*/
+ * Storage
+ */
 
 EXTERN int 
 
@@ -137,21 +136,21 @@ EXTERN int
   file[FILEMAX*NLAST],
 #endif
 
-  datlen,		/* length of datbuf */
-  olbhdr[HLAST],	/* .OLB header */
-  usercmd,		/* user command */
-  verbose,		/* Verbose -v specified */
-  errflag,              /* Error occured */
-  debug,		/* Debug   -d specified */
-  olbhdl,		/* handle for source .OLB file */
-  outhdl,		/* handle for destination .OLB file */
-  objhdl;		/* handle for .OBJ file */
+  datlen,		// length of datbuf
+  olbhdr[HLAST],	// .OLB header
+  usercmd,		// user command
+  verbose,		// Verbose -v specified
+  errflag,              // Error occured
+  debug,		// Debug   -d specified
+  olbhdl,		// handle for source .OLB file
+  outhdl,		// handle for destination .OLB file
+  objhdl;		// handle for .OBJ file
 
 EXTERN char
 
-  datbuf[512],		/* internal scratch buffer */
-  modn[PATHMAX],	/* name of moule */
-  olbfn[PATHMAX],	/* source .OLB filename */
-  outfn[PATHMAX],	/* destination .OLB filename */
-  bakfn[PATHMAX],	/* .BAK filename */
-  objfn[PATHMAX];	/* .OBJ filename */
+  datbuf[512],		// internal scratch buffer
+  modn[PATHMAX],	// name of moule
+  olbfn[PATHMAX],	// source .OLB filename
+  outfn[PATHMAX],	// destination .OLB filename
+  bakfn[PATHMAX],	// .BAK filename
+  objfn[PATHMAX];	// .OBJ filename

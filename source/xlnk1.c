@@ -26,19 +26,18 @@
  * SOFTWARE.
  */
 
-/*
-** X-Linker.  Part 1, I/O Support
-*/
+//*
+//* X-Linker.  Part 1, I/O Support
+//*
 
 #define EXTERN
 #include "xlnk.h"
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Compiler startup routines                                       */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Compiler startup routines
+//*
+//*
 
 add_res (sym, typ)
 char *sym;
@@ -72,19 +71,19 @@ int hash;
   file = calloc (FILEMAX*BPW*FLAST);
 #endif;
 
-  /* reset tables */
+  // reset tables
   for (i=0; i<NAMEMAX; i++) {
     p = &name[i*NLAST];
     p[NCHAR] = p[NTYPE] = p[NVALUE] = 0;
   }
 
-  /* reserve first entry so it terminates lists */
+  // reserve first entry so it terminates lists
   name[0*NLAST+NCHAR] = '?';
 
-  /* reset positions */
+  // reset positions
   pass = 1;
  
-  /* predefined symbols */
+  // predefined symbols
   add_res ("___START",    UNDEF);
   add_res ("___STACKLEN", ABS);
   add_res ("___CODEBASE", ABS);
@@ -96,8 +95,8 @@ int hash;
 }
 
 /*
-** Process commandline
-*/
+ * Process commandline
+ */
 usage ()
 {
   printf ("X-Linker, Version %s\n\n", getversion());
@@ -144,7 +143,7 @@ register int *argv;
 {
 int hash, *p;
 
-  argv++; /* skip argv[0] */
+  argv++; // skip argv[0]
   while (*argv) {
     register char *arg;
     arg = *argv++;
@@ -154,7 +153,7 @@ int hash, *p;
       if (!outfn[0])
         fext(outfn, arg, ".img", 1);
 
-      /* Insert object into filetable */
+      // Insert object into filetable
       if (file1inx >= FILEMAX)
         fatal ("too many files");
 
@@ -166,7 +165,7 @@ int hash, *p;
       p[FDATABASE] = p[FUDEFLEN] = p[FDATAPOS] = 0;
       p[FUDEFBASE] = p[FDATALEN] = p[FUDEFPOS] = 0;
     } else {
-      /* Process option */
+      // Process option
       arg++;
       switch (*arg++) {
         case 'd':
@@ -180,7 +179,7 @@ int hash, *p;
 	  else
             fext(inpfn, arg, ".xa", 0);
 
-          /* Insert file into filetable */
+          // Insert file into filetable
           if (file1inx >= FILEMAX)
             fatal ("too many files");
 
@@ -211,7 +210,7 @@ int hash, *p;
 	  if (!*arg || *arg == '-')
 	    usage();
 
-          /* load value */
+          // load value
           stksiz = 0;
           while (*arg >= '0' && *arg <= '9')
             stksiz = stksiz * 10 + *arg++ - '0';
@@ -234,8 +233,8 @@ int hash, *p;
 }
 
 /*
-** Open all files
-*/
+ * Open all files
+ */
 mustopen(fn, mode)
 char *fn;
 char *mode;
@@ -259,8 +258,8 @@ register int i, *p;
 }
 
 /*
-** Open the .OLB file, test the header, and load the tables 
-*/
+ * Open the .OLB file, test the header, and load the tables
+ */
 open_olb ()
 {
 register int i, *p;
@@ -286,19 +285,11 @@ register int i, *p;
     printf("Loaded\n");
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Input support routines                                          */
-/*                                                                    */
-/**********************************************************************/
-
-
-/**********************************************************************/
-/*                                                                    */
-/*    Symboltable routines                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Symboltable routines
+//*
+//*
 
 lbsoutname (hash, str)
 register int hash;
@@ -315,8 +306,8 @@ register int i;
 }
 
 /*
-** Get the (unique) hashed value for symbol, return length
-*/
+ * Get the (unique) hashed value for symbol, return length
+ */
 lbdohash (ident, retval)
 register char *ident;
 int *retval;
@@ -332,12 +323,12 @@ register int start, hash, tab, len, *p;
       p = &lbname[hash*LBNLAST];
       if ((p[LBNCHAR] == *ident) && (p[LBNTAB] == tab)) {
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[LBNCHAR]) {
         p[LBNCHAR] = *ident;
         p[LBNTAB] = tab;
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += *ident;
         if (hash >= lbhdr[LBHNAME])
@@ -362,11 +353,11 @@ register int i;
 
   i=name[hash*NLAST+NTAB];
   if (i)
-    i = outname (i); /* display and get length string */
+    i = outname (i); // display and get length string
   else
-    i = 0; /* nothing displayed yet */
+    i = 0; // nothing displayed yet
   printf ("%c", name[hash*NLAST+NCHAR]);
-  return i+1; /* Increment length */
+  return i+1; // Increment length
 }
 
 foutname (hash)
@@ -376,11 +367,11 @@ register int i;
 
   i=name[hash*NLAST+NTAB];
   if (i)
-    i = foutname (i); /* display and get length string */
+    i = foutname (i); // display and get length string
   else
-    i = 0; /* nothing displayed yet */
+    i = 0; // nothing displayed yet
   fprintf (lishdl, "%c", name[hash*NLAST+NCHAR]);
-  return i+1; /* Increment length */
+  return i+1; // Increment length
 }
 
 soutname (hash, str)
@@ -398,8 +389,8 @@ register int i;
 }
 
 /*
-** Get the (unique) hashed value for symbol, return length
-*/
+ * Get the (unique) hashed value for symbol, return length
+ */
 dohash (ident, retval)
 register char *ident;
 int *retval;
@@ -415,12 +406,12 @@ register int start, hash, tab, len, *p;
       p = &name[hash*NLAST];
       if ((p[NCHAR] == *ident) && (p[NTAB] == tab)) {
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[NCHAR]) {
         p[NCHAR] = *ident;
         p[NTAB] = tab;
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += *ident;
         if (hash >= NAMEMAX)
@@ -436,12 +427,11 @@ register int start, hash, tab, len, *p;
   return len;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Error routines                                                  */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Error routines
+//*
+//*
 
 fatal (msg)
 char *msg;
@@ -450,16 +440,15 @@ char *msg;
   exit (1);
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Main                                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Main
+//*
+//*
 
 /*
-** Execution starts here
-*/
+ * Execution starts here
+ */
 main (argc, argv)
 int argc;
 int *argv;
@@ -467,11 +456,11 @@ int *argv;
 register int i, j, *p, len;
 int hash;
 
-  initialize (); /* initialize all variables */
+  initialize (); // initialize all variables
   
-  startup (argv); /* Process commandline options */
-  openfile ();       /* Open all files */
-  process ();        /* start linking */
+  startup (argv);       // Process commandline options
+  openfile ();          // Open all files
+  process ();           // Start linking
 
   if (lishdl) {
     fprintf (lishdl, "Object statistics : \n");
@@ -545,9 +534,9 @@ register int ch, *p, hash, tab;
           fprintf (lishdl, "\n");
         }
         symmap (hash);
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[NCHAR]) {
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += ch;
         if (hash >= NAMEMAX)

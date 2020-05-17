@@ -26,40 +26,39 @@
  * SOFTWARE.
  */
 
-/*
-** xlnk.h -- Symbol definitions for X-Linker
-*/
+//*
+//* xlnk.h -- Symbol definitions for X-Linker
+//*
 
 /* 
-** Compiler dependent parameters
-*/
+ * Compiler dependent parameters
+ */
 
-/* #define DYNAMIC		/* allocate memory dynamically */
-/* #define UPPER		/* force symbols to uppercase */
+// #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
-#define FILEMAX	50		/* Number of files */
-#define STACKMAX 50		/* Size of linker stack */
-#define PATHMAX 80		/* Length of filename */
-
-/*
-** Machine dependent parmeters
-*/
-
-#define BPW		2  /* Bytes per word */
-#define SBIT            15 /* Bit number of signed bit */
+#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
+#define FILEMAX	50	        // Number of files
+#define STACKMAX 50		// Size of linker stack
+#define PATHMAX 80		// Length of filename
 
 /*
-** segment names 
-*/
+ * Machine dependent parmeters
+ */
+
+#define BPW		2       // Bytes per word
+#define SBIT            15      // Bit number of signed bit
+
+/*
+ * segment names
+ */
 
 #define CODESEG		1
 #define DATASEG		2
 #define UDEFSEG		3
 
 /*
-** Definitions for names's
-*/
+ * Definitions for names's
+ */
 
 #define NTAB		0
 #define NCHAR		1
@@ -69,8 +68,8 @@
 #define NLAST		5
 
 /*
-** Definitions for files's
-*/
+ * Definitions for files's
+ */
 
 #define FFILE		 0
 #define FLIB		 1
@@ -87,15 +86,16 @@
 #define FLAST		12
 
 /*
-** Definitions for .OLB header
-*/
+ * Definitions for .OLB header
+ */
 
 #define LBHNAME		0
 #define LBHFILE		1
 #define LBHLAST		2
+
 /*
-** Definitions for .OLB filetable
-*/
+ * Definitions for .OLB filetable
+ */
 
 #define LBFNAME		0
 #define LBFLENGTH	1
@@ -104,8 +104,8 @@
 #define LBFLAST		4
 
 /*
-** Definitions for .OLB nametable
-*/
+ * Definitions for .OLB nametable
+ */
 
 #define LBNTAB		0
 #define LBNCHAR		1
@@ -113,8 +113,8 @@
 #define LBNLAST		3
 
 /*
-** values for NTYPE
-*/
+ * values for NTYPE
+ */
 
 #define	CODE		 1
 #define DATA		 2
@@ -123,8 +123,8 @@
 #define UNDEF		 5
 
 /*
-** Object commands 
-*/
+ * Object commands
+ */
 
 #define __ADD		 1
 #define __SUB		 2
@@ -161,8 +161,8 @@
 #define __UDEFORG	83
 
 /*
-** Storage
-*/
+ * Storage
+ */
 
 EXTERN int 
 
@@ -179,23 +179,23 @@ EXTERN int
   stack[STACKMAX*BPW],
 #endif
 
-  lbhdr[LBHLAST],	/* .OLB header */
-  stackinx,		/* Poisition in stack */
-  datlen,		/* length of data in datbuf */
-  pass,			/* Pass number */
-  curseg,		/* Current segment */
-  curpos[4],maxpos[4],	/* Position in segment */
-  errflag,		/* True if an error has occurred */
-  stksiz,		/* Stksiz  -s specified */
-  undef,		/* Undef   -u specified */
-  verbose,		/* Verbose -v specified */
-  debug,		/* Debug   -d specified */
-  outhdl,		/* handle for .IMG file */
-  lishdl, 		/* handle for .MAP file */
-  inphdl,		/* handle for .OBJ/.OLB file */
-  curobj,		/* index of current .OLB file */
-  file1inx,		/* Index to next entry */
-  file2inx;		/* Index to next entry */
+  lbhdr[LBHLAST],	// .OLB header
+  stackinx,		// Poisition in stack
+  datlen,		// length of data in datbuf
+  pass,			// Pass number
+  curseg,		// Current segment
+  curpos[4],maxpos[4],	// Position in segment
+  errflag,		// True if an error has occurred
+  stksiz,		// Stksiz  -s specified
+  undef,		// Undef   -u specified
+  verbose,		// Verbose -v specified
+  debug,		// Debug   -d specified
+  outhdl,		// handle for .IMG file
+  lishdl, 		// handle for .MAP file
+  inphdl,		// handle for .OBJ/.OLB file
+  curobj,		// index of current .OLB file
+  file1inx,		// Index to next entry
+  file2inx;		// Index to next entry
 
 EXTERN char 
 
@@ -211,11 +211,11 @@ EXTERN char
 */
 #endif
 
-  datbuf[512],		/* storage buffer for sto_data */
-  inpfn[PATHMAX],	/* input filename */
-  outfn[PATHMAX],	/* output filename */
-  lisfn[PATHMAX],	/* listing filename */
-  *line,		/* Pointer to current input buffer */
-  *lptr,		/* Pointer to current character in input buffer */
-  ch,			/* Current character in line being scanned */
-  nch;			/* Next character in line being scanned */
+  datbuf[512],		// storage buffer for sto_data
+  inpfn[PATHMAX],	// input filename
+  outfn[PATHMAX],	// output filename
+  lisfn[PATHMAX],	// listing filename
+  *line,		// Pointer to current input buffer
+  *lptr,		// Pointer to current character in input buffer
+  ch,			// Current character in line being scanned
+  nch;			// Next character in line being scanned

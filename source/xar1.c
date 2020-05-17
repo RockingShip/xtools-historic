@@ -26,23 +26,22 @@
  * SOFTWARE.
  */
 
-/*
-** X-Archiver.  Part 1, I/O Support routines
-*/
+//*
+//* X-Archiver.  Part 1, I/O Support routines
+//*
 
 #define EXTERN
 #include "xar.h"
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Compiler startup routines                                       */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Compiler startup routines
+//*
+//*
 
 /*
-** Initialize all variables 
-*/
+ * Initialize all variables
+ */
 initialize ()
 {
 register int i, *p;
@@ -52,19 +51,19 @@ register int i, *p;
 
   objfn[0] = olbfn[0] = outfn[0] = 0;
 
-  /* reset tables */
+  // reset tables
   for (i=0; i<NAMEMAX; i++) {
     p = &name[i*NLAST];
     p[NCHAR] = p[NLIB] = 0;
   }
 
-  /* reserve first entry so it terminates lists */
+  // reserve first entry so it terminates lists
   name[0*NLAST+NCHAR] = '?';
 }
 
 /*
-** Process commandline
-*/
+ * Process commandline
+ */
 usage ()
 {
   printf ("X-Archiver, Version %s\n\n", getversion());
@@ -109,7 +108,7 @@ int force;
 startup (argv)
 register int *argv;
 {
-  argv++; /* skip argv[0] */
+  argv++; // skip argv[0]
   while (*argv) {
     register char *arg;
     arg = *argv++;
@@ -137,7 +136,7 @@ register int *argv;
             usage ();
         }
         if (*++arg)
-          usage (); /* one letter commands only */
+          usage (); // one letter commands only
       } else if (!olbfn[0]) {
 	fext(olbfn, arg, ".xa", 0);
         fext(bakfn, arg, ".bak", 1);
@@ -148,7 +147,7 @@ register int *argv;
       } else
         usage ();
     } else {
-      /* Process option */
+      // Process option
       arg++;
       switch (*arg++) {
 	case 'd':
@@ -164,21 +163,21 @@ register int *argv;
     }
   }
 
-  /* filename MUST be supplied */
+  // filename MUST be supplied
   if (!outfn[0])
     usage ();
-  /* command MUST be supplied */
+  // command MUST be supplied
   if (!usercmd)
     usage ();
-  /* commands add/del/extract needs object name */
+  // commands add/del/extract needs object name
   if ((usercmd == ADDCMD) || (usercmd == DELCMD) || (usercmd == EXTCMD)) 
     if (!outfn[0])
       usage ();
 }
 
 /*
-** Open all files
-*/
+ * Open all files
+ */
 mustopen(fn, mode)
 char *fn;
 char *mode;
@@ -193,22 +192,22 @@ int fd;
 }
 
 /*
-** Open the .OLB file, test the header, and load the tables 
-*/
+ * Open the .OLB file, test the header, and load the tables
+ */
 open_olb ()
 {
 register int i, *p;
 
-  /* open, allow failure */
+  // open, allow failure
   olbhdl = fopen (olbfn, "r");
 
   if (!olbhdl) {
     if (verbose)
       printf("Creating library %s\n", olbfn);
 
-    /* init header for empty archive */
+    // init header for empty archive
     olbhdr[HNAME] = NAMEMAX;
-    /* set all symbols to 'not in library' */
+    // set all symbols to 'not in library'
     for (i=0; i<NAMEMAX; i++)
       name[i*NLAST+NLIB] = -1;
     return;
@@ -229,7 +228,7 @@ register int i, *p;
     for (i=0; i<olbhdr[HFILE]*FLAST; i++)
       file[i] = read_word_olb();
 
-  /* duplicate offset fields */
+  // duplicate offset fields
   for (i=0; i<olbhdr[HFILE]; i++) {
     p = &file[i*FLAST];
     p[FOLDOFS] = p[FOFFSET];
@@ -246,7 +245,7 @@ int w;
     exit(1);
   }
 
-  /* return signed */
+  // return signed
   w = arr[0] << 8 | (arr[1] & 0xff);
   w |= -(w & (1 << SBIT));
   return w;
@@ -266,11 +265,11 @@ error (msg);
 exit (0);
 }
 
-/**********************************************************************/
-/*                                                                    */
-/*    Symboltable routines                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Symboltable routines
+//*
+//*
 
 outname (hash)
 register int hash;
@@ -279,11 +278,11 @@ register int i;
 
   i=name[hash*NLAST+NTAB];
   if (i)
-    i = outname (i); /* display and get length string */
+    i = outname (i); // display and get length string
   else
-    i = 0; /* nothing displayed yet */
+    i = 0; // nothing displayed yet
   printf ("%c", name[hash*NLAST+NCHAR]);
-  return i+1; /* Increment length */
+  return i+1; // Increment length
 }
 
 soutname (hash, str)
@@ -301,8 +300,8 @@ register int i;
 }
 
 /*
-** Get the (unique) hashed value for symbol, return length
-*/
+ * Get the (unique) hashed value for symbol, return length
+ */
 dohash (ident, retval)
 register char *ident;
 int *retval;
@@ -318,12 +317,12 @@ register int start, hash, tab, len, *p;
       p = &name[hash*NLAST];
       if ((p[NCHAR] == *ident) && (p[NTAB] == tab)) {
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else if (!p[NCHAR]) {
         p[NCHAR] = *ident;
         p[NTAB] = tab;
         tab = hash;
-        break; /* Inner loop */
+        break; // Inner loop
       } else {
         hash += *ident;
         if (hash >= olbhdr[HNAME])
@@ -341,24 +340,23 @@ register int start, hash, tab, len, *p;
   return len;
 }
 
-
-/**********************************************************************/
-/*                                                                    */
-/*    Main                                                            */
-/*                                                                    */
-/**********************************************************************/
+//*
+//*
+//* Main
+//*
+//*
 
 /*
-** Execution starts here
-*/
+ * Execution starts here
+ */
 main (argc, argv)
 int argc;
 int *argv;
 {
 register int i, j, *p;
 
-  initialize (); /* initialize all variables */
-  startup (argv); /* Process commandline options */
+  initialize (); // initialize all variables
+  startup (argv); // Process commandline options
   if (debug) {
     printf ("Library  : '%s'\n", olbfn);
     printf ("Object   : '%s'\n", objfn);

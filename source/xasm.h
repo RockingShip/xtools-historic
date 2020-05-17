@@ -26,34 +26,33 @@
  * SOFTWARE.
  */
 
-/*
-** xasm.h -- Symbol definitions for X-Assembler
-*/
+//*
+//* xasm.h -- Symbol definitions for X-Assembler
+//*
 
 /* 
-** Compiler dependent parameters
-*/
+ * Compiler dependent parameters
+ */
 
-/* #define DYNAMIC		/* allocate memory dynamically */
-/* #define UPPER		/* force symbols to uppercase */
+// #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		/* Size of nametable !!! MUST BE PRIME !!! */
-#define PBUFMAX 512		/* Size of preprocessor buffer */
-#define SBUFMAX 256		/* Size of source buffer */
-#define MACMAX 300		/* Number of definable macro's */
-#define MACQMAX MACMAX*7	/* Expansiontable for macro's */
-#define PATHMAX 80              /* Length of filename */
+#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
+#define PBUFMAX 512		// Size of preprocessor buffer
+#define SBUFMAX 256		// Size of source buffer
+#define MACMAX 300		// Number of definable macro's
+#define MACQMAX MACMAX*7	// Expansiontable for macro's
+#define PATHMAX 80              // Length of filename
 
 /*
-** Machine dependent parmeters
-*/
+ * Machine dependent parmeters
+ */
 
-#define BPW		2       /* Bytes per word */
-#define SBIT            15      /* Bit number of signed bit */
+#define BPW		2       // Bytes per word
+#define SBIT            15      // Bit number of signed bit
 
 /* 
-** Reserved characters 
-*/
+ * Reserved characters
+ */
 
 #define BS		8
 #define HT		9
@@ -61,16 +60,16 @@
 #define FF		12
 
 /*
-** segment names 
-*/
+ * segment names
+ */
 
 #define CODESEG		1
 #define DATASEG		2
 #define UDEFSEG		3
 
 /*
-** Definitions for names's
-*/
+ * Definitions for names's
+ */
 
 #define NTAB		0
 #define NCHAR		1
@@ -79,16 +78,16 @@
 #define NLAST		4
 
 /*
-** Definitions for lval's
-*/
+ * Definitions for lval's
+ */
 
 #define LTYPE		0
 #define LVALUE		1
 #define LLAST		2
 
 /*
-** values for NTYPE
-*/
+ * values for NTYPE
+ */
 
 #define UNDEF		 1
 #define	ABS		 2
@@ -102,24 +101,24 @@
 #define POINT		10
 
 /*
-** values for LTYPE
-*/
+ * values for LTYPE
+ */
 
 #define CONSTANT	 1
 #define SYMBOL		 2
 #define	EXPRESSION	 3
 
 /*
-** Definitions for macro's
-*/
+ * Definitions for macro's
+ */
 
 #define MNAME		0
 #define MEXPAND		1
 #define MLAST		2
 
 /*
-** Compiler-generated p-codes
-*/
+ * Compiler-generated p-codes
+ */
 
 #define _ILLEGAL	0x00
 #define _ADD		0x13
@@ -158,8 +157,8 @@
 #define _SVC		0x0A
 
 /*
-** Pseudo opcodes
-*/
+ * Pseudo opcodes
+ */
 
 #define _CODE		1
 #define _DATA		2
@@ -172,8 +171,8 @@
 #define _DSW		9
 
 /*
-** Object commands 
-*/
+ * Object commands
+ */
 
 #define __ADD		 1
 #define __SUB		 2
@@ -210,14 +209,14 @@
 #define __UDEFORG	83
 
 /* 
-** Literal pool
-*/
+ * Literal pool
+ */
 
 #define LITMAX		1500
 
 /*
-** Storage
-*/
+ * Storage
+ */
 
 EXTERN int 
 
@@ -231,28 +230,28 @@ EXTERN int
   litq[LITMAX],
 #endif
 
-  datlen,		/* length of data in datbuf */
-  hier_str[20],		/* Array containing hierichal operators */
-  hier_oper[20],	/* Internal translation of the above */
-  pass,			/* Pass number */
-  curseg,		/* Current segment */
-  curpos[4],maxpos[4],	/* Position in segment */
-  inplnr,		/* Linenumber of .C file */
-  inclnr,		/* Linenumber of .H file */
-  macinx,		/* Next free entry in mac */
-  macqinx,		/* Next free entry in macq */
-  pinx,			/* Position in preprocessor buffer */
-  iflevel,		/* #if nesting level */
-  skiplevel,		/* level at which #if skipping starts */
-  errflag,		/* True if an error has occurred */
-  undef,		/* Auto-external -u specified */
-  verbose,		/* Verbose -v specified */
-  debug,		/* Debug   -d specified */
-  outhdl,		/* handle for .OBJ file */
-  lishdl, 		/* handle for .LIS file */
-  inphdl,		/* handle for .ASM file */
-  inchdl,		/* handle for .H   file */
-  litinx;		/* Index to next entry */
+  datlen,		// length of data in datbuf
+  hier_str[20],		// Array containing hierarchical operators
+  hier_oper[20],	// Internal translation of the above
+  pass,			// Pass number
+  curseg,		// Current segment
+  curpos[4],maxpos[4],	// Position in segment
+  inplnr,		// Linenumber of .C file
+  inclnr,		// Linenumber of .H file
+  macinx,		// Next free entry in mac
+  macqinx,		// Next free entry in macq
+  pinx,			// Position in preprocessor buffer
+  iflevel,		// #if nesting level
+  skiplevel,		// level at which #if skipping starts
+  errflag,		// True if an error has occurred
+  undef,		// Auto-external -u specified
+  verbose,		// Verbose -v specified
+  debug,		// Debug   -d specified
+  outhdl,		// handle for .OBJ file
+  lishdl, 		// handle for .LIS file
+  inphdl,		// handle for .ASM file
+  inchdl,		// handle for .H   file
+  litinx;		// Index to next entry
 
 EXTERN char 
 
@@ -266,12 +265,12 @@ EXTERN char
   macq[MACQMAX],
 #endif
 
-  datbuf[128],		/* storage buffer for sto_data */
-  inpfn[PATHMAX],	/* input filename */
-  incfn[PATHMAX],	/* include filename */
-  outfn[PATHMAX],	/* output filename */
-  lisfn[PATHMAX],	/* listing filename */
-  *line,		/* Pointer to current input buffer */
-  *lptr,		/* Pointer to current character in input buffer */
-  ch,			/* Current character in line being scanned */
-  nch;			/* Next character in line being scanned */
+  datbuf[128],		// storage buffer for sto_data
+  inpfn[PATHMAX],	// input filename
+  incfn[PATHMAX],	// include filename
+  outfn[PATHMAX],	// output filename
+  lisfn[PATHMAX],	// listing filename
+  *line,		// Pointer to current input buffer
+  *lptr,		// Pointer to current character in input buffer
+  ch,			// Current character in line being scanned
+  nch;			// Next character in line being scanned
