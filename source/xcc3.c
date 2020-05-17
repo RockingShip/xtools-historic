@@ -904,10 +904,8 @@ register int lbl, reg;
   gencode_L (lval[LVALUE], lval[LFALSE]);
   if (lval[LTRUE])
     fprintf (outhdl, "_%d:", lval[LTRUE]);
-  if (!hier1 (lval))
-    exprerr ();
-  else
-    loadlval (lval, reg=allocreg()); /* Needed to assign a dest reg */
+  expression(lval, 1);
+  loadlval (lval, reg=allocreg()); /* Needed to assign a dest reg */
 
   needtoken (":");
   /* jump to end */

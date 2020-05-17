@@ -742,11 +742,11 @@ int lbl1, lbl2, lbl3;
     fprintf (outhdl, "_%d:", lbl2);
     if (ch <= ' ')
       blanks ();
-    if (ch != ';') {
+    if (ch != ')') {
       expression (lval, 1); 
       freelval (lval);
-      gencode_L (_JMP, lbl1);
     }
+    gencode_L (_JMP, lbl1);
     needtoken (")");
     fprintf (outhdl, "_%d:", lval[LTRUE]);
     statement (swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);

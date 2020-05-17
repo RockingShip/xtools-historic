@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-17 14:38:30 Fixed `"for(;;)"` and `"a?b,c:d"`.
+                    There were never tested.
 2020-05-17 14:33:28 Handle large data.
                     Large arrays or sections greater than 32k require special handling because of their negative sizes.
 2020-05-16 19:41:57 `xlnk` can now handle libraries.
