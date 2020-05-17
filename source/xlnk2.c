@@ -50,26 +50,25 @@ int curseg;
   errflag = 1;
 }
 
+/*
+ * Unsigned compare GT
+ * Trying all possibilities reveals:
+ * unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000"
+ */
+unsignedGT(i, j)
+int i, j;
+{
+  return ((j ^ i) & (1 << SBIT) ? i & (1 << SBIT) : (j - i) & (1 << SBIT));
+}
+
 savmaxseg (fp)
 register int *fp;
 {
-/* trying all possibilities shows: */
-/* unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000" */
-
-/*
-  if (fp[FCODEPOS]  > fp[FCODELEN])
-    fp[FCODELEN] = fp[FCODEPOS];
-  if (fp[FDATAPOS] > fp[FDATALEN])
-    fp[FDATALEN] = fp[FDATAPOS];
-  if (fp[FUDEFPOS] > fp[FUDEFLEN])
-    fp[FUDEFLEN] = fp[FUDEFPOS];
-*/
-
-	if ((fp[FCODELEN]^fp[FCODEPOS])&0x8000 ?  fp[FCODEPOS]&0x8000 : (fp[FCODELEN]-fp[FCODEPOS])&0x8000)
+	if (unsignedGT(fp[FCODEPOS], fp[FCODELEN]))
 		fp[FCODELEN] = fp[FCODEPOS];
-	if ((fp[FDATALEN]^fp[FDATAPOS])&0x8000 ?  fp[FDATAPOS]&0x8000 : (fp[FDATALEN]-fp[FDATAPOS])&0x8000)
+	if (unsignedGT(fp[FDATAPOS], fp[FDATALEN]))
 		fp[FDATALEN] = fp[FDATAPOS];
-	if ((fp[FUDEFLEN]^fp[FUDEFPOS])&0x8000 ?  fp[FUDEFPOS]&0x8000 : (fp[FUDEFLEN]-fp[FUDEFPOS])&0x8000)
+	if (unsignedGT(fp[FUDEFPOS], fp[FUDEFLEN]))
 		fp[FUDEFLEN] = fp[FUDEFPOS];
 
 }

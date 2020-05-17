@@ -48,7 +48,8 @@
 ** Machine dependent parmeters
 */
 
-#define BPW		2  /* Bytes per word */
+#define BPW		2       /* Bytes per word */
+#define SBIT            15      /* Bit number of signed bit */
 
 /* 
 ** Reserved characters 

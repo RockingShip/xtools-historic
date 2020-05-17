@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+```
+2020-05-17 23:16:04 Added `unsignedGT()`.
+                    `xasm/xlnk` need unsigned compare for large storage.
+```
+
 ## Release [1.1.0] 2020-05-17 15:06:26
 
 XTools/XLibrary can compile itself and demo `cattle` under 16 and 64 bits architecture.
