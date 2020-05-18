@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-18 18:59:57 Merged `glbsym[]` and `locsym[]`.
+                    Two identifier pools with duplicated code.
+                    Also, identifier scoping is now more managable. 
 2020-05-17 23:16:04 Support for and convert to double-slash comments.
                     Implementation in `xcc1.c:preprocess()`
 2020-05-17 23:16:04 Added `unsignedGT()`.

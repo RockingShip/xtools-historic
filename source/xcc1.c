@@ -72,8 +72,8 @@ register int i;
   // reset table
   for (i=0; i<NAMEMAX; i++)
     namech[i] = nametab[i] = 0;
-  for (i=0; i<LOCMAX; i++)
-    locsym[i*ILAST+INAME] = 0;
+  for (i=0; i<IDMAX; i++)
+    idents[i*ILAST+INAME] = 0;
   for (i=0; i<SWMAX; i++)
     sw[i*SLAST+SLABEL] = 0;
 
@@ -334,19 +334,6 @@ register int *mptr;
     mptr = &mac[i*MLAST];
     if (mptr[MNAME] == sname)
       return mptr;
-  }
-  return 0;
-}
-
-findglb (sname)
-register int sname;
-{
-register int i, *ptr;
-
-  for (i=0; i<glbinx; i++) {
-    ptr = &glbsym[i*ILAST];
-    if (ptr[INAME] == sname)
-      return ptr;
   }
   return 0;
 }
@@ -866,12 +853,11 @@ register int i, j;
    error ("no closing #endasm");
   fprintf (outhdl, "\t.END\n");
 
-  fprintf (outhdl, "; Global vars  : %5d/%5d\n", glbinx, GLBMAX);
-    for (i=0; (i<LOCMAX) && locsym[i*ILAST+INAME]; i++) ;
-  fprintf (outhdl, "; Local vars   : %5d/%5d\n", i, LOCMAX);
-  fprintf (outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
-    j=0; for (i=0; i<NAMEMAX; i++) if (namech[i]) j++;
+  j=0; for (i=0; i<NAMEMAX; i++) if (namech[i]) j++;
   fprintf (outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
+  for (i=0; i<IDMAX && idents[i*ILAST+INAME]; i++) ;
+  fprintf (outhdl, "; Identifiers  : %5d/%5d\n", i, IDMAX);
+  fprintf (outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
   fprintf (outhdl, "; Local labels : %5d\n", nxtlabel);
     for (i=1; (i<SWMAX) && sw[i*SLAST+SLABEL]; i++) ;
   fprintf (outhdl, "; Switch cases : %5d/%5d\n", i-1, SWMAX);

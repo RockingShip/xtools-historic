@@ -36,12 +36,12 @@
 /*
  * Declare/define a local symbol
  */
-declloc (locscope, class)
-int locscope;
+declloc (scope, class)
+int scope;
 register int class;
 {
 int size, sname, len, ptr, type, cnt;
-register int *loc, i;
+register int *ident, i;
 
   // get size of type
   if (amatch ("char"))
@@ -58,8 +58,8 @@ register int *loc, i;
       illname ();
     if (len)
       bump (len);
-    for (i=locscope; i<locinx; i++)
-      if (locsym[i*ILAST+INAME] == sname)
+    for (i=scope; i<idinx; i++)
+      if (idents[i*ILAST+INAME] == sname)
         multidef ();
     match (")");
     type = VARIABLE;
@@ -92,25 +92,25 @@ register int *loc, i;
     }
 
     // add symbol to symboltable
-    if (locinx >= LOCMAX)
-      fatal ("local symboltable overflow");
-    loc = &locsym[locinx++ * ILAST];
-    loc[INAME] = sname;
-    loc[ITYPE] = type;
-    loc[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
-    loc[ICLASS] = class;
-    loc[ISIZE] = size;
+    if (idinx >= IDMAX)
+      fatal ("identifier table overflow");
+    ident = &idents[idinx++ * ILAST];
+    ident[INAME] = sname;
+    ident[ITYPE] = type;
+    ident[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
+    ident[ICLASS] = class;
+    ident[ISIZE] = size;
 
     // allocate on stack
     if (class == REGISTER) {
-      loc[IVALUE] = allocreg ();
-      reglock |= (1<<loc[IVALUE]);
+    ident[IVALUE] = allocreg ();
+      reglock |= (1<<ident[IVALUE]);
     } else if (ptr)
-      loc[IVALUE] = (csp -= BPW);
+      ident[IVALUE] = (csp -= BPW);
     else if (size == 1)
-      loc[IVALUE] = (csp -= cnt);
+      ident[IVALUE] = (csp -= cnt);
     else
-      loc[IVALUE] = (csp -= cnt*BPW);
+      ident[IVALUE] = (csp -= cnt*BPW);
 
     // test for more
     if (!match (","))
@@ -125,11 +125,12 @@ register int *loc, i;
 /*
  * Declare/define a procedure argument
  */
-declarg (class, totargc)
+declarg (scope, class, totargc)
+int scope;
 register int class, totargc;
 {
 int size, sname, len, ptr, type, cnt, reg;
-register int *loc, i;
+register int *ident, i;
 
   cnt = 0;
 
@@ -148,14 +149,14 @@ register int *loc, i;
       illname ();
     if (len)
       bump (len);
-    for (i=0; i<locinx; i++) {
-      loc = &locsym[i*ILAST];
-      if (loc[INAME] == sname)
+    for (i=scope; i<idinx; i++) {
+      ident = &idents[i*ILAST];
+      if (ident[INAME] == sname)
         break;
     }
-    if (i >= locinx)
+    if (i >= idinx)
       error ("argument not defined in parameter list");
-    else if (loc[ITYPE] != CONSTANT)
+    else if (ident[ITYPE] != CONSTANT)  // CONSTANT is to flag untyped arguments
       multidef ();
 
     match (")");
@@ -181,23 +182,23 @@ register int *loc, i;
 
     // add symbol to symboltable
     ++cnt;
-    loc[INAME] = sname;
-    loc[ITYPE] = type;
-    loc[IPTR] = ptr;
-    loc[ICLASS] = class;
-    loc[ISIZE] = size;
-    loc[IVALUE] = (totargc - loc[IVALUE] + 1) * BPW;
+    ident[INAME] = sname;
+    ident[ITYPE] = type;
+    ident[IPTR] = ptr;
+    ident[ICLASS] = class;
+    ident[ISIZE] = size;
+    ident[IVALUE] = (totargc - ident[IVALUE] + 1) * BPW;
 
-    // modify location if chars
+    // modify location if chars. Chars are pushed as words, adjust to point to lo-byte
     if ((!ptr) && (size == 1))
-      loc[IVALUE] += (BPW-1);
+      ident[IVALUE] += (BPW-1);
 
-    // generate code for register variables
+    // generate code to load register variables
     if (class == REGISTER) {
       reg = allocreg ();
       reglock |= (1<<reg);
-      gencode_IND(((loc[LSIZE] == BPW) || loc[LPTR]) ? _LODW : _LODB, reg, loc[IVALUE], REG_AP);
-      loc[IVALUE] = reg;
+      gencode_IND(((ident[LSIZE] == BPW) || ident[LPTR]) ? _LODW : _LODB, reg, ident[IVALUE], REG_AP);
+      ident[IVALUE] = reg;
     }
 
     // test for more
@@ -213,11 +214,12 @@ register int *loc, i;
 /*
  * General global definitions
  */
-declgbl (class)
+declgbl (scope, class)
+int scope;
 register int class;
 {
 int size, sname, len, ptr, type, cnt;
-register int *glb, i;
+register int *ident, i;
 int lval[LLAST];
 
   // get size of type
@@ -234,8 +236,14 @@ int lval[LLAST];
       illname ();
     if (len)
       bump (len);
-    if (findglb (sname))
+
+    for (i=scope; i<idinx; i++) {
+      if (idents[i*ILAST+INAME] == sname)
+        break;
+    }
+    if (i < idinx)
       multidef ();
+
     if (match (")"))
       ;
     type = VARIABLE;
@@ -273,15 +281,15 @@ int lval[LLAST];
     }
 
     // add symbol to symboltable
-    if (glbinx >= GLBMAX)
-      fatal ("global symboltable overflow");
-    glb = &glbsym[glbinx++ * ILAST];
-    glb[INAME] = sname;
-    glb[ITYPE] = type;
-    glb[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
-    glb[ICLASS] = class;
-    glb[IVALUE] = 0;
-    glb[ISIZE] = size;
+    if (idinx >= IDMAX)
+      fatal ("identifier table overflow");
+    ident = &idents[idinx++ * ILAST];
+    ident[INAME] = sname;
+    ident[ITYPE] = type;
+    ident[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
+    ident[ICLASS] = class;
+    ident[IVALUE] = 0;
+    ident[ISIZE] = size;
 
     // Now generate code
     if (class == EXTERNAL) {
@@ -466,13 +474,12 @@ register int *mptr;
 /*
  *
  */
-newfunc ()
+declfunc ()
 {
-int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc;
-register int *p, i, argc;
+int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc, scope;
+register int *ident, i, argc;
 
   returnlbl = ++nxtlabel;
-  locinx = 0; // reset locals
   reguse = regsum = reglock = 1<<REG_AP; // reset all registers
   csp = -1; // reset stack
   argc = 0;
@@ -488,20 +495,29 @@ register int *p, i, argc;
     return;
   }
   bump (len);
-  p = findglb (sname);
-  if (!p) {
-    if (glbinx >= GLBMAX)
-      fatal ("global symboltable overflow");
-    p = &glbsym[glbinx++ * ILAST];
-  } else if (p[ICLASS] != AUTOEXT)
+
+  scope = idinx;
+
+  for (i=0; i<idinx; i++) {
+    ident = &idents[i*ILAST];
+    if (ident[INAME] == sname)
+      break;
+  }
+  if (i < idinx && ident[ICLASS] != AUTOEXT)
     multidef ();
+  if (idinx >= IDMAX)
+    fatal ("identifier table overflow");
+
+  if (i >= idinx)
+    ident = &idents[idinx++ * ILAST];
+
   // (re)define procedure
-  p[INAME] = sname;
-  p[ITYPE] = FUNCTION;
-  p[IPTR] = 0;
-  p[ICLASS] = GLOBAL;
-  p[IVALUE] = 0;
-  p[ISIZE] = BPW;
+  ident[INAME] = sname;
+  ident[ITYPE] = FUNCTION;
+  ident[IPTR] = 0;
+  ident[ICLASS] = GLOBAL;
+  ident[IVALUE] = 0;
+  ident[ISIZE] = BPW;
   // Generate global label
   fprintf (outhdl, "_");
   symname (sname);
@@ -524,24 +540,24 @@ register int *p, i, argc;
       junk ();
     } else {
       bump (len);
-      for (i=0; i<locinx; i++) {
-        p = &locsym[i*ILAST];
-        if (p[INAME] == sname)
+      for (i=scope; i<idinx; i++) {
+        ident = &idents[i*ILAST];
+        if (ident[INAME] == sname)
           break;
       }
-      if (i < locinx)
+      if (i < idinx)
         multidef ();
-      else if (locinx >= LOCMAX)
-        fatal ("local symboltable overflow");
+      else if (idinx >= IDMAX)
+        fatal ("identifier table overflow");
       else
-        p = &locsym[locinx++ * ILAST];
+        ident = &idents[idinx++ * ILAST];
       // define argument
-      p[INAME] = sname;
-      p[ITYPE] = CONSTANT;  // Mark as undefined
-      p[IPTR] = 0;
-      p[ICLASS] = AP_AUTO;
-      p[IVALUE] = argc; // argument ID (starts at 0)
-      p[ISIZE] = BPW;
+      ident[INAME] = sname;
+      ident[ITYPE] = CONSTANT;  // Mark as undefined
+      ident[IPTR] = 0;
+      ident[ICLASS] = AP_AUTO;
+      ident[IVALUE] = argc; // argument ID (starts at 0)
+      ident[ISIZE] = BPW;
       ++argc;
     }
 
@@ -554,8 +570,8 @@ register int *p, i, argc;
   sav_argc = argc;
   while (1) {
     if (amatch ("register"))
-      argc -= declarg (REGISTER, sav_argc);
-    else if (i = declarg (AP_AUTO, sav_argc))
+      argc -= declarg (scope, REGISTER, sav_argc);
+    else if (i = declarg (scope, AP_AUTO, sav_argc))
       argc -= i;
     else if (argc) {
       error ("wrong number of arguments");
@@ -580,6 +596,8 @@ register int *p, i, argc;
   fprintf (outhdl, "_%d:", returnlbl);
   gencode_I (_POPR, 0, regsum);
   gencode (_RSB);
+
+  idinx = scope;
 }
 
 /*
@@ -588,13 +606,13 @@ register int *p, i, argc;
 statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp)
 int swbase, returnlbl, breaklbl, contlbl, breaksp, contsp;
 {
-int lval[LLAST], sav_loc, sav_sw;
+int lval[LLAST], scope, sav_sw;
 register int sav_csp, i, *ptr;
 int lbl1, lbl2, lbl3;
 
   if (match ("{")) {
     sav_csp = csp;
-    sav_loc = locinx;
+    scope = idinx;
     while (!match ("}")) {
       if (ch <= ' ')
         blanks ();
@@ -602,10 +620,10 @@ int lbl1, lbl2, lbl3;
         error ("no closing }"); // EOF
         return;
       } else if (amatch ("register")) {
-        declloc (sav_loc, REGISTER);
+        declloc (scope, REGISTER);
         if (sav_csp > 0)
           error ("Definitions not allowed here");
-      } else if (declloc (sav_loc, SP_AUTO)) {
+      } else if (declloc (scope, SP_AUTO)) {
         if (sav_csp > 0)
           error ("Definitions not allowed here");
       } else {
@@ -625,12 +643,12 @@ int lbl1, lbl2, lbl3;
       csp = sav_csp;
     }
     // free local registers
-    for (i=sav_loc; i<locinx; i++) {
-      ptr = &locsym[i*ILAST];
+    for (i=scope; i<idinx; i++) {
+      ptr = &idents[i*ILAST];
       if (ptr[ICLASS] == REGISTER)
         freereg (ptr[IVALUE]);
     }
-    locinx = sav_loc;
+    idinx = scope;
     return;
   }
 
@@ -921,13 +939,13 @@ parse ()
   blanks ();
   while (inphdl) {
     if (amatch ("extern"))
-      declgbl (EXTERNAL);
+      declgbl (0, EXTERNAL);
     else if (amatch ("static"))
-      declgbl (STATIC);
+      declgbl (0, STATIC);
     else if (amatch ("register")) {
       error ("global register variables not allowed");
-      declgbl (GLOBAL);
-    } else if (declgbl (GLOBAL))
+      declgbl (0, GLOBAL);
+    } else if (declgbl (0, GLOBAL))
       ;
     else if (amatch ("#asm"))
       doasm();
@@ -936,7 +954,7 @@ parse ()
     else if (amatch ("#define"))
       declmac ();
     else
-      newfunc ();
+      declfunc ();
     blanks ();
   }
 }

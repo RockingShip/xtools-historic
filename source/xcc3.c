@@ -504,7 +504,7 @@ register int reg;
 primary (lval)
 register int lval[];
 {
-register int *ident, i, *glb;
+register int *ident, i;
 int sname, len;
 
   if (match ("(")) {  // (expression,...)
@@ -518,14 +518,15 @@ int sname, len;
     return constant (lval);
   bump(len); // Skip identifier
 
-  // test for local symbol
-  for (i=locinx-1; i>=0; i--) {
-    ident = &locsym[i*ILAST];
+  // identifier
+  for (i=idinx-1; i>=0; i--) {
+    ident = &idents[i*ILAST];
     if (ident[INAME] == sname) {
       lval[LTYPE] = ident[ITYPE];
       lval[LPTR] = ident[IPTR];
       lval[LSIZE] = ident[ISIZE];
-      lval[LNAME] = lval[LVALUE] = lval[LREG2] = 0;
+      lval[LNAME] = lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
+
       if (ident[ICLASS] == REGISTER) {
         lval[LREG1] = ident[IVALUE];
         lval[LEA] = EA_REG;
@@ -533,38 +534,23 @@ int sname, len;
         lval[LREG1] = REG_AP;
         lval[LVALUE] = ident[IVALUE];
         lval[LEA] = EA_IND;
-      } else {
+      } else if (ident[ICLASS] == SP_AUTO) {
         lval[LREG1] = REG_SP;
         lval[LVALUE] = ident[IVALUE];
         lval[LEA] = EA_IND;
+      } else if (ident[ITYPE] == FUNCTION && !ident[IPTR]) {
+        lval[LNAME] = sname;
+        lval[LEA] = EA_ADDR;
+      } else {
+	lval[LNAME] = sname;
+        lval[LEA] = EA_IND;
       }
+
       // Convert arrays into pointers
       if (ident[ITYPE] == ARRAY) {
         lval[LTYPE] = VARIABLE;
         lval[LEA] = EA_ADDR;
       }
-      return 1;
-    }
-  }
-
-  // test for global symbol
-  for (i=0; i<glbinx; i++) {
-    ident = &glbsym[i*ILAST];
-    if (ident[INAME] == sname) {
-      lval[LTYPE] = ident[ITYPE];
-      lval[LPTR] = ident[IPTR];
-      lval[LSIZE] = ident[ISIZE];
-      if (ident[ICLASS] == REGISTER)
-        lval[LEA] = EA_REG;
-      else if ((ident[ITYPE] == FUNCTION) && !ident[IPTR])
-        lval[LEA] = EA_ADDR;
-      else if (ident[ITYPE] == ARRAY) {
-        lval[LTYPE] = VARIABLE;
-        lval[LEA] = EA_ADDR;
-      } else
-        lval[LEA] = EA_IND;
-      lval[LNAME] = sname;
-      lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
       return 1;
     }
   }
@@ -598,15 +584,15 @@ int sname, len;
   lval[LREG1] = lval[LREG2] = lval[LVALUE] = 0;
 
   // add symbol to symboltable
-  if (glbinx >= GLBMAX)
-    fatal ("global symboltable overflow");
-  glb = &glbsym[glbinx++ * ILAST];
-  glb[INAME] = sname;
-  glb[ITYPE] = FUNCTION;
-  glb[IPTR] = 0;
-  glb[ICLASS] = AUTOEXT;
-  glb[IVALUE] = 0;
-  glb[ISIZE] = BPW;
+  if (idinx >= IDMAX)
+    fatal ("identifier table overflow");
+  ident = &idents[idinx++ * ILAST];
+  ident[INAME] = sname;
+  ident[ITYPE] = FUNCTION;
+  ident[IPTR] = 0;
+  ident[ICLASS] = AUTOEXT;
+  ident[IVALUE] = 0;
+  ident[ISIZE] = BPW;
 
   return 1;
 }

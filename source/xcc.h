@@ -37,12 +37,11 @@
 // #define DYNAMIC		// allocate memory dynamically
 
 #define NAMEMAX 997		// Size of nametable !!! MUST BE PRIME !!!
+#define IDMAX 300               // Number of identifiers
 #define PBUFMAX 512		// Size of preprocessor buffer
 #define SBUFMAX 256		// Size of source buffer
 #define MACMAX 300		// Number of definable macro's
 #define MACQMAX MACMAX*7	// Expansiontable for macro's
-#define GLBMAX 200		// Number of global symbols
-#define LOCMAX 50		// Number of local symbols
 #define SWMAX 100		// Number of switch cases
 #define PATHMAX 80              // Length of filename
 
@@ -99,7 +98,7 @@
  */
 
 #define LTYPE		0
-#define LPTR		1
+#define LPTR		1       // 'true' if *<name> can be used
 #define LSIZE		2
 #define LEA		3
 #define LNAME		4
@@ -111,12 +110,12 @@
 #define LLAST		10
 
 /*
- * Definitions for ident (symbol table entry)
+ * Definitions for identifiers
  */
 
 #define INAME		0
 #define ITYPE		1
-#define IPTR		2
+#define IPTR		2       // 'true' if *<name> can be used
 #define ICLASS		3
 #define IVALUE		4
 #define ISIZE		5
@@ -215,17 +214,15 @@ EXTERN int
 
 #ifdef DYNAMIC
   *nametab,		/* Nametable */
+  *idents,		/* Identifiers */
   *mac,			/* Macro entries */
   *litq,		/* Literal pool */
-  *glbsym,		/* Global symbols */
-  *locsym,		/* Local symbols */
   *sw,			/* Cases in switch */
 #else
   nametab[NAMEMAX],
-  mac[MACMAX*MLAST], 
+  idents[IDMAX*ILAST],
+  mac[MACMAX*MLAST],
   litq[LITMAX],
-  glbsym[GLBMAX*ILAST],
-  locsym[LOCMAX*ILAST],
   sw[SWMAX*SLAST],
 #endif
 
@@ -234,8 +231,7 @@ EXTERN int
   csp,                  // stackpointer seen from scope coding
   hier_str[30],		// Array containing hierarchical operators
   hier_oper[30],	// Internal translation of the above
-  locinx,		// Next free local symbol
-  glbinx,		// Next free global symbol
+  idinx,		// Next free identifier
   inplnr,		// Linenumber of .C file
   inclnr,		// Linenumber of .H file
   ccode,		// True for C source, else ASM source
