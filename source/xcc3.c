@@ -731,9 +731,11 @@ register int lval[];
     }
     if (lval[LTYPE] == CONSTANT)
       lval[LVALUE] = !lval[LVALUE];
-    else if (lval[LTYPE] == BRANCH)
+    else if (lval[LTYPE] == BRANCH && !lval[LTRUE]) {
+      // @date 	2020-05-19 20:21:57
+      // bugfix: can only negate opcode if no other opcodes were generated
       lval[LVALUE] = negop(lval[LVALUE]);
-    else {
+    } else {
       // convert CC bits into a BRANCH
       loadlval (lval, 0);
       freelval (lval);

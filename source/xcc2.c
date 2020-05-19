@@ -661,9 +661,9 @@ int lbl1, lbl2, lbl3;
         lval[LFALSE] = ++nxtlabel;
       gencode_L (lval[LVALUE], lval[LFALSE]);
     } else {
+      loadlval (lval, 0);
       lval[LFALSE] = ++nxtlabel;
       lval[LTRUE] = 0;
-      loadlval (lval, 0);
       gencode_L (_EQ, lval[LFALSE]);
     }
     if (lval[LTRUE])
@@ -671,8 +671,18 @@ int lbl1, lbl2, lbl3;
     freelval (lval);
     statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
     if (!amatch ("else")) {
+	// @date 2020-05-19 12:45:53
+	//     compare
+	// T:  statement
+	// F:
       fprintf (outhdl, "_%d:", lval[LFALSE]);
     } else {
+	// @date 2020-05-19 12:45:53
+	//     compare
+	// T:  statement
+	//     jmp L1
+	// F:  statement
+	// L1:
       lbl1 = ++nxtlabel;
       gencode_L (_JMP, lbl1);
       fprintf (outhdl, "_%d:", lval[LFALSE]);
@@ -680,6 +690,12 @@ int lbl1, lbl2, lbl3;
       fprintf (outhdl, "_%d:", lbl1);
     }
   } else if (amatch ("while")) {
+  	// @date 2020-05-19 12:39:49
+  	// L1: compare
+  	//     bcc F
+  	// T:  statement
+  	//     jmp L1
+  	// F:
     lbl1 = ++nxtlabel;
     fprintf (outhdl, "_%d:", lbl1);
     needtoken ("(");
@@ -691,9 +707,9 @@ int lbl1, lbl2, lbl3;
         lval[LFALSE] = ++nxtlabel;
       gencode_L (lval[LVALUE], lval[LFALSE]);
     } else {
+      loadlval (lval, 0);
       lval[LFALSE] = ++nxtlabel;
       lval[LTRUE] = 0;
-      loadlval (lval, 0);
       gencode_L (_EQ, lval[LFALSE]);
     }
     if (lval[LTRUE])
@@ -703,6 +719,11 @@ int lbl1, lbl2, lbl3;
     gencode_L (_JMP, lbl1);
     fprintf (outhdl, "_%d:", lval[LFALSE]);
   } else if (amatch ("do")) {
+  	// @date 2020-05-19 12:37:46
+  	// L1: statement
+  	// L2: compare
+  	//     bcc L1
+  	// F:
     lbl1 = ++nxtlabel;
     lbl2 = ++nxtlabel;
     fprintf (outhdl, "_%d:", lbl1);
@@ -726,6 +747,15 @@ int lbl1, lbl2, lbl3;
     }
     freelval (lval);
   } else if (amatch ("for")) {
+        // @date 2020-05-19 12:37:25
+  	//     preamble
+  	// L1: compare
+  	//     bcc T
+  	// L2: increment
+  	//     jmp L1
+  	// T:  statement
+  	//     jmp L2
+  	// F:
     lbl1 = ++nxtlabel;
     lbl2 = ++nxtlabel;
     needtoken ("(");

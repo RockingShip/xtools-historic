@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-19 16:42:39 Bugfix: "!" in combination with BRANCH.
+                    The "!" only inverted the last operator.
 2020-05-18 18:59:57 Merged `glbsym[]` and `locsym[]`.
                     Two identifier pools with duplicated code.
                     Also, identifier scoping is now more managable. 
