@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-19 23:09:16 Merge `declloc()/declgbl()` into `declvar()`.
+                    Simplify near duplicate code.
 2020-05-19 16:42:39 `lval[LPTR]` now consistent.
                     `LPTR` is an addressing mode to indicate `EA` needs to be deferenced.
                     `FUNCTION/ARRAY` are addresss.

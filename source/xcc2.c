@@ -34,101 +34,14 @@
 #include "xcc.h"
 
 /*
- * Declare/define a local symbol
- */
-declloc (scope, class)
-int scope;
-register int class;
-{
-int size, sname, len, ptr, type, cnt;
-register int *ident, i;
-
-  // get size of type
-  if (amatch ("char"))
-    size = 1;
-  else if (amatch ("int"))
-    size = 2;
-  else
-    return 0;
-
-  // scan definitions
-  while (1) {
-    ptr = (match ("(*") || match ("*"));
-    if (!(len = dohash (lptr, &sname)))
-      illname ();
-    if (len)
-      bump (len);
-    for (i=scope; i<idinx; i++)
-      if (idents[i*ILAST+INAME] == sname)
-        multidef ();
-    match (")");
-    type = VARIABLE;
-    if (match ("()"))
-      type = FUNCTION;
-
-    cnt = 1; // Number of elements
-    if (match ("[")) {
-      // test for valid types
-      if (ptr || (type != VARIABLE))
-        error ("array type not supported");
-      ptr = 0;
-      type = ARRAY;
-
-      // get number of elements
-      if (!constexpr (&cnt))
-        cnt = 0;
-      else if (cnt < 0)
-        warning("warning: negative size");
-
-      if (class == REGISTER)
-        error ("array of register not supported");
-
-      // force single dimension
-      needtoken ("]");
-    }
-
-    // add symbol to symboltable
-    if (idinx >= IDMAX)
-      fatal ("identifier table overflow");
-    ident = &idents[idinx++ * ILAST];
-    ident[INAME] = sname;
-    ident[ITYPE] = type;
-    ident[IPTR] = ptr;
-    ident[ICLASS] = class;
-    ident[ISIZE] = size;
-
-    // allocate on stack
-    if (class == REGISTER) {
-    ident[IVALUE] = allocreg ();
-      reglock |= (1<<ident[IVALUE]);
-    } else if (ptr)
-      ident[IVALUE] = (csp -= BPW);
-    else if (size == 1)
-      ident[IVALUE] = (csp -= cnt);
-    else
-      ident[IVALUE] = (csp -= cnt*BPW);
-
-    // test for more
-    if (!match (","))
-      break;
-  }
-
-  // done
-  ns ();
-  return 1;
-}
-
-/*
  * Declare/define a procedure argument
  */
 declarg (scope, class, totargc)
 int scope;
 register int class, totargc;
 {
-int size, sname, len, ptr, type, cnt, reg;
+int size, sname, len, ptr, type, cnt, reg, numarg;
 register int *ident, i;
-
-  cnt = 0;
 
   // get size of type
   if (amatch ("char"))
@@ -136,15 +49,17 @@ register int *ident, i;
   else if (amatch ("int"))
     size = 2;
   else
-    return cnt;
+    return 0;
 
   // scan definitions
+  numarg = 0;
   while (1) {
     ptr = (match ("(*") || match ("*"));
     if (!(len = dohash (lptr, &sname)))
       illname ();
     if (len)
       bump (len);
+
     for (i=scope; i<idinx; i++) {
       ident = &idents[i*ILAST];
       if (ident[INAME] == sname)
@@ -160,13 +75,15 @@ register int *ident, i;
     if (match ("()"))
       type = FUNCTION;
 
+    cnt = 1; // Number of elements
     if (match ("[")) {
-      // test for valid types
-      if (ptr || (type != VARIABLE))
+      if (ptr)
+        error ("array of pointers not supported");
+      if (type != VARIABLE)
         error ("array type not supported");
-      ptr = 0;
-      type = VARIABLE;
-      ptr = 1;
+
+      type = ARRAY;
+      ptr = 1; // address of array (passed as argument) is pushed on stack
 
       // get number of elements
       if (constexpr (&cnt))
@@ -177,7 +94,7 @@ register int *ident, i;
     }
 
     // add symbol to symboltable
-    ++cnt;
+    ++numarg;
     ident[INAME] = sname;
     ident[ITYPE] = type;
     ident[IPTR] = ptr;
@@ -186,8 +103,8 @@ register int *ident, i;
     ident[IVALUE] = (totargc - ident[IVALUE] + 1) * BPW;
 
     // modify location if chars. Chars are pushed as words, adjust to point to lo-byte
-    if ((!ptr) && (size == 1))
-      ident[IVALUE] += (BPW-1);
+    if (size == 1 && !ptr)
+      ident[IVALUE] += BPW-1;
 
     // generate code to load register variables
     if (class == REGISTER) {
@@ -204,28 +121,28 @@ register int *ident, i;
 
   // done
   ns ();
-  return cnt;
+  return numarg;
 }
 
 /*
  * General global definitions
  */
-declgbl (scope, class)
+declvar (scope, class)
 int scope;
 register int class;
 {
 int size, sname, len, ptr, type, cnt;
 register int *ident, i;
-int lval[LLAST];
 
   // get size of type
   if (amatch ("char"))
     size = 1;
-  else if (amatch ("int") || (class == EXTERNAL) || (class == STATIC))
+  else if (amatch ("int"))
     size = 2;
   else
     return 0;
 
+  // scan definitions
   while (1) {
     ptr = (match ("(*") || match ("*"));
     if (!(len = dohash (lptr, &sname)))
@@ -240,21 +157,24 @@ int lval[LLAST];
     if (i < idinx)
       multidef ();
 
-    if (match (")"))
-      ;
+    match (")");
     type = VARIABLE;
     if (match ("()"))
       type = FUNCTION;
+
     cnt = 1; // Number of elements
     if (match ("[")) {
-      if (ptr) {
-        error ("no pointer arrays");
-        ptr = 0;
-      }
+      if (ptr)
+        error ("array of pointers not supported");
       if (type != VARIABLE)
         error ("array type not supported");
-      type = ARRAY;
+      if (class == REGISTER)
+        error ("register array not supported");
 
+      type = ARRAY;
+      ptr = 0;
+
+      // get number of elements
       if (!constexpr (&cnt))
         cnt = 0;
       else if (cnt < 0)
@@ -272,24 +192,12 @@ int lval[LLAST];
     ident[ITYPE] = type;
     ident[IPTR] = ptr;
     ident[ICLASS] = class;
-    ident[IVALUE] = 0;
     ident[ISIZE] = size;
+    ident[IVALUE] = 0;
 
     // Now generate code
-    if (class == EXTERNAL) {
-/* Not needed by assembler 
-      fprintf (outhdl, "\t.XREF\t");
-      fprintf (outhdl, "_");
-      symname (sname);
-      fprintf (outhdl, "\n");
-*/
-    } else if (match ("=")) {
-      toseg (DATASEG);
-      fprintf (outhdl, "_");
-      symname (sname);
-      fprintf (outhdl, ":");
-      if (class != STATIC)
-        fprintf (outhdl, ":");
+    if (match ("=")) {
+      int lval[LLAST];
 
       // assign value to variable
       litinx = 0;
@@ -351,7 +259,20 @@ int lval[LLAST];
           fprintf (outhdl, "\t.DSB\t%d\n", cnt);
         else
           fprintf (outhdl, "\t.DSW\t%d\n", cnt);
-    } else {
+
+    } else if (ident[ICLASS] == REGISTER) {
+      ident[IVALUE] = allocreg ();
+      reglock |= (1<<ident[IVALUE]);
+
+    } else if (ident[ICLASS] == SP_AUTO) {
+      if (ptr)
+        ident[IVALUE] = (csp -= BPW);
+      else if (size == 1)
+        ident[IVALUE] = (csp -= cnt);
+      else
+        ident[IVALUE] = (csp -= cnt*BPW);
+
+    } else if (ident[ICLASS] != EXTERNAL) {
       toseg (UDEFSEG);
       fprintf (outhdl, "_");
       symname (sname);
@@ -604,10 +525,10 @@ int lbl1, lbl2, lbl3;
         error ("no closing }"); // EOF
         return;
       } else if (amatch ("register")) {
-        declloc (scope, REGISTER);
+        declvar (scope, REGISTER);
         if (sav_csp > 0)
           error ("Definitions not allowed here");
-      } else if (declloc (scope, SP_AUTO)) {
+      } else if (declvar (scope, SP_AUTO)) {
         if (sav_csp > 0)
           error ("Definitions not allowed here");
       } else {
@@ -953,13 +874,13 @@ parse ()
   blanks ();
   while (inphdl) {
     if (amatch ("extern"))
-      declgbl (0, EXTERNAL);
+      declvar (0, EXTERNAL);
     else if (amatch ("static"))
-      declgbl (0, STATIC);
+      declvar (0, STATIC);
     else if (amatch ("register")) {
       error ("global register variables not allowed");
-      declgbl (0, GLOBAL);
-    } else if (declgbl (0, GLOBAL))
+      declvar (0, GLOBAL);
+    } else if (declvar (0, GLOBAL))
       ;
     else if (amatch ("#asm"))
       doasm();
