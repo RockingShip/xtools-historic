@@ -538,19 +538,18 @@ int sname, len;
         lval[LREG1] = REG_SP;
         lval[LVALUE] = ident[IVALUE];
         lval[LEA] = EA_IND;
-      } else if (ident[ITYPE] == FUNCTION && !ident[IPTR]) {
-        lval[LNAME] = sname;
-        lval[LEA] = EA_ADDR;
       } else {
 	lval[LNAME] = sname;
         lval[LEA] = EA_IND;
       }
 
-      // Convert arrays into pointers
-      if (ident[ITYPE] == ARRAY) {
-        lval[LTYPE] = VARIABLE;
+      // functions/arrays are addresses
+      if ((ident[ITYPE] == FUNCTION || ident[ITYPE] == ARRAY) && !ident[IPTR]) {
+        if (lval[LEA] != EA_IND)
+          fatal("ARRAY not EA_IND\n");
         lval[LEA] = EA_ADDR;
       }
+
       return 1;
     }
   }
@@ -609,7 +608,7 @@ register int argc, reg;
   if (!primary (lval))
     return 0;
   if (match("[")) { // [subscript]
-    if (!lval[LPTR])
+    if (!(lval[LTYPE] == ARRAY || (lval[LTYPE] == VARIABLE && lval[LPTR])))
       error ("can't subscript");
     else if (!hier1 (lval2))
       error ("need subscript");

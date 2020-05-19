@@ -353,9 +353,9 @@ int c;
 
 readline ()
 {
-  *sbuf = 0;
+  sbuf[0] = 0;
   if (inphdl)
-    while (!*sbuf) {
+    while (!sbuf[0]) {
       if (inchdl) {
         if (!fgets (sbuf, SBUFMAX-1, inchdl)) {
           fclose (inchdl);

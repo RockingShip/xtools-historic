@@ -80,12 +80,8 @@ register int *ident, i;
       else if (cnt < 0)
         warning("warning: negative size");
 
-      // Convert empty arrays into pointers
-      if (!cnt) {
-        type = VARIABLE;
-        ptr = 1;
-      } else if (class == REGISTER)
-        error ("register array not allowed");
+      if (class == REGISTER)
+        error ("array of register not supported");
 
       // force single dimension
       needtoken ("]");
@@ -97,7 +93,7 @@ register int *ident, i;
     ident = &idents[idinx++ * ILAST];
     ident[INAME] = sname;
     ident[ITYPE] = type;
-    ident[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
+    ident[IPTR] = ptr;
     ident[ICLASS] = class;
     ident[ISIZE] = size;
 
@@ -264,20 +260,8 @@ int lval[LLAST];
       else if (cnt < 0)
         warning("warning: negative size");
 
-      // Convert empty arrays into pointers
-      if (!cnt) {
-        type = VARIABLE;
-        ptr = 1;
-      }
-
       // force single dimension
       needtoken ("]");
-    }
-
-    // Convert empty arrays into pointers
-    if ((type == ARRAY) && !cnt) {
-      type = VARIABLE;
-      ptr = 1;
     }
 
     // add symbol to symboltable
@@ -286,7 +270,7 @@ int lval[LLAST];
     ident = &idents[idinx++ * ILAST];
     ident[INAME] = sname;
     ident[ITYPE] = type;
-    ident[IPTR] = (ptr || (type == ARRAY)); // 'true' if *<name> can be used
+    ident[IPTR] = ptr;
     ident[ICLASS] = class;
     ident[IVALUE] = 0;
     ident[ISIZE] = size;
