@@ -43,8 +43,7 @@
 /*
  * Get the inverse of an compare
  */
-negop (op)
-register int op;
+negop (register int op)
 {
   switch (op) {
     case _EQ:
@@ -67,9 +66,7 @@ register int op;
 /*
  * Process a constant evaluation
  */
-calc (left, oper, right)
-register int left, right;
-int oper;
+calc (register int left, int oper, int right)
 {
   switch(oper) {
     case _LOR:  return (left  || right);
@@ -115,8 +112,7 @@ register int i, mask;
 /*
  * Return a register into the free list
  */
-freereg (reg)
-register int reg;
+freereg (register int reg)
 {
 register int mask;
 
@@ -137,8 +133,7 @@ register int mask;
  * mode is same as 'reg' == 0 except reserved registers are not
  * copied to 'free' registers
  */
-loadlval (lval, reg)
-register int lval[], reg;
+loadlval (register int lval[], register int reg)
 {
 register int srcreg;
 
@@ -238,8 +233,7 @@ register int srcreg;
 /*
  * Free all registers assigned to a lval
  */
-freelval (lval)
-register int lval[];
+freelval (register int lval[])
 {
   if ((lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
     return;
@@ -254,8 +248,7 @@ register int lval[];
 /*
  * generic processing for <lval> { <operation> <rval> }
  */
-xplng1 (hier, start, lval)
-register int (*hier)(), start, lval[];
+xplng1 (register int (*hier)(), register int start, register int lval[])
 {
 register char *cptr, entry;
 int rval[LLAST];
@@ -311,8 +304,7 @@ int rval[LLAST];
 /*
  * generic processing for <lval> <comparison> <rval>
  */
-xplng2 (hier, start, lval)
-register int (*hier)(), start, lval[];
+xplng2 (register int (*hier)(), register int start, register int lval[])
 {
 register char *cptr, entry;
 int rval[LLAST];
@@ -360,8 +352,7 @@ int rval[LLAST];
 /*
  * generic processing for <lval> { ('||' | '&&') <rval> }
  */
-xplng3 (hier, start, lval)
-register int (*hier)(), start, lval[];
+xplng3 (register int (*hier)(), register int start, register int lval[])
 {
 register char *cptr, entry;
 register int lbl;
@@ -458,8 +449,7 @@ int once;
 /*
  * Auto increment/decrement
  */
-step (pre, lval, post)
-register int pre, lval[], post;
+step (register int pre, register int lval[], register int post)
 {
 int dest[LLAST];
 register int reg;
@@ -501,8 +491,7 @@ register int reg;
 /*
  * Load primary expression
  */
-primary (lval)
-register int lval[];
+primary (register int lval[])
 {
 register int *ident, i;
 int sname, len;
@@ -599,8 +588,7 @@ int sname, len;
 /*
  * Do a hierarchical evaluation
  */
-hier14 (lval)
-register int lval[];
+hier14 (register int lval[])
 {
 int lval2[LLAST], sav_csp;
 register int argc, reg;
@@ -696,8 +684,7 @@ register int argc, reg;
   return 1;
 }
 
-hier13 (lval)
-register int lval[];
+hier13 (register int lval[])
 {
 
   if (match ("++")) {
@@ -796,68 +783,57 @@ register int lval[];
   return 1;
 }
 
-hier12 (lval)
-int lval[];
+hier12 (int lval[])
 {
   return xplng1 (hier13, 24, lval);
 }
 
-hier11 (lval)
-int lval[];
+hier11 (int lval[])
 {
   return xplng1 (hier12, 21, lval);
 }
 
-hier10 (lval)
-int lval[];
+hier10 (int lval[])
 {
   return xplng1 (hier11, 18, lval);
 }
 
-hier9 (lval)
-int lval[];
+hier9 (int lval[])
 {
   return xplng2 (hier10, 13, lval);
 }
 
-hier8 (lval)
-int lval[];
+hier8 (int lval[])
 {
   return xplng2 (hier9, 10, lval);
 }
 
-hier7 (lval)
-int lval[];
+hier7 (int lval[])
 {
   return xplng1 (hier8, 8, lval);
 }
 
-hier6 (lval)
-int lval[];
+hier6 (int lval[])
 {
   return xplng1 (hier7, 6, lval);
 }
 
-hier5 (lval)
-int lval[];
+hier5 (int lval[])
 {
   return xplng1 (hier6, 4, lval);
 }
 
-hier4 (lval)
-int lval[];
+hier4 (int lval[])
 {
   return xplng3 (hier5, 2, lval);
 }
 
-hier3 (lval)
-int lval[];
+hier3 (int lval[])
 {
   return xplng3 (hier4, 0, lval);
 }
 
-hier2 (lval)
-register int lval[];
+hier2 (register int lval[])
 {
 register int lbl, reg;
 
@@ -907,8 +883,7 @@ register int lbl, reg;
   return 1;
 }
 
-hier1 (lval)
-register int lval[];
+hier1 (register int lval[])
 {
 int rval[LLAST], dest[LLAST];
 register int oper;
@@ -984,8 +959,7 @@ register int oper;
 /*
  * Load a numerical expression seperated by comma's
  */
-expression(lval, comma)
-register int lval[], comma;
+expression(register int lval[], int comma)
 {
   lval[LTYPE] = CONSTANT;
   do {
@@ -999,8 +973,7 @@ register int lval[], comma;
 /* 
  * Load a constant expression
  */
-constexpr (val)
-register int *val;
+constexpr (register int *val)
 {
 int lval[LLAST];
 
@@ -1019,8 +992,7 @@ int lval[LLAST];
 /*
  * Load a constant value
  */
-constant (lval)
-register int lval[];
+constant (register int lval[])
 {
   lval[LTYPE] = CONSTANT;
   if (number(&lval[LVALUE]))
@@ -1048,8 +1020,7 @@ register int lval[];
 /*
  * Get a numerical constant
  */
-number (val)
-register int *val;
+number (register int *val)
 {
 register int i, minus;
 
@@ -1077,8 +1048,7 @@ register int i, minus;
 /*
  * Get a character constant
  */
-pstr (val)
-int *val;
+pstr (int *val)
 {
 register int i;
 
@@ -1144,8 +1114,7 @@ register int i,oct;
 /*
  * Add a value to the literal pool
  */
-addlits (val, size)
-register int val, size;
+addlits (register int val, register int size)
 {
   if (size == BPW) {
     litq[litinx++] = val>>8;
@@ -1160,8 +1129,7 @@ register int val, size;
 /*
  * dump the literal pool
  */
-dumplits(size)
-int size;
+dumplits(int size)
 {
 register int i, j;
 

@@ -51,8 +51,7 @@ register int i, *p, len;
   }
 }
 
-symmap (start)
-register int start;
+symmap (register int start)
 {
 register int ch, *p, hash, tab;
 
@@ -109,14 +108,12 @@ int w;
   return w;
 }
 
-write_byte(byte)
-char byte;
+write_byte(char byte)
 {
   fwrite (&byte, 1, 1, outhdl);
 }
 
-write_word(word)
-int word;
+write_word(int word)
 {
   char arr[2];
 
@@ -433,8 +430,7 @@ int error, hash, objinx;
   fclose (olbhdl);
 }
 
-copy_obj (hdl, ofs, len)
-register int hdl, ofs, len;
+copy_obj (register int hdl, register int ofs, register int len)
 {
 register int i, tmplen;
 

@@ -42,9 +42,7 @@
 /*
  * Initialize all variables
  */
-add_res (opc, typ, val)
-char *opc;
-int typ, val;
+add_res (char *opc, int typ, int val)
 {
 char buf[20];
 int hash;
@@ -206,11 +204,7 @@ usage ()
   exit (1);
 }
 
-fext(out, path, ext, force)
-char *out;
-char *path;
-char *ext;
-int force;
+fext(char *out, char *path, char *ext, int force)
 {
   char *p;
   int  baselen;
@@ -233,8 +227,7 @@ int force;
   }
 }
 
-startup (argv)
-register int *argv;
+startup (register int *argv)
 {
   argv++; // skip argv[0]
   while (*argv) {
@@ -286,9 +279,7 @@ register int *argv;
 /*
  * Open all files
  */
-mustopen(fn, mode)
-char *fn;
-char *mode;
+mustopen(char *fn, char *mode)
 {
 int fd;
 
@@ -337,8 +328,7 @@ kill ()
 /*
  * Bump next characters in line (n = #chars or 0 for initialization)
  */
-bump (n)
-register int n;
+bump (register int n)
 {
   lptr = n ? lptr+n : line;
   nch = (ch = lptr[0]) ? lptr[1] : 0;
@@ -350,8 +340,7 @@ register int n;
 //*
 //*
 
-foutname (hash)
-register int hash;
+foutname (register int hash)
 {
 register int i;
 
@@ -361,8 +350,7 @@ register int i;
   fprintf (outhdl, "%c", name[hash*NLAST+NCHAR]); 
 }
 
-outname (hash)
-register int hash;
+outname (register int hash)
 {
 register int i;
 
@@ -372,8 +360,7 @@ register int i;
   printf ("%c", name[hash*NLAST+NCHAR]); 
 }
 
-lenname (hash)
-register int hash;
+lenname (register int hash)
 {
 register int i;
 
@@ -386,9 +373,7 @@ register int i;
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-dohash (ident, retval)
-register char *ident;
-int *retval;
+dohash (register char *ident, int *retval)
 {
 register int start, hash, tab, len, *p;
 
@@ -492,8 +477,7 @@ register int *mptr;
   }
 }
 
-findmac (sname)
-register int sname;
+findmac (register int sname)
 {
 register int i;
 register int *mptr;
@@ -506,8 +490,7 @@ register int *mptr;
   return 0;
 }
 
-keepch (c)
-int c;
+keepch (int c)
 {
   if (pinx < PBUFMAX)
     pbuf[pinx++] = c;
@@ -691,8 +674,7 @@ white ()
 /*
  * Convert a character to uppercase
  */
-toupper (c)
-register int c;
+toupper (register int c)
 {
   return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
 }
@@ -700,8 +682,7 @@ register int c;
 /*
  * Return 'true' if c is a decimal digit
  */
-isdigit (c)
-register int c;
+isdigit (register int c)
 {
   return ((c >= '0') && (c <= '9'));
 }
@@ -709,8 +690,7 @@ register int c;
 /*
  * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
  */
-isxdigit (c)
-register int c;
+isxdigit (register int c)
 {
   return  ( ((c >= '0') && (c <= '9')) ||
             ((c >= 'a') && (c <= 'f')) ||
@@ -720,8 +700,7 @@ register int c;
 /*
  * Return 'true' if c is alphanumeric
  */
-an (c)
-register int c;
+an (register int c)
 {
   return  ( ((c >= 'a') && (c <= 'z')) ||
             ((c >= 'A') && (c <= 'Z')) ||
@@ -732,8 +711,7 @@ register int c;
 /*
  * Return 'true' if c is alphabetic
  */
-alpha (c)
-register int c;
+alpha (register int c)
 {
   return  ( ((c >= 'a') && (c <= 'z')) ||
             ((c >= 'A') && (c <= 'Z')) ||
@@ -743,8 +721,7 @@ register int c;
 /*
  * Return 'index' if both strings match
  */
-streq (str1,str2)
-register char *str1,*str2;
+streq (register char *str1, register char *str2)
 {
 register int i;
 
@@ -760,8 +737,7 @@ register int i;
 /*
  * Return 'index' if str2 matches alphanumeric token str1
  */
-astreq (str1,str2)
-register char *str1,*str2;
+astreq (register char *str1, register char *str2)
 {
 register int i;
 
@@ -779,8 +755,7 @@ register int i;
 /*
  * Return 'index' if start next token equals 'lit'
  */
-match (lit)
-char *lit;
+match (char *lit)
 {
 register int i;
 
@@ -796,8 +771,7 @@ register int i;
 /*
  * Return 'index' if next token equals 'lit'
  */
-amatch (lit)
-char *lit;
+amatch (char *lit)
 {
 register int i;
 
@@ -813,8 +787,7 @@ register int i;
 /*
  * Return 'true' if next operator equals 'lit'
  */
-omatch (lit)
-register char *lit;
+omatch (register char *lit)
 {
   if (lptr[0] <= ' ')
     white();
@@ -841,8 +814,7 @@ register char *lit;
 /*
  * Generate error messages
  */
-error(msg)
-char *msg;
+error(char *msg)
 {
   if (inchdl)
     printf ("'%s' ", incfn);
@@ -854,8 +826,7 @@ char *msg;
   errflag = 1;
 }
 
-fatal (msg)
-char *msg;
+fatal (char *msg)
 {
   error (msg);
   exit (1);
@@ -867,8 +838,7 @@ exprerr ()
   junk ();
 }
 
-needtoken(str)
-char *str;
+needtoken(char *str)
 {
 char txt[32], *p1, *p2;
 
@@ -918,9 +888,7 @@ ns ()
 /*
  * Execution starts here
  */
-main (argc, argv)
-int argc;
-int *argv;
+main (int argc, int *argv)
 {
 register int i, j, *p;
 
@@ -982,14 +950,12 @@ register int i, j, *p;
 //*
 //*
 
-write_byte(byte)
-char byte;
+write_byte(char byte)
 {
   fwrite (&byte, 1, 1, outhdl);
 }
 
-write_word(word)
-int word;
+write_word(int word)
 {
   char arr[2];
   arr[0] = word >> 8;
@@ -1026,8 +992,7 @@ register int i,j;
   }
 }
 
-sto_data (val, size)
-int val, size;
+sto_data (int val, int size)
 {
   if (size == BPW) {
     // store upper byte
@@ -1041,9 +1006,7 @@ int val, size;
   datbuf[datlen++] = val;
 }
 
-sto_cmd (cmd, val)
-char cmd;
-int val;
+sto_cmd (int cmd, int val)
 {
 char cval;
 register int *p;

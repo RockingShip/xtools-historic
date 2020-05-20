@@ -36,11 +36,9 @@
 /*
  * Declare/define a procedure argument
  */
-declarg (scope, class, totargc)
-int scope;
-register int class, totargc;
+declarg (int scope, register int class, register int argnr)
 {
-int size, sname, len, ptr, type, cnt, reg, numarg;
+int size, sname, len, ptr, type, cnt, reg;
 register int *ident, i;
 
   // get size of type
@@ -52,9 +50,15 @@ register int *ident, i;
     return 0;
 
   // scan definitions
-  numarg = 0;
   while (1) {
-    ptr = (match ("(*") || match ("*"));
+    if (match("*"))
+    	ptr = 1;
+    else if (match("(")) {
+    	ptr = 2;
+    	needtoken("*");
+    } else
+    	ptr = 0;
+
     if (!(len = dohash (lptr, &sname)))
       illname ();
     if (len)
@@ -62,18 +66,23 @@ register int *ident, i;
 
     for (i=scope; i<idinx; i++) {
       ident = &idents[i*ILAST];
-      if (ident[INAME] == sname)
+      if (ident[INAME] == sname) {
+        multidef ();
         break;
+      }
     }
-    if (i >= idinx)
-      error ("argument not defined in parameter list");
-    else if (ident[ITYPE] != CONSTANT)  // CONSTANT is to flag untyped arguments
-      multidef ();
 
-    match (")");
     type = VARIABLE;
-    if (match ("()"))
-      type = FUNCTION;
+
+    if (ptr == 2) {
+      match (")");
+      if (match ("(")) {
+        if (match(")"))
+          type = FUNCTION;
+        else
+          error("bad (*)()");
+      }
+    }
 
     cnt = 1; // Number of elements
     if (match ("[")) {
@@ -94,42 +103,29 @@ register int *ident, i;
     }
 
     // add symbol to symboltable
-    ++numarg;
+    if (idinx >= IDMAX)
+      fatal ("identifier table overflow");
+    ident = &idents[idinx++ * ILAST];
     ident[INAME] = sname;
     ident[ITYPE] = type;
     ident[IPTR] = ptr;
     ident[ICLASS] = class;
     ident[ISIZE] = size;
-    ident[IVALUE] = (totargc - ident[IVALUE] + 1) * BPW;
+    ident[IVALUE] = (-argnr + 1) * BPW;
 
     // modify location if chars. Chars are pushed as words, adjust to point to lo-byte
     if (size == 1 && !ptr)
       ident[IVALUE] += BPW-1;
 
-    // generate code to load register variables
-    if (class == REGISTER) {
-      reg = allocreg ();
-      reglock |= (1<<reg);
-      gencode_IND(((ident[LSIZE] == BPW) || ident[LPTR]) ? _LODW : _LODB, reg, ident[IVALUE], REG_AP);
-      ident[IVALUE] = reg;
-    }
-
-    // test for more
-    if (!match (","))
-      break;
+    // only one
+    break;
   }
-
-  // done
-  ns ();
-  return numarg;
 }
 
 /*
  * General global definitions
  */
-declvar (scope, class)
-int scope;
-register int class;
+declvar (int scope, register int class)
 {
 int size, sname, len, ptr, type, cnt;
 register int *ident, i;
@@ -382,12 +378,11 @@ register int *mptr;
 declfunc ()
 {
 int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc, scope;
-register int *ident, i, argc;
+register int *ident, i, numarg;
 
   returnlbl = ++nxtlabel;
   reguse = regsum = reglock = 1<<REG_AP; // reset all registers
   csp = -1; // reset stack
-  argc = 0;
   swinx = 1;
   toseg (CODESEG);
   if (verbose)
@@ -437,52 +432,35 @@ register int *ident, i, argc;
   if (!match ("("))
     error ("no open parent");
   blanks ();
-  while (ch != ')') {
-    // get argument
-    blanks ();
-    if (!(len = dohash (lptr, &sname))) {
-      error ("illegal argument name");
-      junk ();
-    } else {
-      bump (len);
-      for (i=scope; i<idinx; i++) {
-        ident = &idents[i*ILAST];
-        if (ident[INAME] == sname)
-          break;
-      }
-      if (i < idinx)
-        multidef ();
-      else if (idinx >= IDMAX)
-        fatal ("identifier table overflow");
-      else
-        ident = &idents[idinx++ * ILAST];
-      // define argument
-      ident[INAME] = sname;
-      ident[ITYPE] = CONSTANT;  // Mark as undefined
-      ident[IPTR] = 0;
-      ident[ICLASS] = AP_AUTO;
-      ident[IVALUE] = argc; // argument ID (starts at 0)
-      ident[ISIZE] = BPW;
-      ++argc;
-    }
-
-    if (!match (","))
-      break;
-  }
-  needtoken (")");
 
   // now define arguments
-  sav_argc = argc;
-  while (1) {
+  numarg = 0;
+  while (ch != ')') {
     if (amatch ("register"))
-      argc -= declarg (scope, REGISTER, sav_argc);
-    else if (i = declarg (scope, AP_AUTO, sav_argc))
-      argc -= i;
-    else if (argc) {
-      error ("wrong number of arguments");
+      declarg (scope, REGISTER, numarg++);
+    else
+      declarg (scope, AP_AUTO, numarg++);
+
+    if (!match(","))
       break;
-    } else
-      break;
+  }
+  needtoken(")");
+
+  // post-process arguments
+  for (i = scope; i < idinx; i++) {
+    ident = &idents[i * ILAST];
+
+    // tweak ap offsets
+    ident[IVALUE] += numarg * BPW;
+
+    // generate code for register variables
+    if (ident[ICLASS] == REGISTER) {
+      int reg;
+      reg = allocreg();
+      reglock |= (1 << reg);
+      gencode_IND(((ident[LSIZE] == BPW) || ident[LPTR]) ? _LODW : _LODB, reg, ident[IVALUE], REG_AP);
+      ident[IVALUE] = reg;
+    }
   }
 
   // get statement
@@ -508,8 +486,7 @@ register int *ident, i, argc;
 /*
  * process one statement
  */
-statement (swbase, returnlbl, breaklbl, contlbl, breaksp, contsp)
-int swbase, returnlbl, breaklbl, contlbl, breaksp, contsp;
+statement (int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int contsp)
 {
 int lval[LLAST], scope, sav_sw;
 register int sav_csp, i, *ptr;
@@ -787,8 +764,7 @@ int lbl1, lbl2, lbl3;
 /*
  * Dump the switch map and decoding
  */
-dumpsw (swbase, codlbl, endlbl)
-int swbase, codlbl, endlbl;
+dumpsw (int swbase, int codlbl, int endlbl)
 {
 register int lo, hi, i, j, cnt, *ptr;
 int maplbl, deflbl, lbl, lval[LLAST];

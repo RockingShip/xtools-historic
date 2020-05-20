@@ -36,9 +36,7 @@
 /*
  * Process a constant evaluation
  */
-calc (left, oper, right)
-register int left, right;
-int oper;
+calc (register int left, register int right, int oper)
 {
   switch(oper) {
     case __OR:   return (left  |  right);
@@ -55,8 +53,7 @@ int oper;
   }
 }
 
-loadlval (lval)
-register int lval[];
+loadlval (register int lval[])
 {
 register int *p;
 
@@ -89,8 +86,7 @@ register int *p;
 /*
  * generic processing for <lval> { <operation> <rval> }
  */
-xplng1 (hier, start, lval)
-register int (*hier)(), start, lval[];
+xplng1 (register int (*hier)(), register int start, register int lval[])
 {
 register char *cptr, entry;
 int rval[LLAST];
@@ -135,8 +131,7 @@ int rval[LLAST];
   }
 }
 
-primary (lval)
-register int lval[];
+primary (register int lval[])
 {
 register int *p, len;
 int hash;
@@ -196,8 +191,7 @@ int hash;
   return constant (lval);  
 }
 
-hier7 (lval)
-register int lval[];
+hier7 (register int lval[])
 {
 
   if (match ("~")) {
@@ -234,38 +228,32 @@ register int lval[];
   return 1;
 }
 
-hier6 (lval)
-register int lval[];
+hier6 (register int lval[])
 {
   xplng1 (hier7, 12, lval);
 }
 
-hier5 (lval)
-register int lval[];
+hier5 (register int lval[])
 {
   xplng1 (hier6, 9, lval);
 }
 
-hier4 (lval)
-register int lval[];
+hier4 (register int lval[])
 {
   xplng1 (hier5, 6, lval);
 }
 
-hier3 (lval)
-register int lval[];
+hier3 (register int lval[])
 {
   xplng1 (hier4, 4, lval);
 }
 
-hier2 (lval)
-register int lval[];
+hier2 (register int lval[])
 {
   xplng1 (hier3, 2, lval);
 }
 
-hier1 (lval)
-register int lval[];
+hier1 (register int lval[])
 {
   xplng1 (hier2, 0, lval);
 }
@@ -273,8 +261,7 @@ register int lval[];
 /*
  * Load a numerical expression seperated by comma's
  */
-expression(lval)
-register int lval[];
+expression(register int lval[])
 {
   if (!hier1 (lval))
     error ("expression required");
@@ -283,8 +270,7 @@ register int lval[];
 /*
  * Load a constant expression
  */
-constexpr (val)
-register int *val;
+constexpr (register int *val)
 {
 int lval[LLAST];
 
@@ -300,8 +286,7 @@ int lval[LLAST];
 /*
  * Load a constant value
  */
-constant (lval)
-register int lval[];
+constant (register int lval[])
 {
   lval[LTYPE] = CONSTANT;
   if (number(&lval[LVALUE]))
@@ -314,8 +299,7 @@ register int lval[];
 /*
  * Get a numerical constant
  */
-number (val)
-register int *val;
+number (register int *val)
 {
 register int i, minus;
 
@@ -343,8 +327,7 @@ register int i, minus;
 /*
  * Get a character constant
  */
-pstr (val)
-int *val;
+pstr (int *val)
 {
 register int i;
 

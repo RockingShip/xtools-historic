@@ -132,11 +132,7 @@ usage ()
 /*
  * Override default/explicit file extension
  */
-fext(out, path, ext, force)
-char *out;
-char *path;
-char *ext;
-int force;
+fext(char *out, char *path, char *ext, int force)
 {
   char *p;
   int  baselen;
@@ -162,8 +158,7 @@ int force;
 /*
  * Handle program arguments
  */
-startup (argv)
-register int *argv;
+startup (register int *argv)
 {
   argv++; // skip argv[0]
   while (*argv) {
@@ -207,9 +202,7 @@ register int *argv;
 /*
  * Open all files
  */
-mustopen(fn, mode)
-char *fn;
-char *mode;
+mustopen(char *fn, char *mode)
 {
 int fd;
 
@@ -256,8 +249,7 @@ kill ()
 /*
  * Bump next characters in line (n = #chars or 0 for initialization)
  */
-bump (n)
-register int n;
+bump (register int n)
 {
   lptr = n ? lptr+n : line;
   nch = (ch = lptr[0]) ? lptr[1] : 0;
@@ -272,8 +264,7 @@ register int n;
 /*
  * reconstruct the symbol name
  */
-symname (tab)
-register int tab;
+symname (register int tab)
 {
 register int i;
 
@@ -286,9 +277,7 @@ register int i;
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-dohash (name, retval)
-register char *name;
-int *retval;
+dohash (register char *name, int *retval)
 {
 register int start, hash, tab, len;
 
@@ -324,8 +313,7 @@ register int start, hash, tab, len;
   return len;
 }
 
-findmac (sname)
-register int sname;
+findmac (register int sname)
 {
 register int i;
 register int *mptr;
@@ -344,8 +332,7 @@ register int *mptr;
 //*
 //*
 
-keepch (c)
-int c;
+keepch (int c)
 {
   if (pinx < PBUFMAX)
     pbuf[pinx++] = c;
@@ -563,8 +550,7 @@ blanks ()
 /*
  * Convert a character to uppercase
  */
-toupper (c)
-register int c;
+toupper (register int c)
 {
   return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
 }
@@ -572,8 +558,7 @@ register int c;
 /*
  * Return 'true' if c is a decimal digit
  */
-isdigit (c)
-register int c;
+isdigit (register int c)
 {
   return ((c >= '0') && (c <= '9'));
 }
@@ -581,8 +566,7 @@ register int c;
 /*
  * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
  */
-isxdigit (c)
-register int c;
+isxdigit (register int c)
 {
   return  ( ((c >= '0') && (c <= '9')) ||
             ((c >= 'a') && (c <= 'f')) ||
@@ -592,8 +576,7 @@ register int c;
 /*
  * Return 'true' if c is alphanumeric
  */
-an (c)
-register int c;
+an (register int c)
 {
   return  ( ((c >= 'a') && (c <= 'z')) ||
             ((c >= 'A') && (c <= 'Z')) ||
@@ -604,8 +587,7 @@ register int c;
 /*
  * Return 'true' if c is alphabetic
  */
-alpha (c)
-register int c;
+alpha (register int c)
 {
   return  ( ((c >= 'a') && (c <= 'z')) ||
             ((c >= 'A') && (c <= 'Z')) ||
@@ -615,8 +597,7 @@ register int c;
 /*
  * Return 'index' if both strings match
  */
-streq (str1,str2)
-register char *str1,*str2;
+streq (register char *str1, register char *str2)
 {
 register int i;
 
@@ -632,8 +613,7 @@ register int i;
 /*
  * Return 'index' if str2 matches alphanumeric token str1
  */
-astreq (str1,str2)
-register char *str1,*str2;
+astreq (register char *str1, register char *str2)
 {
 register int i;
 
@@ -651,8 +631,7 @@ register int i;
 /*
  * Return 'index' if start next token equals 'lit'
  */
-match (lit)
-char *lit;
+match (char *lit)
 {
 register int i;
 
@@ -668,8 +647,7 @@ register int i;
 /*
  * Return 'index' if next token equals 'lit'
  */
-amatch (lit)
-char *lit;
+amatch (char *lit)
 {
 register int i;
 
@@ -685,8 +663,7 @@ register int i;
 /*
  * Return 'true' if next operator equals 'lit'
  */
-omatch (lit)
-register char *lit;
+omatch (register char *lit)
 {
   if (lptr[0] <= ' ')
     blanks();
@@ -721,8 +698,7 @@ register char *lit;
 /*
  * Generate error messages
  */
-warning(msg)
-char *msg;
+warning(char *msg)
 {
 if (inchdl)
 printf ("'%s' ", incfn);
@@ -731,15 +707,13 @@ printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
 fprintf (outhdl, ";%% %s\n", msg);
 }
 
-error(msg)
-char *msg;
+error(char *msg)
 {
 warning(msg);
 errflag = 1;
 }
 
-fatal (msg)
-char *msg;
+fatal (char *msg)
 {
 error (msg);
 exit (1);
@@ -774,8 +748,7 @@ undef ()
   error ("identifier undefined");
 }
 
-needtoken(str)
-char *str;
+needtoken(char *str)
 {
 char txt[32], *p1, *p2;
 
@@ -834,9 +807,7 @@ ns ()
 /*
  * Execution starts here
  */
-main (argc, argv)
-int argc;
-int *argv;
+main (int argc, int *argv)
 {
 register int i, j;
 
@@ -874,8 +845,7 @@ register int i, j;
 /*
  * Generate a assembler statement
  */
-genopc(opc)
-int opc;
+genopc(int opc)
 {
   switch(opc) {
     case _ILLEGAL:
@@ -989,24 +959,21 @@ int opc;
   }
 }
 
-gencode (opc)
-int opc;
+gencode (int opc)
 {
   genopc(opc);
 
   fprintf (outhdl, "\n");
 }
 
-gencode_L (opc, lbl)
-int opc, lbl;
+gencode_L (int opc, int lbl)
 {
   genopc(opc);
 
   fprintf (outhdl, "_%d\n", lbl);
 }
 
-gencode_R (opc, reg1, reg2)
-int opc, reg1, reg2;
+gencode_R (int opc, int reg1, int reg2)
 {
   genopc(opc);
 
@@ -1015,8 +982,7 @@ int opc, reg1, reg2;
   fprintf (outhdl, "R%d\n", reg2);
 }
 
-gencode_I (opc, reg, imm)
-int opc, reg, imm;
+gencode_I (int opc, int reg, int imm)
 {
   // sign extend
   imm |= -(imm & (1<<SBIT));
@@ -1028,8 +994,7 @@ int opc, reg, imm;
   fprintf (outhdl, "%d\n", imm);
 }
 
-gencode_ADJSP (imm)
-int imm;
+gencode_ADJSP (int imm)
 {
   // sign extend
   imm |= -(imm & (1<<SBIT));
@@ -1047,8 +1012,7 @@ int imm;
 	}
 }
 
-gencode_IND(opc, reg, ofs, ind)
-int opc, reg, ofs, ind;
+gencode_IND(int opc, int reg, int ofs, int ind)
 {
   // sign extend
   ofs |= -(ofs & (1<<SBIT));
@@ -1062,9 +1026,7 @@ int opc, reg, ofs, ind;
         fprintf(outhdl, "(R%d)\n", ind);
 }
 
-gencode_M (opc, reg, lval)
-int opc, reg;
-register int lval[];
+gencode_M (int opc, int reg, register int lval[])
 {
   genopc(opc);
 
@@ -1106,8 +1068,7 @@ register int lval[];
  * change to a new segment
  * may be called with NULL, CODESEG, or DATASEG
  */
-toseg (newseg)
-register int newseg;
+toseg (register int newseg)
 {
   prevseg = currseg;
   if (currseg == newseg)

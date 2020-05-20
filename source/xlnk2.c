@@ -33,10 +33,7 @@
 #define EXTERN extern
 #include "xlnk.h"
 
-objerr (fp, msg, curseg)
-register int *fp;
-char *msg;
-int curseg;
+objerr (register int *fp, char *msg, int curseg)
 {
   printf (msg);
   printf (" at ");
@@ -55,14 +52,12 @@ int curseg;
  * Trying all possibilities reveals:
  * unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000"
  */
-unsignedGT(i, j)
-int i, j;
+unsignedGT(int i, int j)
 {
   return ((j ^ i) & (1 << SBIT) ? i & (1 << SBIT) : (j - i) & (1 << SBIT));
 }
 
-savmaxseg (fp)
-register int *fp;
+savmaxseg (register int *fp)
 {
 	if (unsignedGT(fp[FCODEPOS], fp[FCODELEN]))
 		fp[FCODELEN] = fp[FCODEPOS];
@@ -97,14 +92,12 @@ int w;
   return w;
 }
 
-write_byte(byte)
-char byte;
+write_byte(char byte)
 {
 fwrite (&byte, 1, 1, outhdl);
 }
 
-write_word(word)
-int word;
+write_word(int word)
 {
 char arr[2];
 
@@ -115,8 +108,7 @@ fwrite (arr, 1, 2, outhdl);
 }
 
 
-dopass1 (fileid, libid, libofs)
-int fileid, libid, libofs;
+dopass1 (int fileid, int libid, int libofs)
 {
 register int *p, *fp, curseg;
 int symseg, symofs, hash;
@@ -265,8 +257,7 @@ char cmd;
   }
 }
 
-dopass2 (fp)
-register int *fp;
+dopass2 (register int *fp)
 {
 register int i, lval, rval;
 int curseg, symofs, hash, val;

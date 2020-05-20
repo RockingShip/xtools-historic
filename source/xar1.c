@@ -78,11 +78,7 @@ usage ()
   exit (1);
 }
 
-fext(out, path, ext, force)
-char *out;
-char *path;
-char *ext;
-int force;
+fext(char *out, char *path, char *ext, int force)
 {
   char *p;
   int  baselen;
@@ -105,8 +101,7 @@ int force;
   }
 }
 
-startup (argv)
-register int *argv;
+startup (register int *argv)
 {
   argv++; // skip argv[0]
   while (*argv) {
@@ -178,10 +173,7 @@ register int *argv;
 /*
  * Open all files
  */
-mustopen(fn, mode)
-char *fn;
-char *mode;
-{
+mustopen(char *fn, char *mode) {
 int fd;
 
   fd=fopen(fn, mode);
@@ -251,15 +243,13 @@ int w;
   return w;
 }
 
-error(msg)
-char *msg;
+error(char *msg)
 {
   errflag = 1;
   printf ("%s");
 }
 
-fatal (msg)
-char *msg;
+fatal (char *msg)
 {
 error (msg);
 exit (0);
@@ -271,8 +261,7 @@ exit (0);
 //*
 //*
 
-outname (hash)
-register int hash;
+outname (register int hash)
 {
 register int i;
 
@@ -285,9 +274,7 @@ register int i;
   return i+1; // Increment length
 }
 
-soutname (hash, str)
-register int hash;
-register char *str;
+soutname (register int hash, register char *str)
 {
 register int i;
 
@@ -302,9 +289,7 @@ register int i;
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-dohash (ident, retval)
-register char *ident;
-int *retval;
+dohash (register char *ident, int *retval)
 {
 register int start, hash, tab, len, *p;
 
@@ -349,9 +334,7 @@ register int start, hash, tab, len, *p;
 /*
  * Execution starts here
  */
-main (argc, argv)
-int argc;
-int *argv;
+main (int argc, int *argv)
 {
 register int i, j, *p;
 

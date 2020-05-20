@@ -39,9 +39,7 @@
 //*
 //*
 
-add_res (sym, typ)
-char *sym;
-int typ;
+add_res (char *sym, int typ)
 {
 int hash;
 register int *p;
@@ -111,11 +109,7 @@ usage ()
   exit (1);
 }
 
-fext(out, path, ext, force)
-char *out;
-char *path;
-char *ext;
-int force;
+fext(char *out, char *path, char *ext, int force)
 {
   char *p;
   int  baselen;
@@ -138,8 +132,7 @@ int force;
   }
 }
 
-startup (argv)
-register int *argv;
+startup (register int *argv)
 {
 int hash, *p;
 
@@ -235,9 +228,7 @@ int hash, *p;
 /*
  * Open all files
  */
-mustopen(fn, mode)
-char *fn;
-char *mode;
+mustopen(char *fn, char *mode)
 {
 int fd;
 
@@ -291,9 +282,7 @@ register int i, *p;
 //*
 //*
 
-lbsoutname (hash, str)
-register int hash;
-register char *str;
+lbsoutname (register int hash, register char *str)
 {
 register int i;
 
@@ -308,9 +297,7 @@ register int i;
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-lbdohash (ident, retval)
-register char *ident;
-int *retval;
+lbdohash (register char *ident, int *retval)
 {
 register int start, hash, tab, len, *p;
 
@@ -346,8 +333,7 @@ register int start, hash, tab, len, *p;
   return len;
 }
 
-outname (hash)
-register int hash;
+outname (register int hash)
 {
 register int i;
 
@@ -360,8 +346,7 @@ register int i;
   return i+1; // Increment length
 }
 
-foutname (hash)
-register int hash;
+foutname (register int hash)
 {
 register int i;
 
@@ -374,9 +359,7 @@ register int i;
   return i+1; // Increment length
 }
 
-soutname (hash, str)
-register int hash;
-register char *str;
+soutname (register int hash, register char *str)
 {
 register int i;
 
@@ -391,9 +374,7 @@ register int i;
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-dohash (ident, retval)
-register char *ident;
-int *retval;
+dohash (register char *ident, int *retval)
 {
 register int start, hash, tab, len, *p;
 
@@ -433,8 +414,7 @@ register int start, hash, tab, len, *p;
 //*
 //*
 
-fatal (msg)
-char *msg;
+fatal (char *msg)
 {
   printf ("%s\n", msg);
   exit (1);
@@ -449,9 +429,7 @@ char *msg;
 /*
  * Execution starts here
  */
-main (argc, argv)
-int argc;
-int *argv;
+main (int argc, int *argv)
 {
 register int i, j, *p, len;
 int hash;
@@ -505,8 +483,7 @@ register int i, *p, len;
   }
 }
 
-symmap (start)
-register int start;
+symmap (register int start)
 {
 register int ch, *p, hash, tab;
 

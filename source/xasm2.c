@@ -127,8 +127,7 @@ int lval[LLAST];
   }
 }
 
-do_opcode (p)
-register int p[];
+do_opcode (register int p[])
 {
   if (pass == 1) {
     switch (p[NVALUE]) {
@@ -218,8 +217,7 @@ register int p[];
  * Trying all possibilities reveals:
  * unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000"
  */
-unsignedGT(i, j)
-int i, j;
+unsignedGT(int i, int j)
 {
   return ((j ^ i) & (1 << SBIT) ? i & (1 << SBIT) : (j - i) & (1 << SBIT));
 }
@@ -235,8 +233,7 @@ savmaxpos ()
 
 }
 
-do_pseudo (p)
-register int p[];
+do_pseudo (register int p[])
 {
 int val, lval[LLAST];
 register int size;
