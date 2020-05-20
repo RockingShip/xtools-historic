@@ -1,6 +1,5 @@
-fputs(register char *s, register int hdl)
-{
-char *s0;
+fputs(register char *s, register int hdl) {
+	char *s0;
 
 	s0 = s;
 
@@ -10,5 +9,5 @@ char *s0;
 		s++;
 	}
 
-	return s-s0;
+	return s - s0;
 }

@@ -140,7 +140,7 @@ enum {
  * Storage
  */
 
-EXTERN int 
+EXTERN int
 
 #ifdef DYNAMIC
   *name,		/* Nametable */
@@ -150,21 +150,21 @@ EXTERN int
   file[FILEMAX*NLAST],
 #endif
 
-  datlen,		// length of datbuf
-  olbhdr[HLAST],	// .OLB header
-  usercmd,		// user command
-  verbose,		// Verbose -v specified
-  errflag,              // Error occured
-  debug,		// Debug   -d specified
-  olbhdl,		// handle for source .OLB file
-  outhdl,		// handle for destination .OLB file
-  objhdl;		// handle for .OBJ file
+	datlen,			// length of datbuf
+	olbhdr[HLAST],		// .OLB header
+	usercmd,		// user command
+	verbose,		// Verbose -v specified
+	errflag,		// Error occurred
+	debug,			// Debug   -d specified
+	olbhdl,			// handle for source .OLB file
+	outhdl,			// handle for destination .OLB file
+	objhdl;			// handle for .OBJ file
 
 EXTERN char
 
-  datbuf[512],		// internal scratch buffer
-  modn[PATHMAX],	// name of moule
-  olbfn[PATHMAX],	// source .OLB filename
-  outfn[PATHMAX],	// destination .OLB filename
-  bakfn[PATHMAX],	// .BAK filename
-  objfn[PATHMAX];	// .OBJ filename
+	datbuf[512],		// internal scratch buffer
+	modn[PATHMAX],		// name of module
+	olbfn[PATHMAX],		// source .OLB filename
+	outfn[PATHMAX],		// destination .OLB filename
+	bakfn[PATHMAX],		// .BAK filename
+	objfn[PATHMAX];		// .OBJ filename

@@ -42,181 +42,175 @@
 /*
  * Initialize all variables
  */
-initialize ()
-{
-register int i;
+initialize() {
+	register int i;
 
-  verbose = maklis = 0;
-  outhdl = lishdl = inphdl = inchdl = 0;
-  iflevel = skiplevel = 0;
-  nxtlabel = 0;
-  currseg = 0;
-  inpfn[0] = 0;
-  macinx = macqinx = 0;
-  ccode = 1;
-  inclnr = inplnr = 0;
+	verbose = maklis = 0;
+	outhdl = lishdl = inphdl = inchdl = 0;
+	iflevel = skiplevel = 0;
+	nxtlabel = 0;
+	currseg = 0;
+	inpfn[0] = 0;
+	macinx = macqinx = 0;
+	ccode = 1;
+	inclnr = inplnr = 0;
 
 #ifdef DYNAMIC
-  ! check this first
-  litq = calloc (LITMAX*BPW);
-  namech = calloc (NAMEMAX);
-  nametab = calloc (NAMEMAX*BPW);
-  sbuf = calloc (SBUFMAX);
-  pbuf = calloc (PBUFMAX);
-  mac = calloc (MACMAX*BPW*MLAST);
-  macq = aclloc (MACQMAX);
-  glbsym = calloc (GLBMAX*BPW*ILAST);
-  locsym = calloc (LOCMAX*BPW*ILAST);
+	! check this first
+	litq = calloc (LITMAX*BPW);
+	namech = calloc (NAMEMAX);
+	nametab = calloc (NAMEMAX*BPW);
+	sbuf = calloc (SBUFMAX);
+	pbuf = calloc (PBUFMAX);
+	mac = calloc (MACMAX*BPW*MLAST);
+	macq = aclloc (MACQMAX);
+	glbsym = calloc (GLBMAX*BPW*ILAST);
+	locsym = calloc (LOCMAX*BPW*ILAST);
 #endif;
 
-  // reset table
-  for (i=0; i<NAMEMAX; i++)
-    namech[i] = nametab[i] = 0;
-  for (i=0; i<IDMAX; i++)
-    idents[i*ILAST+INAME] = 0;
-  for (i=0; i<SWMAX; i++)
-    sw[i*SLAST+SLABEL] = 0;
+	// reset table
+	for (i = 0; i < NAMEMAX; i++)
+		namech[i] = nametab[i] = 0;
+	for (i = 0; i < IDMAX; i++)
+		idents[i * ILAST + INAME] = 0;
+	for (i = 0; i < SWMAX; i++)
+		sw[i * SLAST + SLABEL] = 0;
 
-  // reserve first entry so it terminates lists
-  namech[0] = '?';
+	// reserve first entry so it terminates lists
+	namech[0] = '?';
 
-  // setup array containing hieriachal operators
-  hier_str[ 0] = "||"; hier_oper[ 0] = _LOR;    // hier3
-  hier_str[ 1] = 0;                                   
-  hier_str[ 2] = "&&"; hier_oper[ 2] = _LAND;   // hier4
-  hier_str[ 3] = 0;                                   
-  hier_str[ 4] = "|";  hier_oper[ 4] = _BOR;    // hier5
-  hier_str[ 5] = 0;                                   
-  hier_str[ 6] = "^";  hier_oper[ 6] = _XOR;    // hier6
-  hier_str[ 7] = 0;                                   
-  hier_str[ 8] = "&";  hier_oper[ 8] = _BAND;   // hier7
-  hier_str[ 9] = 0;                                   
-  hier_str[10] = "=="; hier_oper[10] = _EQ;     // hier8
-  hier_str[11] = "!="; hier_oper[11] = _NE;             
-  hier_str[12] = 0;                                   
-  hier_str[13] = "<="; hier_oper[13] = _LE;     // hier9
-  hier_str[14] = ">="; hier_oper[14] = _GE;             
-  hier_str[15] = "<";  hier_oper[15] = _LT;             
-  hier_str[16] = ">";  hier_oper[16] = _GT;             
-  hier_str[17] = 0;                                   
-  hier_str[18] = ">>"; hier_oper[18] = _LSR;    // hier10
-  hier_str[19] = "<<"; hier_oper[19] = _LSL;            
-  hier_str[20] = 0;                                   
-  hier_str[21] = "+";  hier_oper[21] = _ADD;    // hier11
-  hier_str[22] = "-";  hier_oper[22] = _SUB;            
-  hier_str[23] = 0;                                   
-  hier_str[24] = "*";  hier_oper[24] = _MUL;    // hier12
-  hier_str[25] = "/";  hier_oper[25] = _DIV;            
-  hier_str[26] = "%";  hier_oper[26] = _MOD;            
-  hier_str[27] = 0;
+	// setup array containing hieriachal operators
+	hier_str[ 0] = "||"; hier_oper[ 0] = _LOR;    // hier3
+	hier_str[ 1] = 0;
+	hier_str[ 2] = "&&"; hier_oper[ 2] = _LAND;   // hier4
+	hier_str[ 3] = 0;
+	hier_str[ 4] = "|";  hier_oper[ 4] = _BOR;    // hier5
+	hier_str[ 5] = 0;
+	hier_str[ 6] = "^";  hier_oper[ 6] = _XOR;    // hier6
+	hier_str[ 7] = 0;
+	hier_str[ 8] = "&";  hier_oper[ 8] = _BAND;   // hier7
+	hier_str[ 9] = 0;
+	hier_str[10] = "=="; hier_oper[10] = _EQ;     // hier8
+	hier_str[11] = "!="; hier_oper[11] = _NE;
+	hier_str[12] = 0;
+	hier_str[13] = "<="; hier_oper[13] = _LE;     // hier9
+	hier_str[14] = ">="; hier_oper[14] = _GE;
+	hier_str[15] = "<";  hier_oper[15] = _LT;
+	hier_str[16] = ">";  hier_oper[16] = _GT;
+	hier_str[17] = 0;
+	hier_str[18] = ">>"; hier_oper[18] = _LSR;    // hier10
+	hier_str[19] = "<<"; hier_oper[19] = _LSL;
+	hier_str[20] = 0;
+	hier_str[21] = "+";  hier_oper[21] = _ADD;    // hier11
+	hier_str[22] = "-";  hier_oper[22] = _SUB;
+	hier_str[23] = 0;
+	hier_str[24] = "*";  hier_oper[24] = _MUL;    // hier12
+	hier_str[25] = "/";  hier_oper[25] = _DIV;
+	hier_str[26] = "%";  hier_oper[26] = _MOD;
+	hier_str[27] = 0;
 
-  // reserved words
-  dohash ("ARGC", &argcid);
-  dohash ("ARGV", &argvid);
+	// reserved words
+	dohash("ARGC", &argcid);
+	dohash("ARGV", &argvid);
 }
 
 /*
  * Process commandline
  */
-usage ()
-{
-  printf ("X-C-Compiler, Version %s\n\n", getversion());
+usage() {
+	printf("X-C-Compiler, Version %s\n\n", getversion());
 
-  printf ("usage: xcc <file>[.<ext>]\n");
-  printf ("  -h\t\t\tInclude high-level source\n");
-  printf ("  -S <file>[.<ext>]]\tAssembler output\n");
-  printf ("  -v\t\t\tVerbose\n");
-  exit (1);
+	printf("usage: xcc <file>[.<ext>]\n");
+	printf("  -h\t\t\tInclude high-level source\n");
+	printf("  -S <file>[.<ext>]]\tAssembler output\n");
+	printf("  -v\t\t\tVerbose\n");
+	exit(1);
 }
 
 /*
  * Override default/explicit file extension
  */
-fext(char *out, char *path, char *ext, int force)
-{
-  char *p;
-  int  baselen;
+fext(char *out, char *path, char *ext, int force) {
+	char *p;
+	int baselen;
 
-  baselen = 0;
-  for (p  = path; *p; p++) {
-    if (*p == '\\' || *p == '/')
-      baselen = 0;
-    else if (*p == '.')
-      baselen = p - path;
-  }
+	baselen = 0;
+	for (p = path; *p; p++) {
+		if (*p == '\\' || *p == '/')
+			baselen = 0;
+		else if (*p == '.')
+			baselen = p - path;
+	}
 
-  if (baselen && !force)
-    strcpy(out, path);
-  else {
-    if (!baselen)
-      baselen = p - path;
-    strncpy(out, path, baselen);
-    strcpy(out + baselen, ext);
-  }
+	if (baselen && !force)
+		strcpy(out, path);
+	else {
+		if (!baselen)
+			baselen = p - path;
+		strncpy(out, path, baselen);
+		strcpy(out + baselen, ext);
+	}
 }
 
 /*
  * Handle program arguments
  */
-startup (register int *argv)
-{
-  argv++; // skip argv[0]
-  while (*argv) {
-    register char *arg;
-    arg = *argv++;
+startup(register int *argv) {
+	argv++; // skip argv[0]
+	while (*argv) {
+		register char *arg;
+		arg = *argv++;
 
-    if (*arg != '-') {
-      fext(inpfn, arg, ".c", 0);
-      if (!outfn[0])
-        fext(outfn, arg, ".xs", 1);
-    } else {
-      // Process option
-      arg++;
-      switch (*arg++) {
-	case 'S':
-          if (!*arg && *argv)
-            arg = *argv++;
-          if (!*arg || *arg == '-')
-            usage();
-          else
-            fext(outfn, arg, ".xs", 0);
-	  break;
-        case 'h':
-          maklis = 1;
-          break;
-	case 'v':
-	  verbose = 1;
-	  break;
-        default:
-          usage ();
-          break;
-      }
-    }
-  }
+		if (*arg != '-') {
+			fext(inpfn, arg, ".c", 0);
+			if (!outfn[0])
+				fext(outfn, arg, ".xs", 1);
+		} else {
+			// Process option
+			arg++;
+			switch (*arg++) {
+			case 'S':
+				if (!*arg && *argv)
+					arg = *argv++;
+				if (!*arg || *arg == '-')
+					usage();
+				else
+					fext(outfn, arg, ".xs", 0);
+				break;
+			case 'h':
+				maklis = 1;
+				break;
+			case 'v':
+				verbose = 1;
+				break;
+			default:
+				usage();
+				break;
+			}
+		}
+	}
 
-  // filename MUST be supplied
-  if (!outfn[0])
-    usage ();
+	// filename MUST be supplied
+	if (!outfn[0])
+		usage();
 }
 
 /*
  * Open all files
  */
-mustopen(char *fn, char *mode)
-{
-int fd;
+mustopen(char *fn, char *mode) {
+	int fd;
 
-  fd=fopen(fn, mode);
-  if (fd > 0)
-    return fd;
-  printf ("fopen(%s,%s) failed\n", fn, mode);
-  exit (1);
+	fd = fopen(fn, mode);
+	if (fd > 0)
+		return fd;
+	printf("fopen(%s,%s) failed\n", fn, mode);
+	exit(1);
 }
 
-openfile ()
-{
-  inphdl = mustopen (inpfn, "r");
-  outhdl = mustopen (outfn, "w");
+openfile() {
+	inphdl = mustopen(inpfn, "r");
+	outhdl = mustopen(outfn, "w");
 }
 
 //*
@@ -228,31 +222,28 @@ openfile ()
 /*
  * Get next character from current line
  */
-gch ()
-{
-register int c;
+gch() {
+	register int c;
 
-  if (c=ch)
-    bump(1);
-  return c;
+	if (c = ch)
+		bump(1);
+	return c;
 }
 
 /*
  * Erase current line
  */
-kill ()
-{
-  *line = 0;
-  bump(0);
+kill() {
+	*line = 0;
+	bump(0);
 }
 
 /*
  * Bump next characters in line (n = #chars or 0 for initialization)
  */
-bump (register int n)
-{
-  lptr = n ? lptr+n : line;
-  nch = (ch = lptr[0]) ? lptr[1] : 0;
+bump(register int n) {
+	lptr = n ? lptr + n : line;
+	nch = (ch = lptr[0]) ? lptr[1] : 0;
 }
 
 //*
@@ -264,66 +255,63 @@ bump (register int n)
 /*
  * reconstruct the symbol name
  */
-symname (register int tab)
-{
-register int i;
+symname(register int tab) {
+	register int i;
 
-  i = nametab[tab];
-  if (i)
-    symname (i);
-  fprintf (outhdl, "%c", namech[tab]); 
+	i = nametab[tab];
+	if (i)
+		symname(i);
+	fprintf(outhdl, "%c", namech[tab]);
 }
 
 /*
  * Get the (unique) hashed value for symbol, return length
  */
-dohash (register char *name, int *retval)
-{
-register int start, hash, tab, len;
+dohash(register char *name, int *retval) {
+	register int start, hash, tab, len;
 
-  if (!alpha (*name))
-    return 0; // Not a symbol
+	if (!alpha(*name))
+		return 0; // Not a symbol
 
-  tab = 0;
-  len = 0;
-  hash = 0;
-  while (an (*name)) {
-    start = hash = (hash + *name * *name) % NAMEMAX;
-    while (1) {
-      if ((namech[hash] == *name) && (nametab[hash] == tab)) {
-        tab = hash;
-        break; // Inner loop
-      } else if (!namech[hash]) {
-        namech[hash] = *name;
-        nametab[hash] = tab;
-        tab = hash;
-        break; // Inner loop
-      } else {
-        hash += *name;
-        if (hash >= NAMEMAX)
-          hash -= NAMEMAX;
-        if (hash == start)
-          fatal ("name table overflow");
-      }
-    }
-    ++name;
-    ++len;
-  }
-  *retval = tab;
-  return len;
+	tab = 0;
+	len = 0;
+	hash = 0;
+	while (an(*name)) {
+		start = hash = (hash + *name * *name) % NAMEMAX;
+		while (1) {
+			if ((namech[hash] == *name) && (nametab[hash] == tab)) {
+				tab = hash;
+				break; // Inner loop
+			} else if (!namech[hash]) {
+				namech[hash] = *name;
+				nametab[hash] = tab;
+				tab = hash;
+				break; // Inner loop
+			} else {
+				hash += *name;
+				if (hash >= NAMEMAX)
+					hash -= NAMEMAX;
+				if (hash == start)
+					fatal("name table overflow");
+			}
+		}
+		++name;
+		++len;
+	}
+	*retval = tab;
+	return len;
 }
 
-findmac (register int sname)
-{
-register int i;
-register int *mptr;
+findmac(register int sname) {
+	register int i;
+	register int *mptr;
 
-  for (i=0; i<macinx; i++) {
-    mptr = &mac[i*MLAST];
-    if (mptr[MNAME] == sname)
-      return mptr;
-  }
-  return 0;
+	for (i = 0; i < macinx; i++) {
+		mptr = &mac[i * MLAST];
+		if (mptr[MNAME] == sname)
+			return mptr;
+	}
+	return 0;
 }
 
 //*
@@ -332,191 +320,187 @@ register int *mptr;
 //*
 //*
 
-keepch (int c)
-{
-  if (pinx < PBUFMAX)
-    pbuf[pinx++] = c;
+keepch(int c) {
+	if (pinx < PBUFMAX)
+		pbuf[pinx++] = c;
 }
 
-readline ()
-{
-  sbuf[0] = 0;
-  if (inphdl)
-    while (!sbuf[0]) {
-      if (inchdl) {
-        if (!fgets (sbuf, SBUFMAX-1, inchdl)) {
-          fclose (inchdl);
-          inchdl = 0;
-          continue;
-        }
-        sbuf[SBUFMAX-1] = 0;
-        ++inclnr;
-      } else if (inphdl) {
-	if (!fgets (sbuf, SBUFMAX-1, inphdl)) {
-          fclose (inphdl);
-          inphdl = 0;
-          break;
-        }
-        sbuf[SBUFMAX-1] = 0;
-        ++inplnr;
-      }
-    }
+readline() {
+	sbuf[0] = 0;
+	if (inphdl)
+		while (!sbuf[0]) {
+			if (inchdl) {
+				if (!fgets(sbuf, SBUFMAX - 1, inchdl)) {
+					fclose(inchdl);
+					inchdl = 0;
+					continue;
+				}
+				sbuf[SBUFMAX - 1] = 0;
+				++inclnr;
+			} else if (inphdl) {
+				if (!fgets(sbuf, SBUFMAX - 1, inphdl)) {
+					fclose(inphdl);
+					inphdl = 0;
+					break;
+				}
+				sbuf[SBUFMAX - 1] = 0;
+				++inplnr;
+			}
+		}
 
-  // Make buffer available
-  line = sbuf;
-  bump (0);
+	// Make buffer available
+	line = sbuf;
+	bump(0);
 }
 
-ifline () 
-{
-int sname;
+ifline() {
+	int sname;
 
-  while (1) {
-    readline ();
-    if (!inphdl)
-      break;
+	while (1) {
+		readline();
+		if (!inphdl)
+			break;
 
-    // Skip blanks manually here, otherwise amatch() will call blanks() and this will cause recursion
-    white ();
-    if (!ch)
-      continue; // Try again
+		// Skip blanks manually here, otherwise amatch() will call blanks() and this will cause recursion
+		white();
+		if (!ch)
+			continue; // Try again
 
-    if (amatch ("#ifdef")) {
-      ++iflevel;
-      if (!skiplevel) {
-        white ();
-        if (!dohash (lptr, &sname))
-          error ("identifier expected");
-        else if (!findmac (sname))
-          skiplevel = iflevel;
-      }
-    } else if (amatch("#ifndef")) {
-      ++iflevel;
-      if (!skiplevel) {
-        white ();
-        if (!dohash (lptr, &sname))
-          error ("identifier expected");
-        else if (findmac (sname))
-          skiplevel = iflevel;
-      }
-    } else if (amatch("#else")) {
-      if (iflevel) {
-        if (skiplevel == iflevel)
-          skiplevel = 0;
-        else if (!skiplevel)
-          skiplevel = iflevel;
-      } else 
-        error("no matching #if...");
-    } else if (amatch("#endif")) {
-      if (iflevel) {
-        if (skiplevel == iflevel)
-          skiplevel = 0;
-        --iflevel;
-      } else
-        error("no matching #if...");
-    } else if (!skiplevel)
-      return 0; // Process this line
-  }
+		if (amatch("#ifdef")) {
+			++iflevel;
+			if (!skiplevel) {
+				white();
+				if (!dohash(lptr, &sname))
+					error("identifier expected");
+				else if (!findmac(sname))
+					skiplevel = iflevel;
+			}
+		} else if (amatch("#ifndef")) {
+			++iflevel;
+			if (!skiplevel) {
+				white();
+				if (!dohash(lptr, &sname))
+					error("identifier expected");
+				else if (findmac(sname))
+					skiplevel = iflevel;
+			}
+		} else if (amatch("#else")) {
+			if (iflevel) {
+				if (skiplevel == iflevel)
+					skiplevel = 0;
+				else if (!skiplevel)
+					skiplevel = iflevel;
+			} else
+				error("no matching #if...");
+		} else if (amatch("#endif")) {
+			if (iflevel) {
+				if (skiplevel == iflevel)
+					skiplevel = 0;
+				--iflevel;
+			} else
+				error("no matching #if...");
+		} else if (!skiplevel)
+			return 0; // Process this line
+	}
 }
 
-preprocess ()
-{
-register char *optr, *cptr;
-register int i, len;
-int *mptr;
-int sname;
+preprocess() {
+	register char *optr, *cptr;
+	register int i, len;
+	int *mptr;
+	int sname;
 
-  if (ccode) {
-    ifline ();
-    if (!inphdl)
-      return 0;
-  } else {
-    readline ();
-    return 0;
-  }
+	if (ccode) {
+		ifline();
+		if (!inphdl)
+			return 0;
+	} else {
+		readline();
+		return 0;
+	}
 
-  // Now expand current line
-  pinx = 0;
-  while (ch) {
-    if (ch <= ' ') {
-      keepch (' ');
-      while (ch && (ch <= ' '))
-        gch ();
-    } else if (ch == '"') {
-      keepch (gch ());
-      while (ch != '"') {
-        if (ch == '\\') {
-          keepch (gch());
-          keepch (gch());
-        } else if (!ch) {
-          error ("no quote");
-          break;
-        } else 
-          keepch (gch());
-      }
-      keepch ('\"');
-      gch ();
-    } else if (ch == '\'') {
-      keepch (gch ());
-      while (ch != '\'') {
-        if (ch == '\\') {
-          keepch (gch());
-          keepch (gch());
-        } else if (!ch) {
-          error ("no apostrophe");
-          break;
-        } else 
-          keepch (gch());
-      }
-      keepch ('\'');
-      gch ();
-    } else if ((ch == '/') && (nch == '*')) {
-      bump (2);
-      while ((ch != '*') || (nch != '/')) { 
-        if (ch)
-          bump (1);
-        else {
-          readline ();
-          if (!inphdl)
-            break;
-        }
-      }
-      bump (2);
+	// Now expand current line
+	pinx = 0;
+	while (ch) {
+		if (ch <= ' ') {
+			keepch(' ');
+			while (ch && (ch <= ' '))
+				gch();
+		} else if (ch == '"') {
+			keepch(gch());
+			while (ch != '"') {
+				if (ch == '\\') {
+					keepch(gch());
+					keepch(gch());
+				} else if (!ch) {
+					error("no quote");
+					break;
+				} else
+					keepch(gch());
+			}
+			keepch('\"');
+			gch();
+		} else if (ch == '\'') {
+			keepch(gch());
+			while (ch != '\'') {
+				if (ch == '\\') {
+					keepch(gch());
+					keepch(gch());
+				} else if (!ch) {
+					error("no apostrophe");
+					break;
+				} else
+					keepch(gch());
+			}
+			keepch('\'');
+			gch();
+		} else if ((ch == '/') && (nch == '*')) {
+			bump(2);
+			while ((ch != '*') || (nch != '/')) {
+				if (ch)
+					bump(1);
+				else {
+					readline();
+					if (!inphdl)
+						break;
+				}
+			}
+			bump(2);
 
-    } else if ((ch == '/') && (nch == '/')) {
-    	    // double-slash comment. Erase until end-of-line.
-    	    kill();
-    } else if (len = dohash(lptr, &sname)) {
-       if (mptr = findmac (sname)) {
-         cptr = mptr[MEXPAND];
-         while (i = *cptr++)
-           keepch (i);
-         bump (len);
-       } else {
-         while (len--)
-           keepch (gch ());
-       }
-    } else
-      keepch (gch ());
-  }
+		} else if ((ch == '/') && (nch == '/')) {
+			// double-slash comment. Erase until end-of-line.
+			kill();
+		} else if (len = dohash(lptr, &sname)) {
+			if (mptr = findmac(sname)) {
+				cptr = mptr[MEXPAND];
+				while (i = *cptr++)
+					keepch(i);
+				bump(len);
+			} else {
+				while (len--)
+					keepch(gch());
+			}
+		} else
+			keepch(gch());
+	}
 
-  // make line available
-  keepch (0);
-  if (pinx == PBUFMAX)
-    error("line too long");
-  line = pbuf;
-  bump (0);
+	// make line available
+	keepch(0);
+	if (pinx == PBUFMAX)
+		error("line too long");
+	line = pbuf;
+	bump(0);
 
-  // Copy line to listing
-  if (maklis) {
-    int len;
-    len = strlen(line);
-    while (len && line[len-1] <= ' ')
-      len--;
-    fprintf(outhdl, "; %d %s\n", inchdl ? inclnr : inplnr, line);
-  }
+	// Copy line to listing
+	if (maklis) {
+		int len;
+		len = strlen(line);
+		while (len && line[len - 1] <= ' ')
+			len--;
+		fprintf(outhdl, "; %d %s\n", inchdl ? inclnr : inplnr, line);
+	}
 }
- 
+
 //*
 //*
 //* Converts and Matches
@@ -526,167 +510,155 @@ int sname;
 /* 
  * Skip all spaces in current line
  */
-white ()
-{
-  while (ch && (ch <= ' '))
-    gch ();
+white() {
+	while (ch && (ch <= ' '))
+		gch();
 }
 
 /* 
  * Skip all spaces until next non-space
  */
-blanks ()
-{
-  while (ch <= ' ')
-    if (!ch) {
-      if (!inphdl)
-        break;
-      else
-        preprocess ();
-    } else
-      gch ();
+blanks() {
+	while (ch <= ' ')
+		if (!ch) {
+			if (!inphdl)
+				break;
+			else
+				preprocess();
+		} else
+			gch();
 }
 
 /*
  * Convert a character to uppercase
  */
-toupper (register int c)
-{
-  return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
+toupper(register int c) {
+	return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
 }
 
 /*
  * Return 'true' if c is a decimal digit
  */
-isdigit (register int c)
-{
-  return ((c >= '0') && (c <= '9'));
+isdigit(register int c) {
+	return ((c >= '0') && (c <= '9'));
 }
 
 /*
  * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
  */
-isxdigit (register int c)
-{
-  return  ( ((c >= '0') && (c <= '9')) ||
-            ((c >= 'a') && (c <= 'f')) ||
-            ((c >= 'A') && (c <= 'F')) );
+isxdigit(register int c) {
+	return (((c >= '0') && (c <= '9')) ||
+		((c >= 'a') && (c <= 'f')) ||
+		((c >= 'A') && (c <= 'F')));
 }
 
 /*
  * Return 'true' if c is alphanumeric
  */
-an (register int c)
-{
-  return  ( ((c >= 'a') && (c <= 'z')) ||
-            ((c >= 'A') && (c <= 'Z')) ||
-            ((c >= '0') && (c <= '9')) ||
-            (c == '_')                 );
+an(register int c) {
+	return (((c >= 'a') && (c <= 'z')) ||
+		((c >= 'A') && (c <= 'Z')) ||
+		((c >= '0') && (c <= '9')) ||
+		(c == '_'));
 }
 
 /*
  * Return 'true' if c is alphabetic
  */
-alpha (register int c)
-{
-  return  ( ((c >= 'a') && (c <= 'z')) ||
-            ((c >= 'A') && (c <= 'Z')) ||
-            (c == '_')                 );
+alpha(register int c) {
+	return (((c >= 'a') && (c <= 'z')) ||
+		((c >= 'A') && (c <= 'Z')) ||
+		(c == '_'));
 }
 
 /*
  * Return 'index' if both strings match
  */
-streq (register char *str1, register char *str2)
-{
-register int i;
+streq(register char *str1, register char *str2) {
+	register int i;
 
-  i=0;
-  while (str2[i]) {
-    if (str1[i] != str2[i])
-      return 0;
-    i++;
-  }
-  return i;
+	i = 0;
+	while (str2[i]) {
+		if (str1[i] != str2[i])
+			return 0;
+		i++;
+	}
+	return i;
 }
 
 /*
  * Return 'index' if str2 matches alphanumeric token str1
  */
-astreq (register char *str1, register char *str2)
-{
-register int i;
+astreq(register char *str1, register char *str2) {
+	register int i;
 
-  i=0;
-  while (str2[i]) {
-    if (str1[i] != str2[i])
-      return 0;
-    i++;
-  }
-  if (an (str1[i]))
-     return 0;
-  return i;
+	i = 0;
+	while (str2[i]) {
+		if (str1[i] != str2[i])
+			return 0;
+		i++;
+	}
+	if (an(str1[i]))
+		return 0;
+	return i;
 }
 
 /*
  * Return 'index' if start next token equals 'lit'
  */
-match (char *lit)
-{
-register int i;
+match(char *lit) {
+	register int i;
 
-  if (lptr[0] <= ' ')
-    blanks ();
-  if (i=streq (lptr, lit)) {
-    bump (i);
-    return 1;
-  }
-  return 0;
+	if (lptr[0] <= ' ')
+		blanks();
+	if (i = streq(lptr, lit)) {
+		bump(i);
+		return 1;
+	}
+	return 0;
 }
 
 /*
  * Return 'index' if next token equals 'lit'
  */
-amatch (char *lit)
-{
-register int i;
+amatch(char *lit) {
+	register int i;
 
-  if (lptr[0] <= ' ')
-    blanks ();
-  if (i=astreq (lptr, lit)) {
-    bump (i);
-    return 1;
-  }
-  return 0;
+	if (lptr[0] <= ' ')
+		blanks();
+	if (i = astreq(lptr, lit)) {
+		bump(i);
+		return 1;
+	}
+	return 0;
 }
 
 /*
  * Return 'true' if next operator equals 'lit'
  */
-omatch (register char *lit)
-{
-  if (lptr[0] <= ' ')
-    blanks();
-  if (lptr[0] != lit[0])
-    return 0;
-  if (!lit[1]) {
-    if ((lptr[1] == '=') || (lptr[1] == lptr[0]))
-      return 0;
-    bump(1);
-  } else {
-    if (lptr[1] != lit[1])
-      return 0;
-    if (!lit[2]) {
-      if (lptr[2] == '=')
-        return 0;
-      bump(2);
-    } else {
-      if (lptr[2] != lit[2])
-        return 0;
-      bump(3);
-    }
-  }
-  return 1;
+omatch(register char *lit) {
+	if (lptr[0] <= ' ')
+		blanks();
+	if (lptr[0] != lit[0])
+		return 0;
+	if (!lit[1]) {
+		if ((lptr[1] == '=') || (lptr[1] == lptr[0]))
+			return 0;
+		bump(1);
+	} else {
+		if (lptr[1] != lit[1])
+			return 0;
+		if (!lit[2]) {
+			if (lptr[2] == '=')
+				return 0;
+			bump(2);
+		} else {
+			if (lptr[2] != lit[2])
+				return 0;
+			bump(3);
+		}
+	}
+	return 1;
 }
 
 //*
@@ -698,104 +670,92 @@ omatch (register char *lit)
 /*
  * Generate error messages
  */
-warning(char *msg)
-{
-if (inchdl)
-printf ("'%s' ", incfn);
+warning(char *msg) {
+	if (inchdl)
+		printf("'%s' ", incfn);
 // Display original line
-printf ("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
-fprintf (outhdl, ";%% %s\n", msg);
+	printf("%d: %s\n%%%s\n", inchdl ? inclnr : inplnr, sbuf, msg);
+	fprintf(outhdl, ";%% %s\n", msg);
 }
 
-error(char *msg)
-{
-warning(msg);
-errflag = 1;
+error(char *msg) {
+	warning(msg);
+	errflag = 1;
 }
 
-fatal (char *msg)
-{
-error (msg);
-exit (1);
+fatal(char *msg) {
+	error(msg);
+	exit(1);
 }
 
-exprerr ()
-{
-  error ("Invalid expression");
-  gencode (_ILLEGAL);
-  junk ();
+exprerr() {
+	error("Invalid expression");
+	gencode(_ILLEGAL);
+	junk();
 }
 
-needlval ()
-{
-  error("must be lvalue");
- gencode (_ILLEGAL);
-}
- 
-illname ()
-{
-  error ("illegal symbol name");
-  junk ();
-}
- 
-multidef ()
-{
-  error ("identifier already defined");
+needlval() {
+	error("must be lvalue");
+	gencode(_ILLEGAL);
 }
 
-undef ()
-{
-  error ("identifier undefined");
+illname() {
+	error("illegal symbol name");
+	junk();
 }
 
-needtoken(char *str)
-{
-char txt[32], *p1, *p2;
+multidef() {
+	error("identifier already defined");
+}
 
-  if (!match (str)) {
-    p1 = txt; 
-    p2 = "Expected "; 
-    while (*p1++ = *p2++) ;
-    --p1; // Overwrite terminator
-    while (*p1++ = *str++) ;
-    error(txt);
-  }
+undef() {
+	error("identifier undefined");
+}
+
+needtoken(char *str) {
+	char txt[32], *p1, *p2;
+
+	if (!match(str)) {
+		p1 = txt;
+		p2 = "Expected ";
+		while (*p1++ = *p2++);
+		--p1; // Overwrite terminator
+		while (*p1++ = *str++);
+		error(txt);
+	}
 }
 
 /*
  * Skip current symbol
  */
-junk ()
-{
-  if (an (ch)) {
-    while (ch && an (ch))
-      gch ();
-  } else {
-    while (ch && !an (ch))
-      gch ();
-  }
-  blanks ();
+junk() {
+	if (an(ch)) {
+		while (ch && an(ch))
+			gch();
+	} else {
+		while (ch && !an(ch))
+			gch();
+	}
+	blanks();
 }
 
 /*
  * Test for end-of-statement or end-of-file
  */
-endst ()
-{
-  blanks ();
-  return (!ch || (ch == ';'));
+endst() {
+	blanks();
+	return (!ch || (ch == ';'));
 }
 
 /*
  * semicolon enforcer
  */
-ns ()
-{
-  if (!match(";")) {
-    error ("no semicolon");
-    junk();
-  } else 
-    errflag = 0;
+ns() {
+	if (!match(";")) {
+		error("no semicolon");
+		junk();
+	} else
+		errflag = 0;
 }
 
 //*
@@ -807,33 +767,33 @@ ns ()
 /*
  * Execution starts here
  */
-main (int argc, int *argv)
-{
-register int i, j;
+main(int argc, int *argv) {
+	register int i, j;
 
-  initialize (); // initialize all variables
-  
-  startup (argv);       // Process commandline options
-  openfile ();          // Open all files
-  preprocess ();        // fetch first line
-  toseg (CODESEG);      // setup initial segment //
-  parse ();             // GO !!!
-  if (iflevel)
-   error ("no closing #endif");
-  if (!ccode)
-   error ("no closing #endasm");
-  fprintf (outhdl, "\t.END\n");
+	initialize(); // initialize all variables
 
-  j=0; for (i=0; i<NAMEMAX; i++) if (namech[i]) j++;
-  fprintf (outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
-  for (i=0; i<IDMAX && idents[i*ILAST+INAME]; i++) ;
-  fprintf (outhdl, "; Identifiers  : %5d/%5d\n", i, IDMAX);
-  fprintf (outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
-  fprintf (outhdl, "; Local labels : %5d\n", nxtlabel);
-    for (i=1; (i<SWMAX) && sw[i*SLAST+SLABEL]; i++) ;
-  fprintf (outhdl, "; Switch cases : %5d/%5d\n", i-1, SWMAX);
+	startup(argv);       // Process commandline options
+	openfile();          // Open all files
+	preprocess();        // fetch first line
+	toseg(CODESEG);      // setup initial segment //
+	parse();             // GO !!!
+	if (iflevel)
+		error("no closing #endif");
+	if (!ccode)
+		error("no closing #endasm");
+	fprintf(outhdl, "\t.END\n");
 
-  return errflag;
+	j = 0;
+	for (i = 0; i < NAMEMAX; i++) if (namech[i]) j++;
+	fprintf(outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
+	for (i = 0; i < IDMAX && idents[i * ILAST + INAME]; i++);
+	fprintf(outhdl, "; Identifiers  : %5d/%5d\n", i, IDMAX);
+	fprintf(outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
+	fprintf(outhdl, "; Local labels : %5d\n", nxtlabel);
+	for (i = 1; (i < SWMAX) && sw[i * SLAST + SLABEL]; i++);
+	fprintf(outhdl, "; Switch cases : %5d/%5d\n", i - 1, SWMAX);
+
+	return errflag;
 }
 
 //*
@@ -845,159 +805,83 @@ register int i, j;
 /*
  * Generate a assembler statement
  */
-genopc(int opc)
-{
-  switch(opc) {
-    case _ILLEGAL:
-      fprintf (outhdl, "\tILLEGAL\t");
-      break;
-    case _ADD:
-      fprintf (outhdl, "\tADD\t");
-      break;
-    case _SUB:
-      fprintf (outhdl, "\tSUB\t");
-      break;
-    case _MUL:
-      fprintf (outhdl, "\tMUL\t");
-      break;
-    case _DIV:
-      fprintf (outhdl, "\tDIV\t");
-      break;
-    case _MOD:
-      fprintf (outhdl, "\tMOD\t");
-      break;
-    case _BOR :
-      fprintf (outhdl, "\tOR\t");
-      break;
-    case _XOR:
-      fprintf (outhdl, "\tXOR\t");
-      break;
-    case _BAND:
-      fprintf (outhdl, "\tAND\t");
-      break;
-    case _LSR:
-      fprintf (outhdl, "\tLSR\t");
-      break;
-    case _LSL:
-      fprintf (outhdl, "\tLSL\t");
-      break;
-    case _NEG:
-      fprintf (outhdl, "\tNEG\t");
-      break;
-    case _NOT:
-      fprintf (outhdl, "\tNOT\t");
-      break;
-    case _EQ :
-      fprintf (outhdl, "\tBEQ\t");
-      break;
-    case _NE :
-      fprintf (outhdl, "\tBNE\t");
-      break;
-    case _LT :
-      fprintf (outhdl, "\tBLT\t");
-      break;
-    case _LE :
-      fprintf (outhdl, "\tBLE\t");
-      break;
-    case _GT :
-      fprintf (outhdl, "\tBGT\t");
-      break;
-    case _GE :
-      fprintf (outhdl, "\tBGE\t");
-      break;
-    case _LODB:
-      fprintf (outhdl, "\tLDB\t");
-      break;
-    case _LODW:
-      fprintf (outhdl, "\tLDW\t");
-      break;
-    case _LODR:
-      fprintf (outhdl, "\tLDR\t");
-      break;
-    case _LEA:
-      fprintf (outhdl, "\tLDA\t");
-      break;
-    case _CMP:
-      fprintf (outhdl, "\tCMP\t");
-      break;
-    case _TST:
-      fprintf (outhdl, "\tTST\t");
-      break;
-    case _STOB:
-      fprintf (outhdl, "\tSTB\t");
-      break;
-    case _STOW:
-      fprintf (outhdl, "\tSTW\t");
-      break;
-    case _JMP:
-      fprintf (outhdl, "\tJMP\t");
-      break;
-    case _JSB:
-      fprintf (outhdl, "\tJSB\t");
-      break;
-    case _RSB:
-      fprintf (outhdl, "\tRSB\t");
-      break;
-    case _PSHB:
-      fprintf (outhdl, "\tPSHB\t");
-      break;
-    case _PSHW:
-      fprintf (outhdl, "\tPSHW\t");
-      break;
-    case _PSHA:
-      fprintf (outhdl, "\tPSHA\t");
-      break;
-    case _PSHR:
-      fprintf (outhdl, "\tPSHR\t");
-      break;
-    case _POPR:
-      fprintf (outhdl, "\tPOPR\t");
-      break;
-    default:
-      fprintf (outhdl, "\tOPC_%d\t", opc);
-      break;
-  }
+genopc(int opc) {
+	switch (opc) {
+	case _ILLEGAL: fprintf(outhdl, "\tILLEGAL\t"); break;
+	case _ADD : fprintf(outhdl, "\tADD\t"); break;
+	case _SUB : fprintf(outhdl, "\tSUB\t"); break;
+	case _MUL : fprintf(outhdl, "\tMUL\t"); break;
+	case _DIV : fprintf(outhdl, "\tDIV\t"); break;
+	case _MOD : fprintf(outhdl, "\tMOD\t"); break;
+	case _BOR : fprintf(outhdl, "\tOR\t"); break;
+	case _XOR : fprintf(outhdl, "\tXOR\t"); break;
+	case _BAND: fprintf(outhdl, "\tAND\t"); break;
+	case _LSR : fprintf(outhdl, "\tLSR\t"); break;
+	case _LSL : fprintf(outhdl, "\tLSL\t"); break;
+	case _NEG : fprintf(outhdl, "\tNEG\t"); break;
+	case _NOT : fprintf(outhdl, "\tNOT\t"); break;
+	case _EQ  : fprintf(outhdl, "\tBEQ\t"); break;
+	case _NE  : fprintf(outhdl, "\tBNE\t"); break;
+	case _LT  : fprintf(outhdl, "\tBLT\t"); break;
+	case _LE  : fprintf(outhdl, "\tBLE\t"); break;
+	case _GT  : fprintf(outhdl, "\tBGT\t"); break;
+	case _GE  : fprintf(outhdl, "\tBGE\t"); break;
+	case _LODB: fprintf(outhdl, "\tLDB\t"); break;
+	case _LODW: fprintf(outhdl, "\tLDW\t"); break;
+	case _LODR: fprintf(outhdl, "\tLDR\t"); break;
+	case _LEA : fprintf(outhdl, "\tLDA\t"); break;
+	case _CMP : fprintf(outhdl, "\tCMP\t"); break;
+	case _TST : fprintf(outhdl, "\tTST\t"); break;
+	case _STOB: fprintf(outhdl, "\tSTB\t"); break;
+	case _STOW: fprintf(outhdl, "\tSTW\t"); break;
+	case _JMP : fprintf(outhdl, "\tJMP\t"); break;
+	case _JSB : fprintf(outhdl, "\tJSB\t"); break;
+	case _RSB : fprintf(outhdl, "\tRSB\t"); break;
+	case _PSHB: fprintf(outhdl, "\tPSHB\t"); break;
+	case _PSHW: fprintf(outhdl, "\tPSHW\t"); break;
+	case _PSHA: fprintf(outhdl, "\tPSHA\t"); break;
+	case _PSHR: fprintf(outhdl, "\tPSHR\t"); break;
+	case _POPR: fprintf(outhdl, "\tPOPR\t"); break;
+	default:
+		fprintf(outhdl, "\tOPC_%d\t", opc);
+		break;
+	}
 }
 
-gencode (int opc)
-{
-  genopc(opc);
+gencode(int opc) {
+	genopc(opc);
 
-  fprintf (outhdl, "\n");
+	fprintf(outhdl, "\n");
 }
 
-gencode_L (int opc, int lbl)
-{
-  genopc(opc);
+gencode_L(int opc, int lbl) {
+	genopc(opc);
 
-  fprintf (outhdl, "_%d\n", lbl);
+	fprintf(outhdl, "_%d\n", lbl);
 }
 
-gencode_R (int opc, int reg1, int reg2)
-{
-  genopc(opc);
+gencode_R(int opc, int reg1, int reg2) {
+	genopc(opc);
 
-  if (reg1)
-    fprintf(outhdl, "R%d,", reg1);
-  fprintf (outhdl, "R%d\n", reg2);
+	if (reg1)
+		fprintf(outhdl, "R%d,", reg1);
+	fprintf(outhdl, "R%d\n", reg2);
 }
 
-gencode_I (int opc, int reg, int imm)
-{
-  // sign extend
-  imm |= -(imm & (1<<SBIT));
+gencode_I(int opc, int reg, int imm) {
+	// sign extend
+	imm |= -(imm & (1 << SBIT));
 
-  genopc(opc);
+	genopc(opc);
 
-  if (reg)
-    fprintf(outhdl, "R%d,", reg);
-  fprintf (outhdl, "%d\n", imm);
+	if (reg)
+		fprintf(outhdl, "R%d,", reg);
+	fprintf(outhdl, "%d\n", imm);
 }
 
-gencode_ADJSP (int imm)
-{
-  // sign extend
-  imm |= -(imm & (1<<SBIT));
+gencode_ADJSP(int imm) {
+	// sign extend
+	imm |= -(imm & (1 << SBIT));
 
 	if (imm == BPW)
 		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
@@ -1007,78 +891,75 @@ gencode_ADJSP (int imm)
 		int reg;
 		reg = allocreg();
 		fprintf(outhdl, "\tLDA\tR%d,%d\n", reg, imm);
-		fprintf(outhdl,"\tADD\tR%d,R%d\n", REG_SP, reg);
+		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, reg);
 		freereg(reg);
 	}
 }
 
-gencode_IND(int opc, int reg, int ofs, int ind)
-{
-  // sign extend
-  ofs |= -(ofs & (1<<SBIT));
+gencode_IND(int opc, int reg, int ofs, int ind) {
+	// sign extend
+	ofs |= -(ofs & (1 << SBIT));
 
-        genopc(opc);
+	genopc(opc);
 
-        if (reg)
-                fprintf(outhdl, "R%d,", reg);
-        if (ofs)
-                fprintf(outhdl, "%d", ofs);
-        fprintf(outhdl, "(R%d)\n", ind);
+	if (reg)
+		fprintf(outhdl, "R%d,", reg);
+	if (ofs)
+		fprintf(outhdl, "%d", ofs);
+	fprintf(outhdl, "(R%d)\n", ind);
 }
 
-gencode_M (int opc, int reg, register int lval[])
-{
-  genopc(opc);
+gencode_M(int opc, int reg, register int lval[]) {
+	genopc(opc);
 
-  if (reg)
-    fprintf(outhdl, "R%d,", reg);
+	if (reg)
+		fprintf(outhdl, "R%d,", reg);
 
-  // apply any stack ajustments
-  if ((lval[LREG1] == REG_SP) || (lval[LREG2] == REG_SP))
-    lval[LVALUE] = lval[LVALUE] - csp;
+	// apply any stack ajustments
+	if ((lval[LREG1] == REG_SP) || (lval[LREG2] == REG_SP))
+		lval[LVALUE] = lval[LVALUE] - csp;
 
-  if (lval[LNAME]) {
-    if (lval[LTYPE] == LABEL)
-      fprintf (outhdl, "_%d", lval[LNAME]);
-    else {
-      fprintf (outhdl, "_");
-      symname (lval[LNAME]);
-    }
-  }
+	if (lval[LNAME]) {
+		if (lval[LTYPE] == LABEL)
+			fprintf(outhdl, "_%d", lval[LNAME]);
+		else {
+			fprintf(outhdl, "_");
+			symname(lval[LNAME]);
+		}
+	}
 
-  // sign extend
-  int ofs;
-  ofs = lval[LVALUE] | -(lval[LVALUE] & (1<<SBIT));
+	// sign extend
+	int ofs;
+	ofs = lval[LVALUE] | -(lval[LVALUE] & (1 << SBIT));
 
-  if (lval[LVALUE] > 0)
-    fprintf (outhdl, "+%d", ofs);
-  else if (lval[LVALUE] < 0)
-    fprintf (outhdl, "%d", ofs);
-  if (lval[LREG1]) {
-    fprintf (outhdl, "(R%d", lval[LREG1]);
-    if (lval[LREG2])
-      fprintf (outhdl, ",R%d", lval[LREG2]);
-    fprintf (outhdl, ")");
-  }
+	if (lval[LVALUE] > 0)
+		fprintf(outhdl, "+%d", ofs);
+	else if (lval[LVALUE] < 0)
+		fprintf(outhdl, "%d", ofs);
+	if (lval[LREG1]) {
+		fprintf(outhdl, "(R%d", lval[LREG1]);
+		if (lval[LREG2])
+			fprintf(outhdl, ",R%d", lval[LREG2]);
+		fprintf(outhdl, ")");
+	}
 
-  fprintf (outhdl, "\n");
+	fprintf(outhdl, "\n");
 }
 
 /*
  * change to a new segment
  * may be called with NULL, CODESEG, or DATASEG
  */
-toseg (register int newseg)
-{
-  prevseg = currseg;
-  if (currseg == newseg)
-    return 0;
-  if (newseg == CODESEG)
-    fprintf (outhdl, "\t.CODE\n");
-  else if (newseg == DATASEG)
-    fprintf (outhdl, "\t.DATA\n");
-  else if (newseg == UDEFSEG)
-    fprintf (outhdl, "\t.UDEF\n");
-  currseg = newseg;
+toseg(register int newseg) {
+	prevseg = currseg;
+	if (currseg == newseg)
+		return 0;
+	if (newseg == CODESEG)
+		fprintf(outhdl, "\t.CODE\n");
+	else if (newseg == DATASEG)
+		fprintf(outhdl, "\t.DATA\n");
+	else if (newseg == UDEFSEG)
+		fprintf(outhdl, "\t.UDEF\n");
+	currseg = newseg;
 }
 

@@ -37,13 +37,13 @@
 // #define DYNAMIC		// allocate memory dynamically
 
 enum {
-	NAMEMAX = 2003,         // Size of nametable !!! MUST BE PRIME !!!
-	PBUFMAX = 512,          // Size of preprocessor buffer
-	SBUFMAX = 256,          // Size of source buffer
-	MACMAX = 300,           // Number of definable macro's
-	MACQMAX = MACMAX * 7,   // Expansiontable for macro's
-	PATHMAX = 80,           // Length of filename
-	LITMAX = 1500,          // Literal pool
+	NAMEMAX = 2003,		// Size of nametable !!! MUST BE PRIME !!!
+	PBUFMAX = 512,		// Size of preprocessor buffer
+	SBUFMAX = 256,		// Size of source buffer
+	MACMAX = 300,		// Number of definable macro's
+	MACQMAX = MACMAX * 7,	// Expansiontable for macro's
+	PATHMAX = 80,		// Length of filename
+	LITMAX = 1500,		// Literal pool
 };
 
 /*
@@ -51,8 +51,8 @@ enum {
  */
 
 enum {
-	BPW = 2,                // Bytes per word
-	SBIT = 15,              // Bit number of signed bit
+	BPW = 2,		// Bytes per word
+	SBIT = 15,		// Bit number of signed bit
 };
 
 /* 
@@ -237,59 +237,59 @@ enum {
  * Storage
  */
 
-EXTERN int 
+EXTERN int
 
 #ifdef DYNAMIC
-  *name,		/* Nametable */
-  *mac,			/* Macro entries */
-  *litq,		/* Literal pool */
+*name,		/* Nametable */
+*mac,			/* Macro entries */
+*litq,		/* Literal pool */
 #else
-  name[NAMEMAX*NLAST],
-  mac[MACMAX*MLAST], 
-  litq[LITMAX],
+	name[NAMEMAX * NLAST],
+	mac[MACMAX * MLAST],
+	litq[LITMAX],
 #endif
 
-  datlen,		// length of data in datbuf
-  hier_str[20],		// Array containing hierarchical operators
-  hier_oper[20],	// Internal translation of the above
-  pass,			// Pass number
-  curseg,		// Current segment
-  curpos[4],maxpos[4],	// Position in segment
-  inplnr,		// Linenumber of .C file
-  inclnr,		// Linenumber of .H file
-  macinx,		// Next free entry in mac
-  macqinx,		// Next free entry in macq
-  pinx,			// Position in preprocessor buffer
-  iflevel,		// #if nesting level
-  skiplevel,		// level at which #if skipping starts
-  errflag,		// True if an error has occurred
-  undef,		// Auto-external -u specified
-  verbose,		// Verbose -v specified
-  debug,		// Debug   -d specified
-  outhdl,		// handle for .OBJ file
-  lishdl, 		// handle for .LIS file
-  inphdl,		// handle for .ASM file
-  inchdl,		// handle for .H   file
-  litinx;		// Index to next entry
+	datlen,			// length of data in datbuf
+	hier_str[20],		// Array containing hierarchical operators
+	hier_oper[20],		// Internal translation of the above
+	pass,			// Pass number
+	curseg,			// Current segment
+	curpos[4], maxpos[4],	// Position in segment
+	inplnr,			// Linenumber of .C file
+	inclnr,			// Linenumber of .H file
+	macinx,			// Next free entry in mac
+	macqinx,		// Next free entry in macq
+	pinx,			// Position in preprocessor buffer
+	iflevel,		// #if nesting level
+	skiplevel,		// level at which #if skipping starts
+	errflag,		// True if an error has occurred
+	undef,			// Auto-external -u specified
+	verbose,		// Verbose -v specified
+	debug,			// Debug   -d specified
+	outhdl,			// handle for .OBJ file
+	lishdl,			// handle for .LIS file
+	inphdl,			// handle for .ASM file
+	inchdl,			// handle for .H   file
+	litinx;			// Index to next entry
 
-EXTERN char 
+EXTERN char
 
 #ifdef DYNAMIC
-  *sbuf,		/* Source buffer */
-  *pbuf,		/* Preprocessor buffer */
-  *macq,		/* Macro string buffer */
+*sbuf,		/* Source buffer */
+*pbuf,		/* Preprocessor buffer */
+*macq,		/* Macro string buffer */
 #else
-  sbuf[SBUFMAX],
-  pbuf[PBUFMAX],
-  macq[MACQMAX],
+	sbuf[SBUFMAX],
+	pbuf[PBUFMAX],
+	macq[MACQMAX],
 #endif
 
-  datbuf[128],		// storage buffer for sto_data
-  inpfn[PATHMAX],	// input filename
-  incfn[PATHMAX],	// include filename
-  outfn[PATHMAX],	// output filename
-  lisfn[PATHMAX],	// listing filename
-  *line,		// Pointer to current input buffer
-  *lptr,		// Pointer to current character in input buffer
-  ch,			// Current character in line being scanned
-  nch;			// Next character in line being scanned
+	datbuf[128],		// storage buffer for sto_data
+	inpfn[PATHMAX],		// input filename
+	incfn[PATHMAX],		// include filename
+	outfn[PATHMAX],		// output filename
+	lisfn[PATHMAX],		// listing filename
+	*line,			// Pointer to current input buffer
+	*lptr,			// Pointer to current character in input buffer
+	ch,			// Current character in line being scanned
+	nch;			// Next character in line being scanned

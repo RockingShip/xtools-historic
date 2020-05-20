@@ -25,7 +25,6 @@ MODULES = \
 	oscall.c \
 	printf.c \
 	puts.c \
-	reverse.c \
 	scanf.c \
 	strcat.c \
 	strchr.c \

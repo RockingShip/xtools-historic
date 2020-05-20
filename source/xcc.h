@@ -53,8 +53,8 @@ enum {
  */
 
 enum {
-	BPW = 2,	// Bytes per word
-	SBIT = 15,	// Bit number of signed bit
+	BPW = 2,		// Bytes per word
+	SBIT = 15,		// Bit number of signed bit
 };
 
 /*
@@ -131,9 +131,9 @@ enum {
 enum {
 	INAME = 0,
 	ITYPE,
-	IPTR ,
+	IPTR,
 	ICLASS,
-	IVALUE ,
+	IVALUE,
 	ISIZE,
 	ILAST,
 };
@@ -231,7 +231,7 @@ enum {
  * Storage
  */
 
-EXTERN int 
+EXTERN int
 
 #ifdef DYNAMIC
   *nametab,		/* Nametable */
@@ -247,36 +247,36 @@ EXTERN int
   sw[SWMAX*SLAST],
 #endif
 
-  argcid,argvid,	// hashvalues of reserved words
-  swinx,                // Position in switch table
-  csp,                  // stackpointer seen from scope coding
-  hier_str[30],		// Array containing hierarchical operators
-  hier_oper[30],	// Internal translation of the above
-  idinx,		// Next free identifier
-  inplnr,		// Linenumber of .C file
-  inclnr,		// Linenumber of .H file
-  ccode,		// True for C source, else ASM source
-  macinx,		// Next free entry in mac
-  macqinx,		// Next free entry in macq
-  pinx,			// Position in preprocessor buffer
-  iflevel,		// #if nesting level
-  skiplevel,		// level at which #if skipping starts
-  errflag,		// True if an error has occurred
-  verbose,		// Verbose -v specified
-  maklis,		// Listing -h specified
-  outhdl,		// handle for .ASM file
-  lishdl, 		// handle for .LIS file
-  inphdl,		// handle for .C file
-  inchdl,		// handle for .H file
-  reguse,		// Currently used registers
-  regsum,		// Summary of all used registers
-  reglock,		// Register locked by 'register' vars
-  nxtlabel,		// Next label number
-  currseg,		// Current output segment
-  prevseg,		// Previous output segment
-  litinx;		// Index to next entry
+	argcid, argvid,		// hashvalues of reserved words
+	swinx,			// Position in switch table
+	csp,			// stackpointer seen from scope coding
+	hier_str[30],		// Array containing hierarchical operators
+	hier_oper[30],		// Internal translation of the above
+	idinx,			// Next free identifier
+	inplnr,			// Linenumber of .C file
+	inclnr,			// Linenumber of .H file
+	ccode,			// True for C source, else ASM source
+	macinx,			// Next free entry in mac
+	macqinx,		// Next free entry in macq
+	pinx,			// Position in preprocessor buffer
+	iflevel,		// #if nesting level
+	skiplevel,		// level at which #if skipping starts
+	errflag,		// True if an error has occurred
+	verbose,		// Verbose -v specified
+	maklis,			// Listing -h specified
+	outhdl,			// handle for .ASM file
+	lishdl,			// handle for .LIS file
+	inphdl,			// handle for .C file
+	inchdl,			// handle for .H file
+	reguse,			// Currently used registers
+	regsum,			// Summary of all used registers
+	reglock,		// Register locked by 'register' vars
+	nxtlabel,		// Next label number
+	currseg,		// Current output segment
+	prevseg,		// Previous output segment
+	litinx;			// Index to next entry
 
-EXTERN char 
+EXTERN char
 
 #ifdef DYNAMIC
   *sbuf,		/* Source buffer */
@@ -290,10 +290,10 @@ EXTERN char
   macq[MACQMAX],
 #endif
 
-  inpfn[PATHMAX],	// input filename
-  incfn[PATHMAX],	// include filename
-  outfn[PATHMAX],	// output filename
-  *line,		// Pointer to current input buffer
-  *lptr,		// Pointer to current character in input buffer
-  ch,			// Current character in line being scanned
-  nch;			// Next character in line being scanned
+	inpfn[PATHMAX],		// input filename
+	incfn[PATHMAX],		// include filename
+	outfn[PATHMAX],		// output filename
+	*line,			// Pointer to current input buffer
+	*lptr,			// Pointer to current character in input buffer
+	ch,			// Current character in line being scanned
+	nch;			// Next character in line being scanned

@@ -1,6 +1,5 @@
-fgets(register char *s, register int siz, register int hdl)
-{
-char *s0;
+fgets(register char *s, register int siz, register int hdl) {
+	char *s0;
 
 	s0 = s;
 
