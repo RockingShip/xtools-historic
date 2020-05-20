@@ -1,8 +1,7 @@
 /*
 ** return 'true' if c is alphanumeric
 */
-isalnum (c)
-register int c;
+isalnum (register int c)
 {
   return ((c >= 'a' && c <= 'z') ||
           (c >=' A' && c <= 'Z') ||

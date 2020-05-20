@@ -1,9 +1,7 @@
 /*
 ** copy n characters from sour to dest (null padding)
 */
-strncpy (dest, sour, n)
-register char *dest, *sour;
-register int n;
+strncpy (register char *dest, register char *sour, register int n)
 {
 register char *d;
 

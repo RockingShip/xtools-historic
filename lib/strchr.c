@@ -1,8 +1,7 @@
 /*
 ** return pointer to 1st occurrence of c in str, else 0
 */
-strchr(str, c)
-register char *str, c;
+strchr(register char *str, register char c)
 {
   while (*str) {
     if (*str == c)

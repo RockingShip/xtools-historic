@@ -2,8 +2,7 @@
 ** concatenate t to end of s 
 ** s must be large enough
 */
-strcat(s, t)
-register char *s, *t;
+strcat(register char *s, register char *t)
 {
 register char *d;
 

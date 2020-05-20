@@ -195,6 +195,13 @@ register int *ident, i;
     if (match ("=")) {
       int lval[LLAST];
 
+      toseg (DATASEG);
+      fprintf (outhdl, "_");
+      symname (sname);
+      fprintf (outhdl, ":");
+      if (class != STATIC)
+        fprintf (outhdl, ":");
+
       // assign value to variable
       litinx = 0;
       if (!match ("{")) {

@@ -1,6 +1,4 @@
-fread (hdl, buf, len)
-int hdl, len;
-char *buf;
+fread (int hdl, char *buf, int len)
 {
 int ctrl[4];
   

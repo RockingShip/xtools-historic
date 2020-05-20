@@ -1,8 +1,7 @@
 /*
 ** copy t to s 
 */
-strcpy (s, t)
-register char *s, *t;
+strcpy (register char *s, register char *t)
 {
 register char *d;
 

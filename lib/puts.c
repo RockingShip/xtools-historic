@@ -1,5 +1,4 @@
-puts(s)
-register char *s;
+puts(register char *s)
 {
 register int ret;
 

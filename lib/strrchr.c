@@ -4,8 +4,7 @@
 ** c      = Character to search for.
 ** Returns pointer to rightmost c or NULL.
 */
-strrchr (s, c)
-register char *s, c;
+strrchr (register char *s, register char *c)
 {
 register char *ptr;
 

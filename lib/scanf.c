@@ -2,11 +2,9 @@
  * Really crappy implementation only intended to be used for cattle.c
  */
 static char lastch;
-extern stdin;
+extern int stdin;
 
-scanf(fmt, num)
-char *fmt;
-register int *num;
+scanf(char *fmt, int *num)
 {
 char ch;
 int found;

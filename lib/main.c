@@ -1,5 +1,4 @@
-__START(argc, argv)
-int argc, *argv;
+__START(int argc, int *argv)
 {
  	/* Load the special purpose registers */
 	/* r15 REG_SP  initial sp */

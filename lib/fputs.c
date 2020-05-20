@@ -1,6 +1,4 @@
-fputs(s, hdl)
-register char *s;
-register int hdl;
+fputs(register char *s, register int hdl)
 {
 char *s0;
 

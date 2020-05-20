@@ -23,11 +23,9 @@ MODULES = \
 	isxdigit.c \
 	main.c \
 	oscall.c \
-	pad.c \
 	printf.c \
 	puts.c \
 	reverse.c \
-	sign.c \
 	scanf.c \
 	strcat.c \
 	strchr.c \

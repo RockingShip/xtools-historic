@@ -2,8 +2,7 @@ int stdin = 0;
 int stdout = 1;
 int stderr = 2;
 
-osprint (str)
-char *str;
+osprint (char *str)
 {
 #asm
 	lda	r1,4(r14)
@@ -12,8 +11,7 @@ char *str;
 }
 
 /* vararg oscall */
-SVC(id)
-int id;
+SVC(int id)
 {
 int ctrl[1];
 
@@ -26,9 +24,7 @@ lbl:	svc	0
   return ctrl[0];
 }
 
-fread (buf, siz, cnt, hdl)
-char *buf;
-int siz, hdl, cnt;
+fread (char *buf, int siz, int cnt, int hdl)
 {
 int ctrl[4];
   
@@ -44,8 +40,7 @@ int ctrl[4];
   return ctrl[0];
 }
 
-fwrite (buf, siz, cnt, hdl)
-int buf, siz, cnt, hdl;
+fwrite (int buf, int siz, int cnt, int hdl)
 {
 int ctrl[4];
   
@@ -61,8 +56,7 @@ int ctrl[4];
   return ctrl[0];
 }
 
-fopen(name, mode)
-char *name, *mode;
+fopen(char *name, char *mode)
 {
 int ctrl[2];
   
@@ -76,8 +70,7 @@ int ctrl[2];
   return ctrl[0];
 }
 
-fclose(hdl)
-char hdl;
+fclose(int hdl)
 {
 int ctrl[1];
   
@@ -90,8 +83,7 @@ int ctrl[1];
   return ctrl[0];
 }
 
-fseek(hdl, pos, whence)
-int hdl, pos, whence;
+fseek(int hdl, int pos, int whence)
 {
 int ctrl[3];
   
@@ -106,8 +98,7 @@ int ctrl[3];
   return ctrl[0];
 }
 
-ftell(hdl)
-int hdl;
+ftell(int hdl)
 {
 int ctrl[1];
 
@@ -120,8 +111,7 @@ stw	r1,0(r15)
 return ctrl[0];
 }
 
-unlink(name)
-char *name;
+unlink(char *name)
 {
 int ctrl[1];
   
@@ -134,8 +124,7 @@ int ctrl[1];
   return ctrl[0];
 }
 
-rename(old, new)
-char *old, *new;
+rename(char *old, char *new)
 {
 int ctrl[2];
   
@@ -149,8 +138,7 @@ int ctrl[2];
   return ctrl[0];
 }
 
-exit(code)
-int code;
+exit(int code)
 {
 int ctrl[1];
   

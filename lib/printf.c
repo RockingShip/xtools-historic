@@ -1,8 +1,6 @@
 #define BPW 2
 
-_doprt (optr, cmd, args)
-register char *optr, *cmd;
-int *args;
+_doprt (register char *optr, register char *cmd, int *args)
 {
 register char  ch;
 register char  *nptr;
@@ -113,8 +111,7 @@ char           numbuf[32];
 
 extern int stdout;
 
-printf (anchor)
-int anchor;
+printf (int anchor)
 {
 char obuf[256];
 register char *cmd;
@@ -126,8 +123,7 @@ register int *args;
   fputs (obuf, stdout);
 }
 
-fprintf (anchor)
-int anchor;
+fprintf (int anchor)
 {
 char obuf[256];
 register char *cmd;
@@ -140,8 +136,7 @@ register int hdl, *args;
   fputs(obuf, hdl);
 }
 
-sprintf (anchor)
-int anchor;
+sprintf (int anchor)
 {
 register char *cmd, *buf;
 register int hdl, *args;

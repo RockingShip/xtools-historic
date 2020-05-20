@@ -1,8 +1,7 @@
 /*
 ** return length of s 
 */
-strlen (s)
-register char *s;
+strlen (register char *s)
 {
 register char *t;
 

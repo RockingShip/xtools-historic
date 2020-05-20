@@ -1,8 +1,7 @@
 /*
 ** reverse string in place 
 */
-reverse (s)
-register char *s;
+reverse (register char *s)
 {
 register char *j;
 register int c;
