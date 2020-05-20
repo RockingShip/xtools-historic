@@ -80,33 +80,33 @@ initialize() {
 	namech[0] = '?';
 
 	// setup array containing hieriachal operators
-	hier_str[ 0] = "||"; hier_oper[ 0] = _LOR;    // hier3
+	hier_str[ 0] = "||"; hier_oper[ 0] = OPC_OR;    // hier3
 	hier_str[ 1] = 0;
-	hier_str[ 2] = "&&"; hier_oper[ 2] = _LAND;   // hier4
+	hier_str[ 2] = "&&"; hier_oper[ 2] = OPC_AND;   // hier4
 	hier_str[ 3] = 0;
-	hier_str[ 4] = "|";  hier_oper[ 4] = _BOR;    // hier5
+	hier_str[ 4] = "|";  hier_oper[ 4] = OPC_OR;    // hier5
 	hier_str[ 5] = 0;
-	hier_str[ 6] = "^";  hier_oper[ 6] = _XOR;    // hier6
+	hier_str[ 6] = "^";  hier_oper[ 6] = OPC_XOR;    // hier6
 	hier_str[ 7] = 0;
-	hier_str[ 8] = "&";  hier_oper[ 8] = _BAND;   // hier7
+	hier_str[ 8] = "&";  hier_oper[ 8] = OPC_AND;   // hier7
 	hier_str[ 9] = 0;
-	hier_str[10] = "=="; hier_oper[10] = _EQ;     // hier8
-	hier_str[11] = "!="; hier_oper[11] = _NE;
+	hier_str[10] = "=="; hier_oper[10] = OPC_EQ;     // hier8
+	hier_str[11] = "!="; hier_oper[11] = OPC_NE;
 	hier_str[12] = 0;
-	hier_str[13] = "<="; hier_oper[13] = _LE;     // hier9
-	hier_str[14] = ">="; hier_oper[14] = _GE;
-	hier_str[15] = "<";  hier_oper[15] = _LT;
-	hier_str[16] = ">";  hier_oper[16] = _GT;
+	hier_str[13] = "<="; hier_oper[13] = OPC_LE;     // hier9
+	hier_str[14] = ">="; hier_oper[14] = OPC_GE;
+	hier_str[15] = "<";  hier_oper[15] = OPC_LT;
+	hier_str[16] = ">";  hier_oper[16] = OPC_GT;
 	hier_str[17] = 0;
-	hier_str[18] = ">>"; hier_oper[18] = _LSR;    // hier10
-	hier_str[19] = "<<"; hier_oper[19] = _LSL;
+	hier_str[18] = ">>"; hier_oper[18] = OPC_LSR;    // hier10
+	hier_str[19] = "<<"; hier_oper[19] = OPC_LSL;
 	hier_str[20] = 0;
-	hier_str[21] = "+";  hier_oper[21] = _ADD;    // hier11
-	hier_str[22] = "-";  hier_oper[22] = _SUB;
+	hier_str[21] = "+";  hier_oper[21] = OPC_ADD;    // hier11
+	hier_str[22] = "-";  hier_oper[22] = OPC_SUB;
 	hier_str[23] = 0;
-	hier_str[24] = "*";  hier_oper[24] = _MUL;    // hier12
-	hier_str[25] = "/";  hier_oper[25] = _DIV;
-	hier_str[26] = "%";  hier_oper[26] = _MOD;
+	hier_str[24] = "*";  hier_oper[24] = OPC_MUL;    // hier12
+	hier_str[25] = "/";  hier_oper[25] = OPC_DIV;
+	hier_str[26] = "%";  hier_oper[26] = OPC_MOD;
 	hier_str[27] = 0;
 
 	// reserved words
@@ -690,13 +690,13 @@ fatal(char *msg) {
 
 exprerr() {
 	error("Invalid expression");
-	gencode(_ILLEGAL);
+	gencode(OPC_ILLEGAL);
 	junk();
 }
 
 needlval() {
 	error("must be lvalue");
-	gencode(_ILLEGAL);
+	gencode(OPC_ILLEGAL);
 }
 
 illname() {
@@ -807,41 +807,41 @@ main(int argc, int *argv) {
  */
 genopc(int opc) {
 	switch (opc) {
-	case _ILLEGAL: fprintf(outhdl, "\tILLEGAL\t"); break;
-	case _ADD : fprintf(outhdl, "\tADD\t"); break;
-	case _SUB : fprintf(outhdl, "\tSUB\t"); break;
-	case _MUL : fprintf(outhdl, "\tMUL\t"); break;
-	case _DIV : fprintf(outhdl, "\tDIV\t"); break;
-	case _MOD : fprintf(outhdl, "\tMOD\t"); break;
-	case _BOR : fprintf(outhdl, "\tOR\t"); break;
-	case _XOR : fprintf(outhdl, "\tXOR\t"); break;
-	case _BAND: fprintf(outhdl, "\tAND\t"); break;
-	case _LSR : fprintf(outhdl, "\tLSR\t"); break;
-	case _LSL : fprintf(outhdl, "\tLSL\t"); break;
-	case _NEG : fprintf(outhdl, "\tNEG\t"); break;
-	case _NOT : fprintf(outhdl, "\tNOT\t"); break;
-	case _EQ  : fprintf(outhdl, "\tBEQ\t"); break;
-	case _NE  : fprintf(outhdl, "\tBNE\t"); break;
-	case _LT  : fprintf(outhdl, "\tBLT\t"); break;
-	case _LE  : fprintf(outhdl, "\tBLE\t"); break;
-	case _GT  : fprintf(outhdl, "\tBGT\t"); break;
-	case _GE  : fprintf(outhdl, "\tBGE\t"); break;
-	case _LODB: fprintf(outhdl, "\tLDB\t"); break;
-	case _LODW: fprintf(outhdl, "\tLDW\t"); break;
-	case _LODR: fprintf(outhdl, "\tLDR\t"); break;
-	case _LEA : fprintf(outhdl, "\tLDA\t"); break;
-	case _CMP : fprintf(outhdl, "\tCMP\t"); break;
-	case _TST : fprintf(outhdl, "\tTST\t"); break;
-	case _STOB: fprintf(outhdl, "\tSTB\t"); break;
-	case _STOW: fprintf(outhdl, "\tSTW\t"); break;
-	case _JMP : fprintf(outhdl, "\tJMP\t"); break;
-	case _JSB : fprintf(outhdl, "\tJSB\t"); break;
-	case _RSB : fprintf(outhdl, "\tRSB\t"); break;
-	case _PSHB: fprintf(outhdl, "\tPSHB\t"); break;
-	case _PSHW: fprintf(outhdl, "\tPSHW\t"); break;
-	case _PSHA: fprintf(outhdl, "\tPSHA\t"); break;
-	case _PSHR: fprintf(outhdl, "\tPSHR\t"); break;
-	case _POPR: fprintf(outhdl, "\tPOPR\t"); break;
+	case OPC_ILLEGAL: fprintf(outhdl, "\tILLEGAL\t"); break;
+	case OPC_ADD : fprintf(outhdl, "\tADD\t"); break;
+	case OPC_SUB : fprintf(outhdl, "\tSUB\t"); break;
+	case OPC_MUL : fprintf(outhdl, "\tMUL\t"); break;
+	case OPC_DIV : fprintf(outhdl, "\tDIV\t"); break;
+	case OPC_MOD : fprintf(outhdl, "\tMOD\t"); break;
+	case OPC_OR  : fprintf(outhdl, "\tOR\t"); break;
+	case OPC_XOR : fprintf(outhdl, "\tXOR\t"); break;
+	case OPC_AND : fprintf(outhdl, "\tAND\t"); break;
+	case OPC_LSR : fprintf(outhdl, "\tLSR\t"); break;
+	case OPC_LSL : fprintf(outhdl, "\tLSL\t"); break;
+	case OPC_NEG : fprintf(outhdl, "\tNEG\t"); break;
+	case OPC_NOT : fprintf(outhdl, "\tNOT\t"); break;
+	case OPC_EQ  : fprintf(outhdl, "\tBEQ\t"); break;
+	case OPC_NE  : fprintf(outhdl, "\tBNE\t"); break;
+	case OPC_LT  : fprintf(outhdl, "\tBLT\t"); break;
+	case OPC_LE  : fprintf(outhdl, "\tBLE\t"); break;
+	case OPC_GT  : fprintf(outhdl, "\tBGT\t"); break;
+	case OPC_GE  : fprintf(outhdl, "\tBGE\t"); break;
+	case OPC_LDB: fprintf(outhdl, "\tLDB\t"); break;
+	case OPC_LDW: fprintf(outhdl, "\tLDW\t"); break;
+	case OPC_LDR: fprintf(outhdl, "\tLDR\t"); break;
+	case OPC_LEA : fprintf(outhdl, "\tLDA\t"); break;
+	case OPC_CMP : fprintf(outhdl, "\tCMP\t"); break;
+	case OPC_TST : fprintf(outhdl, "\tTST\t"); break;
+	case OPC_STB: fprintf(outhdl, "\tSTB\t"); break;
+	case OPC_STW: fprintf(outhdl, "\tSTW\t"); break;
+	case OPC_JMP : fprintf(outhdl, "\tJMP\t"); break;
+	case OPC_JSB : fprintf(outhdl, "\tJSB\t"); break;
+	case OPC_RSB : fprintf(outhdl, "\tRSB\t"); break;
+	case OPC_PSHB: fprintf(outhdl, "\tPSHB\t"); break;
+	case OPC_PSHW: fprintf(outhdl, "\tPSHW\t"); break;
+	case OPC_PSHA: fprintf(outhdl, "\tPSHA\t"); break;
+	case OPC_PSHR: fprintf(outhdl, "\tPSHR\t"); break;
+	case OPC_POPR: fprintf(outhdl, "\tPOPR\t"); break;
 	default:
 		fprintf(outhdl, "\tOPC_%d\t", opc);
 		break;

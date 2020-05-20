@@ -199,7 +199,7 @@ do_add() {
 	error = 0;
 	objlen = 0;
 	cmd = -1;
-	while (cmd != __END) {
+	while (cmd != REL_END) {
 		cmd = read_byte();
 		if (cmd < 0) {
 			datlen = -cmd;
@@ -207,54 +207,54 @@ do_add() {
 			objlen += datlen + 1;
 		} else {
 			switch (cmd) {
-			case __ADD:
-			case __SUB:
-			case __MUL:
-			case __DIV:
-			case __MOD:
-			case __LSR:
-			case __LSL:
-			case __XOR:
-			case __AND:
-			case __OR:
-			case __NOT:
-			case __NEG:
-			case __SWAP:
-			case __POPB:
-			case __POPW:
+			case REL_ADD:
+			case REL_SUB:
+			case REL_MUL:
+			case REL_DIV:
+			case REL_MOD:
+			case REL_LSR:
+			case REL_LSL:
+			case REL_XOR:
+			case REL_AND:
+			case REL_OR:
+			case REL_NOT:
+			case REL_NEG:
+			case REL_SWAP:
+			case REL_POPB:
+			case REL_POPW:
 				objlen += 1;
 				break;
-			case __PUSHB:
-			case __CODEB:
-			case __DATAB:
-			case __UDEFB:
+			case REL_PUSHB:
+			case REL_CODEB:
+			case REL_DATAB:
+			case REL_UDEFB:
 				read_byte();
 				objlen += 2;
 				break;
-			case __PUSHW:
-			case __CODEW:
-			case __DATAW:
-			case __UDEFW:
+			case REL_PUSHW:
+			case REL_CODEW:
+			case REL_DATAW:
+			case REL_UDEFW:
 				read_word();
 				objlen += BPW + 1;
 				break;
-			case __SYMBOL:
+			case REL_SYMBOL:
 				// Push symbol value on stack
 				datlen = read_byte(); // length
 				fread(datbuf, 1, datlen, objhdl); // symbol
 				objlen += 2 + datlen;
 				break;
-			case __DSB:
+			case REL_DSB:
 				// skip specified number of bytes in current segment
 				read_word(); // skipcount
 				objlen += 1 + BPW;
 				break;
-			case __END:
+			case REL_END:
 				objlen += 1;
 				break;
-			case __CODEDEF:
-			case __DATADEF:
-			case __UDEFDEF:
+			case REL_CODEDEF:
+			case REL_DATADEF:
+			case REL_UDEFDEF:
 				// symbol definition
 				read_word(); // symbol offset
 				datlen = read_byte(); // length
@@ -278,9 +278,9 @@ do_add() {
 						printf("SYMDEF: %s\n", datbuf);
 				}
 				break;
-			case __CODEORG:
-			case __DATAORG:
-			case __UDEFORG:
+			case REL_CODEORG:
+			case REL_DATAORG:
+			case REL_UDEFORG:
 				read_word(); // segment offset
 				objlen += 1 + BPW;
 				break;

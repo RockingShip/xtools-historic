@@ -139,36 +139,36 @@ dopass1(int fileid, int libid, int libofs) {
 				fp[FUDEFPOS] += datlen;
 		} else {
 			switch (cmd) {
-				case __ADD:
-				case __SUB:
-				case __MUL:
-				case __DIV:
-				case __MOD:
-				case __LSR:
-				case __LSL:
-				case __XOR:
-				case __AND:
-				case __OR:
-				case __NOT:
-				case __NEG:
-				case __SWAP:
+				case REL_ADD:
+				case REL_SUB:
+				case REL_MUL:
+				case REL_DIV:
+				case REL_MOD:
+				case REL_LSR:
+				case REL_LSL:
+				case REL_XOR:
+				case REL_AND:
+				case REL_OR:
+				case REL_NOT:
+				case REL_NEG:
+				case REL_SWAP:
 					// skip basic stack operations
 					break;
-				case __PUSHB:
-				case __CODEB:
-				case __DATAB:
-				case __UDEFB:
+				case REL_PUSHB:
+				case REL_CODEB:
+				case REL_DATAB:
+				case REL_UDEFB:
 					// skip byte length stack operations
 					read_byte();
 					break;
-				case __PUSHW:
-				case __CODEW:
-				case __DATAW:
-				case __UDEFW:
+				case REL_PUSHW:
+				case REL_CODEW:
+				case REL_DATAW:
+				case REL_UDEFW:
 					// skip BPW length stack operations
 					read_word();
 					break;
-				case __SYMBOL:
+				case REL_SYMBOL:
 					// Push symbol value on stack
 					datlen = read_byte(); // length
 					fread(datbuf, 1, datlen, inphdl); // symbol
@@ -180,7 +180,7 @@ dopass1(int fileid, int libid, int libofs) {
 					if (debug)
 						printf("SYMBOL: %s\n", datbuf);
 					break;
-				case __POPB:
+				case REL_POPB:
 					// increase curpos with 1
 					if (curseg == CODESEG)
 						fp[FCODEPOS] += 1;
@@ -189,7 +189,7 @@ dopass1(int fileid, int libid, int libofs) {
 					else
 						fp[FUDEFPOS] += 1;
 					break;
-				case __POPW:
+				case REL_POPW:
 					// increase curpos with BPW
 					if (curseg == CODESEG)
 						fp[FCODEPOS] += BPW;
@@ -198,7 +198,7 @@ dopass1(int fileid, int libid, int libofs) {
 					else
 						fp[FUDEFPOS] += BPW;
 					break;
-				case __DSB:
+				case REL_DSB:
 					// skip specified number of bytes in current segment
 					symofs = read_word(); // skipcount
 					if (curseg == CODESEG)
@@ -208,16 +208,16 @@ dopass1(int fileid, int libid, int libofs) {
 					else
 						fp[FUDEFPOS] += symofs;
 					break;
-				case __END:
+				case REL_END:
 					savmaxseg(fp);
 					return;
-				case __CODEDEF:
-				case __DATADEF:
-				case __UDEFDEF:
+				case REL_CODEDEF:
+				case REL_DATADEF:
+				case REL_UDEFDEF:
 					// symbol definition
-					if (cmd == __CODEDEF)
+					if (cmd == REL_CODEDEF)
 						symseg = CODE;
-					else if (cmd == __DATADEF)
+					else if (cmd == REL_DATADEF)
 						symseg = DATA;
 					else
 						symseg = UDEF;
@@ -241,15 +241,15 @@ dopass1(int fileid, int libid, int libofs) {
 					if (debug)
 						printf("SYMDEF: %s %d:%d\n", datbuf, symseg, symofs);
 					break;
-				case __CODEORG:
-				case __DATAORG:
-				case __UDEFORG:
+				case REL_CODEORG:
+				case REL_DATAORG:
+				case REL_UDEFORG:
 					symofs = read_word(); // segment offset
 					savmaxseg(fp);
-					if (cmd == __CODEORG) {
+					if (cmd == REL_CODEORG) {
 						curseg = CODESEG;
 						fp[FCODEPOS] = symofs;
-					} else if (cmd == __DATAORG) {
+					} else if (cmd == REL_DATAORG) {
 						curseg = DATASEG;
 						fp[FDATAPOS] = symofs;
 					} else {
@@ -304,103 +304,103 @@ dopass2(register int *fp) {
 			}
 		} else {
 			switch (cmd) {
-				case __ADD:
-				case __SUB:
-				case __MUL:
-				case __DIV:
-				case __MOD:
-				case __LSR:
-				case __LSL:
-				case __XOR:
-				case __AND:
-				case __OR:
+				case REL_ADD:
+				case REL_SUB:
+				case REL_MUL:
+				case REL_DIV:
+				case REL_MOD:
+				case REL_LSR:
+				case REL_LSL:
+				case REL_XOR:
+				case REL_AND:
+				case REL_OR:
 					rval = stack[--stackinx];
 					lval = stack[--stackinx];
 					if (stackinx < 0) objerr(fp, "stack underflow", curseg);
 					switch (cmd) {
-						case __ADD:
+						case REL_ADD:
 							lval += rval;
 							break;
-						case __SUB:
+						case REL_SUB:
 							lval -= rval;
 							break;
-						case __MUL:
+						case REL_MUL:
 							lval *= rval;
 							break;
-						case __DIV:
+						case REL_DIV:
 							lval /= rval;
 							break;
-						case __MOD:
+						case REL_MOD:
 							lval %= rval;
 							break;
-						case __LSR:
+						case REL_LSR:
 							lval >>= rval;
 							break;
-						case __LSL:
+						case REL_LSL:
 							lval <<= rval;
 							break;
-						case __XOR:
+						case REL_XOR:
 							lval ^= rval;
 							break;
-						case __AND:
+						case REL_AND:
 							lval &= rval;
 							break;
-						case __OR:
+						case REL_OR:
 							lval |= rval;
 							break;
 					}
 					stack[stackinx++] = lval;
 					break;
-				case __NOT:
-				case __NEG:
+				case REL_NOT:
+				case REL_NEG:
 					lval = stack[--stackinx];
 					if (stackinx < 0) objerr(fp, "stack underflow", curseg);
-					if (cmd == __NOT)
+					if (cmd == REL_NOT)
 						lval = ~lval;
 					else
 						lval = -lval;
 					stack[stackinx++] = lval;
 					break;
-				case __SWAP:
+				case REL_SWAP:
 					lval = stack[--stackinx];
 					rval = stack[--stackinx];
 					if (stackinx < 0) objerr(fp, "stack underflow", curseg);
 					stack[stackinx++] = lval;
 					stack[stackinx++] = rval;
 					break;
-				case __PUSHB:
-				case __CODEB:
-				case __DATAB:
-				case __UDEFB:
+				case REL_PUSHB:
+				case REL_CODEB:
+				case REL_DATAB:
+				case REL_UDEFB:
 					val = read_byte();
-					if (cmd == __PUSHB)
+					if (cmd == REL_PUSHB)
 						stack[stackinx] = val;
-					else if (cmd == __CODEB)
+					else if (cmd == REL_CODEB)
 						stack[stackinx] = fp[FCODEBASE] + val;
-					else if (cmd == __DATAB)
+					else if (cmd == REL_DATAB)
 						stack[stackinx] = fp[FDATABASE] + val;
 					else
 						stack[stackinx] = fp[FUDEFBASE] + val;
 					stackinx += 1;
 					if (stackinx >= STACKMAX) objerr(fp, "stack overflow", curseg);
 					break;
-				case __PUSHW:
-				case __CODEW:
-				case __DATAW:
-				case __UDEFW:
+				case REL_PUSHW:
+				case REL_CODEW:
+				case REL_DATAW:
+				case REL_UDEFW:
 					val = read_word();
-					if (cmd == __PUSHW)
+					if (cmd == REL_PUSHW)
 						stack[stackinx] = val;
-					else if (cmd == __CODEW)
+					else if (cmd == REL_CODEW)
 						stack[stackinx] = fp[FCODEBASE] + val;
-					else if (cmd == __DATAW)
+					else if (cmd == REL_DATAW)
 						stack[stackinx] = fp[FDATABASE] + val;
 					else
 						stack[stackinx] = fp[FUDEFBASE] + val;
 					stackinx += 1;
 					if (stackinx >= STACKMAX) objerr(fp, "stack overflow", curseg);
 					break;
-				case __SYMBOL:
+				case REL_SYMBOL:
 					// Push symbol value on stack
 					datlen = read_byte(); // length
 					fread(datbuf, 1, datlen, inphdl); // symbol
@@ -410,7 +410,7 @@ dopass2(register int *fp) {
 					stack[stackinx++] = name[hash * NLAST + NVALUE];
 					if (stackinx >= STACKMAX) objerr(fp, "stack overflow", curseg);
 					break;
-				case __POPB:
+				case REL_POPB:
 					// pop byte from stack
 					stackinx -= 1;
 					if (stackinx < 0) objerr(fp, "stack underflow", curseg);
@@ -428,7 +428,7 @@ dopass2(register int *fp) {
 						exit(1);
 					}
 					break;
-				case __POPW:
+				case REL_POPW:
 					// pop word from stack
 					stackinx -= 1;
 					if (stackinx < 0) objerr(fp, "stack underflow", curseg);
@@ -444,7 +444,7 @@ dopass2(register int *fp) {
 						exit(1);
 					}
 					break;
-				case __DSB:
+				case REL_DSB:
 					// skip specified number of bytes in current segment
 					symofs = read_word(); // skipcount
 					if (curseg == CODESEG) {
@@ -468,29 +468,29 @@ dopass2(register int *fp) {
 						i -= 1;
 					}
 					break;
-				case __END:
+				case REL_END:
 					if (stackinx) {
 						printf("stack not properly released in %s\n", inpfn);
 						exit(1);
 					}
 					return;
-				case __CODEDEF:
-				case __DATADEF:
-				case __UDEFDEF:
+				case REL_CODEDEF:
+				case REL_DATADEF:
+				case REL_UDEFDEF:
 					// symbol definition (skipped in pass2)
 					symofs = read_word() & 0xffff; // symbol offset
 					datlen = read_byte() & 0xff; // length
 					fread(datbuf, 1, datlen, inphdl); // symbol
 					break;
-				case __CODEORG:
-				case __DATAORG:
-				case __UDEFORG:
+				case REL_CODEORG:
+				case REL_DATAORG:
+				case REL_UDEFORG:
 					symofs = read_word(); // segment offset
-					if (cmd == __CODEORG) {
+					if (cmd == REL_CODEORG) {
 						curseg = CODESEG;
 						fp[FCODEPOS] = symofs;
 						i = fp[FCODEBASE] + symofs;
-					} else if (cmd == __DATAORG) {
+					} else if (cmd == REL_DATAORG) {
 						curseg = DATASEG;
 						fp[FDATAPOS] = symofs;
 						i = fp[FDATABASE] + symofs;

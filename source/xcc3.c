@@ -45,12 +45,12 @@
  */
 negop(register int op) {
 	switch (op) {
-		case _EQ: return _NE;
-		case _NE: return _EQ;
-		case _GT: return _LE;
-		case _LT: return _GE;
-		case _GE: return _LT;
-		case _LE: return _GT;
+		case OPC_EQ: return OPC_NE;
+		case OPC_NE: return OPC_EQ;
+		case OPC_GT: return OPC_LE;
+		case OPC_LT: return OPC_GE;
+		case OPC_GE: return OPC_LT;
+		case OPC_LE: return OPC_GT;
 		default: return op; // No negation
 	}
 }
@@ -60,24 +60,22 @@ negop(register int op) {
  */
 calc(register int left, int oper, int right) {
 	switch (oper) {
-		case _LOR : return (left || right);
-		case _BOR : return (left | right);
-		case _XOR : return (left ^ right);
-		case _LAND: return (left && right);
-		case _BAND: return (left & right);
-		case _EQ : return (left == right);
-		case _NE : return (left != right);
-		case _LE : return (left <= right);
-		case _GE : return (left >= right);
-		case _LT : return (left < right);
-		case _GT : return (left > right);
-		case _LSR: return (left >> right);
-		case _LSL: return (left << right);
-		case _ADD: return (left + right);
-		case _SUB: return (left - right);
-		case _MUL: return (left * right);
-		case _DIV: return (left / right);
-		case _MOD: return (left % right);
+		case OPC_OR : return (left | right);
+		case OPC_XOR: return (left ^ right);
+		case OPC_AND: return (left & right);
+		case OPC_EQ : return (left == right);
+		case OPC_NE : return (left != right);
+		case OPC_LE : return (left <= right);
+		case OPC_GE : return (left >= right);
+		case OPC_LT : return (left < right);
+		case OPC_GT : return (left > right);
+		case OPC_LSR: return (left >> right);
+		case OPC_LSL: return (left << right);
+		case OPC_ADD: return (left + right);
+		case OPC_SUB: return (left - right);
+		case OPC_MUL: return (left * right);
+		case OPC_DIV: return (left / right);
+		case OPC_MOD: return (left % right);
 		default: return 0;
 	}
 }
@@ -131,7 +129,7 @@ loadlval(register int lval[], register int reg) {
 	if (lval[LTYPE] == CONSTANT) {
 		// test for a predefined register
 		if (reg > 0)
-			gencode_I(_LEA, reg, lval[LVALUE]);
+			gencode_I(OPC_LEA, reg, lval[LVALUE]);
 		else {
 			if (lval[LVALUE] == 0)
 				srcreg = REG_0;
@@ -143,7 +141,7 @@ loadlval(register int lval[], register int reg) {
 				srcreg = REG_4;
 			else {
 				srcreg = allocreg();
-				gencode_I(_LEA, srcreg, lval[LVALUE]);
+				gencode_I(OPC_LEA, srcreg, lval[LVALUE]);
 			}
 
 			if (reg == -1)
@@ -152,7 +150,7 @@ loadlval(register int lval[], register int reg) {
 				reg = srcreg;
 			else {
 				reg = allocreg();
-				gencode_R(_LODR, reg, srcreg);
+				gencode_R(OPC_LDR, reg, srcreg);
 			}
 		}
 
@@ -174,10 +172,10 @@ loadlval(register int lval[], register int reg) {
 		gencode_L(lval[LVALUE], lval[LFALSE]);
 		if (lval[LTRUE])
 			fprintf(outhdl, "_%d:", lval[LTRUE]);
-		gencode_R(_LODR, reg, REG_1);
-		gencode_L(_JMP, lblX);
+		gencode_R(OPC_LDR, reg, REG_1);
+		gencode_L(OPC_JMP, lblX);
 		fprintf(outhdl, "_%d:", lval[LFALSE]);
-		gencode_R(_LODR, reg, REG_0);
+		gencode_R(OPC_LDR, reg, REG_0);
 		fprintf(outhdl, "_%d:", lblX);
 
 		lval[LTYPE] = EXPR;
@@ -190,7 +188,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(lval_ISBPW ? _LODW : _LODB, reg, lval);
+		gencode_M(lval_ISBPW ? OPC_LDW : OPC_LDB, reg, lval);
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
@@ -200,7 +198,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(_LEA, reg, lval);
+		gencode_M(OPC_LEA, reg, lval);
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
@@ -212,7 +210,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_R(_LODR, reg, lval[LREG1]);
+		gencode_R(OPC_LDR, reg, lval[LREG1]);
 
 		lval[LREG1] = reg;
 	}
@@ -321,7 +319,7 @@ xplng2(register int (*hier)(), register int start, register int lval[]) {
 		loadlval(rval, -1);
 
 		// Compare and release values
-		gencode_R(_CMP, lval[LREG1], rval[LREG1]);
+		gencode_R(OPC_CMP, lval[LREG1], rval[LREG1]);
 		freelval(lval);
 		freelval(rval);
 
@@ -369,11 +367,11 @@ xplng3(register int (*hier)(), register int start, register int lval[]) {
 				loadlval(lval, 0);
 				freelval(lval);
 				lval[LTYPE] = BRANCH;
-				lval[LVALUE] = _EQ;
+				lval[LVALUE] = OPC_EQ;
 				lval[LFALSE] = lval[LTRUE] = 0;
 			}
 
-			if (hier_oper[entry] == _LAND) {
+			if (hier_oper[entry] == OPC_AND) {
 				if (!lval[LFALSE])
 					lval[LFALSE] = ++nxtlabel;
 				lbl = lval[LFALSE];
@@ -388,7 +386,7 @@ xplng3(register int (*hier)(), register int start, register int lval[]) {
 		}
 
 		// postprocess last lval
-		if (hier_oper[entry] == _LAND) {
+		if (hier_oper[entry] == OPC_AND) {
 			gencode_L(lval[LVALUE], lval[LFALSE]);
 			if (lval[LTRUE])
 				fprintf(outhdl, "_%d:", lval[LTRUE]);
@@ -413,11 +411,11 @@ xplng3(register int (*hier)(), register int start, register int lval[]) {
 			loadlval(lval, 0);
 			freelval(lval);
 			lval[LTYPE] = BRANCH;
-			lval[LVALUE] = _EQ;
+			lval[LVALUE] = OPC_EQ;
 			lval[LFALSE] = lval[LTRUE] = 0;
 		}
 
-		if (hier_oper[entry] == _LAND) {
+		if (hier_oper[entry] == OPC_AND) {
 			if (lval[LFALSE])
 				fprintf(outhdl, "_%d=_%d\n", lval[LFALSE], lbl);
 			lval[LFALSE] = lbl;
@@ -453,8 +451,8 @@ step(register int pre, register int lval[], register int post) {
 		gencode_R((pre | post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
 		if (post) {
 			reg = allocreg();
-			gencode_R(_LODR, reg, lval[LREG1]);
-			gencode_R((_ADD + _SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
+			gencode_R(OPC_LDR, reg, lval[LREG1]);
+			gencode_R((OPC_ADD + OPC_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
 			freelval(lval);
 			lval[LREG1] = reg;
 		}
@@ -462,9 +460,9 @@ step(register int pre, register int lval[], register int post) {
 		reg = allocreg();
 		loadlval(lval, reg);
 		gencode_R((pre | post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
-		gencode_M(dest_ISBPW ? _STOW : _STOB, lval[LREG1], dest);
+		gencode_M(dest_ISBPW ? OPC_STW : OPC_STB, lval[LREG1], dest);
 		if (post) {
-			gencode_R((_ADD + _SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
+			gencode_R((OPC_ADD + OPC_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
 			lval[LREG1] = reg;
 		}
 	}
@@ -540,9 +538,9 @@ primary(register int lval[]) {
 		lval[LREG1] = allocreg();
 		lval[LREG2] = 0;
 
-		gencode_IND(_LODW, lval[LREG1], BPW, REG_AP);
-		gencode_R(_SUB, lval[LREG1], REG_BPW);
-		gencode_R(_DIV, lval[LREG1], REG_BPW);
+		gencode_IND(OPC_LDW, lval[LREG1], BPW, REG_AP);
+		gencode_R(OPC_SUB, lval[LREG1], REG_BPW);
+		gencode_R(OPC_DIV, lval[LREG1], REG_BPW);
 		return 1;
 	} else if (sname == argvid) {
 		exprerr();
@@ -597,7 +595,7 @@ hier14(register int lval[]) {
 					loadlval(lval, 0); // make LREG2 available
 				loadlval(lval2, 0);
 				if (lval[LSIZE] == BPW)
-					gencode_R(_MUL, lval2[LREG1], REG_BPW); // size index
+					gencode_R(OPC_MUL, lval2[LREG1], REG_BPW); // size index
 				if (!lval[LREG1])
 					lval[LREG1] = lval2[LREG1];
 				else
@@ -620,16 +618,16 @@ hier14(register int lval[]) {
 			// Get expression
 			expression(lval2, 0);
 			if (lval2[LTYPE] == CONSTANT) {
-				gencode_I(_PSHA, 0, lval2[LVALUE]);
+				gencode_I(OPC_PSHA, 0, lval2[LVALUE]);
 			} else {
 				if (lval2[LTYPE] == BRANCH)
 					loadlval(lval2, 0);
 				freelval(lval2);
 				// Push onto stack
 				if (lval2[LEA] != EA_IND)
-					gencode_M(_PSHA, 0, lval2);
+					gencode_M(OPC_PSHA, 0, lval2);
 				else
-					gencode_M(lval2_ISBPW ? _PSHW : _PSHB, 0, lval2);
+					gencode_M(lval2_ISBPW ? OPC_PSHW : OPC_PSHB, 0, lval2);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -646,14 +644,14 @@ hier14(register int lval[]) {
 			reg = REG_4;
 		else {
 			reg = allocreg();
-			gencode_I(_LEA, reg, argc);
+			gencode_I(OPC_LEA, reg, argc);
 		}
-		gencode_IND(_PSHA, 0, 0, reg);
+		gencode_IND(OPC_PSHA, 0, 0, reg);
 		// call
-		gencode_M(_JSB, 0, lval);
+		gencode_M(OPC_JSB, 0, lval);
 		freelval(lval);
 		// Pop args
-		gencode_R(_ADD, REG_SP, reg);
+		gencode_R(OPC_ADD, REG_SP, reg);
 		if (reg < REG_0)
 			freereg(reg);
 		csp = sav_csp;
@@ -676,13 +674,13 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		step(_ADD, lval, 0);
+		step(OPC_ADD, lval, 0);
 	} else if (match("--")) {
 		if (!hier13(lval)) {
 			exprerr();
 			return 0;
 		}
-		step(_SUB, lval, 0);
+		step(OPC_SUB, lval, 0);
 	} else if (match("~")) {
 		if (!hier13(lval)) {
 			exprerr();
@@ -692,7 +690,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = ~lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(_NOT, 0, lval[LREG1]);
+			gencode_R(OPC_NOT, 0, lval[LREG1]);
 		}
 	} else if (match("!")) {
 		if (!hier13(lval)) {
@@ -710,7 +708,7 @@ hier13(register int lval[]) {
 			loadlval(lval, 0);
 			freelval(lval);
 			lval[LTYPE] = BRANCH;
-			lval[LVALUE] = _NE;
+			lval[LVALUE] = OPC_NE;
 			lval[LFALSE] = lval[LTRUE] = 0;
 		}
 	} else if (match("-")) {
@@ -722,7 +720,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = -lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(_NEG, 0, lval[LREG1]);
+			gencode_R(OPC_NEG, 0, lval[LREG1]);
 		}
 	} else if (match("+")) {
 		if (!hier13(lval)) {
@@ -759,9 +757,9 @@ hier13(register int lval[]) {
 		if (!hier14(lval))
 			return 0;
 		if (match("++")) {
-			step(0, lval, _ADD);
+			step(0, lval, OPC_ADD);
 		} else if (match("--")) {
-			step(0, lval, _SUB);
+			step(0, lval, OPC_SUB);
 		}
 	}
 	return 1;
@@ -820,7 +818,7 @@ hier2(register int lval[]) {
 		loadlval(lval, 0);
 		freelval(lval);
 		lval[LTYPE] = BRANCH;
-		lval[LVALUE] = _EQ;
+		lval[LVALUE] = OPC_EQ;
 		lval[LFALSE] = lval[LTRUE] = 0;
 	}
 	// alloc labels
@@ -837,7 +835,7 @@ hier2(register int lval[]) {
 	needtoken(":");
 	// jump to end
 	lbl = ++nxtlabel;
-	gencode_L(_JMP, lbl);
+	gencode_L(OPC_JMP, lbl);
 
 	// process 'false' variant
 	fprintf(outhdl, "_%d:", lval[LFALSE]);
@@ -865,16 +863,16 @@ hier1(register int lval[]) {
 
 	// Test for assignment
 	if (omatch("=")) oper = -1;
-	else if (match("|=")) oper = _BOR;
-	else if (match("^=")) oper = _XOR;
-	else if (match("&=")) oper = _BAND;
-	else if (match("+=")) oper = _ADD;
-	else if (match("-=")) oper = _SUB;
-	else if (match("*=")) oper = _MUL;
-	else if (match("/=")) oper = _DIV;
-	else if (match("%=")) oper = _MOD;
-	else if (match(">>=")) oper = _LSR;
-	else if (match("<<=")) oper = _LSL;
+	else if (match("|=")) oper = OPC_OR;
+	else if (match("^=")) oper = OPC_XOR;
+	else if (match("&=")) oper = OPC_AND;
+	else if (match("+=")) oper = OPC_ADD;
+	else if (match("-=")) oper = OPC_SUB;
+	else if (match("*=")) oper = OPC_MUL;
+	else if (match("/=")) oper = OPC_DIV;
+	else if (match("%=")) oper = OPC_MOD;
+	else if (match(">>=")) oper = OPC_LSR;
+	else if (match("<<=")) oper = OPC_LSL;
 	else
 		return 1;
 
@@ -891,9 +889,9 @@ hier1(register int lval[]) {
 
 	if (oper == -1) {
 		if (lval[LEA] == EA_REG)
-			gencode_R(_LODR, lval[LREG1], rval[LREG1]);
+			gencode_R(OPC_LDR, lval[LREG1], rval[LREG1]);
 		else {
-			gencode_M(lval_ISBPW ? _STOW : _STOB, rval[LREG1], lval);
+			gencode_M(lval_ISBPW ? OPC_STW : OPC_STB, rval[LREG1], lval);
 			freelval(lval);
 		}
 		lval[LNAME] = lval[LVALUE] = 0;
@@ -915,9 +913,9 @@ hier1(register int lval[]) {
 		gencode_R(oper, lval[LREG1], rval[LREG1]);
 		freelval(rval);
 		if (dest[LEA] == EA_REG)
-			gencode_R(_LODR, dest[LREG1], lval[LREG1]);
+			gencode_R(OPC_LDR, dest[LREG1], lval[LREG1]);
 		else
-			gencode_M(lval_ISBPW ? _STOW : _STOB, lval[LREG1], dest);
+			gencode_M(lval_ISBPW ? OPC_STW : OPC_STB, lval[LREG1], dest);
 	}
 
 	// resulting type is undefined, so modify LTYPE

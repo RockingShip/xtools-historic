@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-20 23:21:31 Rename identifiers.
+                    Weed out legacy and bad choices.
 2020-05-20 21:10:04 Reformat sources. No code change.
                     Finally.
 2020-05-20 20:43:30 Support for and convert to enums

@@ -38,16 +38,16 @@
  */
 calc(register int left, register int right, int oper) {
 	switch (oper) {
-	case __OR:   return (left  |  right);
-	case __XOR:  return (left  ^  right);
-	case __AND:  return (left  &  right);
-	case __LSR:  return (left  >> right);
-	case __LSL:  return (left  << right);
-	case __ADD:  return (left  +  right);
-	case __SUB:  return (left  -  right);
-	case __MUL:  return (left  *  right);
-	case __DIV:  return (left  /  right);
-	case __MOD:  return (left  %  right);
+	case REL_OR :  return (left  |  right);
+	case REL_XOR:  return (left  ^  right);
+	case REL_AND:  return (left  &  right);
+	case REL_LSR:  return (left  >> right);
+	case REL_LSL:  return (left  << right);
+	case REL_ADD:  return (left  +  right);
+	case REL_SUB:  return (left  -  right);
+	case REL_MUL:  return (left  *  right);
+	case REL_DIV:  return (left  /  right);
+	case REL_MOD:  return (left  %  right);
 	default:     return 0;
 	}
 }
@@ -56,22 +56,22 @@ loadlval(register int lval[]) {
 	register int *p;
 
 	if (lval[LTYPE] == CONSTANT) {
-		sto_cmd(__PUSHW, lval[LVALUE]);
+		sto_cmd(REL_PUSHW, lval[LVALUE]);
 		lval[LTYPE] = EXPRESSION;
 	} else if (lval[LTYPE] == SYMBOL) {
 		p = &name[lval[LVALUE] * NLAST];
 		switch (p[NTYPE]) {
 		case ABS:
-			sto_cmd(__PUSHW, p[NVALUE]);
+			sto_cmd(REL_PUSHW, p[NVALUE]);
 			break;
 		case CODE:
-			sto_cmd(__CODEW, p[NVALUE]);
+			sto_cmd(REL_CODEW, p[NVALUE]);
 			break;
 		case DATA:
-			sto_cmd(__DATAW, p[NVALUE]);
+			sto_cmd(REL_DATAW, p[NVALUE]);
 			break;
 		case UDEF:
-			sto_cmd(__UDEFW, p[NVALUE]);
+			sto_cmd(REL_UDEFW, p[NVALUE]);
 			break;
 		default:
 			error("Symbol not proper type");
@@ -115,7 +115,7 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 		} else {
 			if ((lval[LTYPE] != EXPRESSION) && (rval[LTYPE] == EXPRESSION)) {
 				loadlval(lval);
-				sto_cmd(__SWAP, 0);
+				sto_cmd(REL_SWAP, 0);
 			} else if ((lval[LTYPE] == EXPRESSION) && (rval[LTYPE] != EXPRESSION)) {
 				loadlval(rval);
 			} else if ((lval[LTYPE] != EXPRESSION) && (rval[LTYPE] != EXPRESSION)) {
@@ -154,7 +154,7 @@ primary(register int lval[]) {
 
 		switch (p[NTYPE]) {
 		case UNDEF:
-			sto_cmd(__SYMBOL, hash);
+			sto_cmd(REL_SYMBOL, hash);
 			lval[LTYPE] = EXPRESSION;
 			break;
 		case ABS:
@@ -167,13 +167,13 @@ primary(register int lval[]) {
 		case POINT:
 			switch (curseg) {
 			case CODESEG:
-				sto_cmd(__CODEW, curpos[CODESEG]);
+				sto_cmd(REL_CODEW, curpos[CODESEG]);
 				break;
 			case DATASEG:
-				sto_cmd(__DATAW, curpos[DATASEG]);
+				sto_cmd(REL_DATAW, curpos[DATASEG]);
 				break;
 			case UDEFSEG:
-				sto_cmd(__UDEFW, curpos[UDEFSEG]);
+				sto_cmd(REL_UDEFW, curpos[UDEFSEG]);
 				break;
 			}
 			lval[LTYPE] = EXPRESSION;
@@ -202,7 +202,7 @@ hier7(register int lval[]) {
 		else {
 			if (lval[LTYPE] != EXPRESSION)
 				loadlval(lval);
-			sto_cmd(__NOT, 0);
+			sto_cmd(REL_NOT, 0);
 		}
 	} else if (match("-")) {
 		if (!hier7(lval)) {
@@ -214,7 +214,7 @@ hier7(register int lval[]) {
 		else {
 			if (lval[LTYPE] != EXPRESSION)
 				loadlval(lval);
-			sto_cmd(__NEG, 0);
+			sto_cmd(REL_NEG, 0);
 		}
 	} else if (match("+")) {
 		if (!hier7(lval)) {

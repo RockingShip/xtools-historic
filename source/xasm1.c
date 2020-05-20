@@ -108,50 +108,50 @@ initialize() {
 	maxpos[CODESEG] = maxpos[DATASEG] = maxpos[UDEFSEG] = 0;
 
 	// reserved words
-	add_res("ILLEGAL", OPCODE, _ILLEGAL);
-	add_res("ADD", OPCODE, _ADD);
-	add_res("SUB", OPCODE, _SUB);
-	add_res("MUL", OPCODE, _MUL);
-	add_res("DIV", OPCODE, _DIV);
-	add_res("MOD", OPCODE, _MOD);
-	add_res("OR", OPCODE, _BOR);
-	add_res("XOR", OPCODE, _XOR);
-	add_res("AND", OPCODE, _BAND);
-	add_res("LSR", OPCODE, _LSR);
-	add_res("LSL", OPCODE, _LSL);
-	add_res("NEG", OPCODE, _NEG);
-	add_res("NOT", OPCODE, _NOT);
-	add_res("BEQ", OPCODE, _EQ);
-	add_res("BNE", OPCODE, _NE);
-	add_res("BLT", OPCODE, _LT);
-	add_res("BLE", OPCODE, _LE);
-	add_res("BGT", OPCODE, _GT);
-	add_res("BGE", OPCODE, _GE);
-	add_res("LDB", OPCODE, _LODB);
-	add_res("LDW", OPCODE, _LODW);
-	add_res("LDR", OPCODE, _LODR);
-	add_res("LDA", OPCODE, _LEA);
-	add_res("CMP", OPCODE, _CMP);
-	add_res("STB", OPCODE, _STOB);
-	add_res("STW", OPCODE, _STOW);
-	add_res("JMP", OPCODE, _JMP);
-	add_res("JSB", OPCODE, _JSB);
-	add_res("RSB", OPCODE, _RSB);
-	add_res("PSHR", OPCODE, _PSHR);
-	add_res("POPR", OPCODE, _POPR);
-	add_res("PSHB", OPCODE, _PSHB);
-	add_res("PSHW", OPCODE, _PSHW);
-	add_res("PSHA", OPCODE, _PSHA);
-	add_res("SVC", OPCODE, _SVC);
-	add_res(".CODE", PSEUDO, _CODE);
-	add_res(".DATA", PSEUDO, _DATA);
-	add_res(".UDEF", PSEUDO, _UDEF);
-	add_res(".ORG", PSEUDO, _ORG);
-	add_res(".END", PSEUDO, _END);
-	add_res(".DCB", PSEUDO, _DCB);
-	add_res(".DCW", PSEUDO, _DCW);
-	add_res(".DSB", PSEUDO, _DSB);
-	add_res(".DSW", PSEUDO, _DSW);
+	add_res("ILLEGAL", OPCODE, OPC_ILLEGAL);
+	add_res("ADD", OPCODE, OPC_ADD);
+	add_res("SUB", OPCODE, OPC_SUB);
+	add_res("MUL", OPCODE, OPC_MUL);
+	add_res("DIV", OPCODE, OPC_DIV);
+	add_res("MOD", OPCODE, OPC_MOD);
+	add_res("OR", OPCODE, OPC_OR);
+	add_res("XOR", OPCODE, OPC_XOR);
+	add_res("AND", OPCODE, OPC_AND);
+	add_res("LSR", OPCODE, OPC_LSR);
+	add_res("LSL", OPCODE, OPC_LSL);
+	add_res("NEG", OPCODE, OPC_NEG);
+	add_res("NOT", OPCODE, OPC_NOT);
+	add_res("BEQ", OPCODE, OPC_EQ);
+	add_res("BNE", OPCODE, OPC_NE);
+	add_res("BLT", OPCODE, OPC_LT);
+	add_res("BLE", OPCODE, OPC_LE);
+	add_res("BGT", OPCODE, OPC_GT);
+	add_res("BGE", OPCODE, OPC_GE);
+	add_res("LDB", OPCODE, OPC_LDB);
+	add_res("LDW", OPCODE, OPC_LDW);
+	add_res("LDR", OPCODE, OPC_LDR);
+	add_res("LDA", OPCODE, OPC_LEA);
+	add_res("CMP", OPCODE, OPC_CMP);
+	add_res("STB", OPCODE, OPC_STB);
+	add_res("STW", OPCODE, OPC_STW);
+	add_res("JMP", OPCODE, OPC_JMP);
+	add_res("JSB", OPCODE, OPC_JSB);
+	add_res("RSB", OPCODE, OPC_RSB);
+	add_res("PSHR", OPCODE, OPC_PSHR);
+	add_res("POPR", OPCODE, OPC_POPR);
+	add_res("PSHB", OPCODE, OPC_PSHB);
+	add_res("PSHW", OPCODE, OPC_PSHW);
+	add_res("PSHA", OPCODE, OPC_PSHA);
+	add_res("SVC", OPCODE, OPC_SVC);
+	add_res(".CODE", PSEUDO, PSEUDO_CODE);
+	add_res(".DATA", PSEUDO, PSEUDO_DATA);
+	add_res(".UDEF", PSEUDO, PSEUDO_UDEF);
+	add_res(".ORG", PSEUDO, PSEUDO_ORG);
+	add_res(".END", PSEUDO, PSEUDO_END);
+	add_res(".DCB", PSEUDO, PSEUDO_DCB);
+	add_res(".DCW", PSEUDO, PSEUDO_DCW);
+	add_res(".DSB", PSEUDO, PSEUDO_DSB);
+	add_res(".DSW", PSEUDO, PSEUDO_DSW);
 	add_res("R0", REGISTER, 0);
 	add_res("R1", REGISTER, 1);
 	add_res("R2", REGISTER, 2);
@@ -170,21 +170,21 @@ initialize() {
 	add_res("R15", REGISTER, 15);
 	add_res(".", POINT, 0);
 
-	hier_str[ 0] = "|";  hier_oper[ 0] = __OR;    // hier1
+	hier_str[ 0] = "|";  hier_oper[ 0] = REL_OR;    // hier1
 	hier_str[ 1] = 0;
-	hier_str[ 2] = "^";  hier_oper[ 2] = __XOR;   // hier2
+	hier_str[ 2] = "^";  hier_oper[ 2] = REL_XOR;   // hier2
 	hier_str[ 3] = 0;
-	hier_str[ 4] = "&";  hier_oper[ 4] = __AND;   // hier3
+	hier_str[ 4] = "&";  hier_oper[ 4] = REL_AND;   // hier3
 	hier_str[ 5] = 0;
-	hier_str[ 6] = ">>"; hier_oper[ 6] = __LSR;   // hier4
-	hier_str[ 7] = "<<"; hier_oper[ 7] = __LSL;
+	hier_str[ 6] = ">>"; hier_oper[ 6] = REL_LSR;   // hier4
+	hier_str[ 7] = "<<"; hier_oper[ 7] = REL_LSL;
 	hier_str[ 8] = 0;
-	hier_str[ 9] = "+";  hier_oper[ 9] = __ADD;   // hier5
-	hier_str[10] = "-";  hier_oper[10] = __SUB;
+	hier_str[ 9] = "+";  hier_oper[ 9] = REL_ADD;   // hier5
+	hier_str[10] = "-";  hier_oper[10] = REL_SUB;
 	hier_str[11] = 0;
-	hier_str[12] = "*";  hier_oper[12] = __MUL;   // hier6
-	hier_str[13] = "/";  hier_oper[13] = __DIV;
-	hier_str[14] = "%";  hier_oper[14] = __MOD;
+	hier_str[12] = "*";  hier_oper[12] = REL_MUL;   // hier6
+	hier_str[13] = "/";  hier_oper[13] = REL_DIV;
+	hier_str[14] = "%";  hier_oper[14] = REL_MOD;
 	hier_str[15] = 0;
 }
 
@@ -891,7 +891,7 @@ main(int argc, int *argv) {
 	if (iflevel)
 		error("no closing #endif");
 
-	sto_cmd(__END, 0);
+	sto_cmd(REL_END, 0);
 
 	if (lishdl) {
 		fprintf(lishdl, "CODE         : %04x (%5d)\n", maxpos[CODESEG] & 0xffff, maxpos[CODESEG] & 0xffff);
@@ -973,27 +973,27 @@ sto_cmd(int cmd, int val) {
 	if (pass == 2) {
 		if (!debug)
 			switch (cmd) {
-				case __ADD:
-				case __SUB:
-				case __MUL:
-				case __DIV:
-				case __MOD:
-				case __LSR:
-				case __LSL:
-				case __AND:
-				case __OR:
-				case __XOR:
-				case __SWAP:
-				case __POPW:
-				case __POPB:
-				case __END:
+				case REL_ADD:
+				case REL_SUB:
+				case REL_MUL:
+				case REL_DIV:
+				case REL_MOD:
+				case REL_LSR:
+				case REL_LSL:
+				case REL_AND:
+				case REL_OR:
+				case REL_XOR:
+				case REL_SWAP:
+				case REL_POPW:
+				case REL_POPB:
+				case REL_END:
 					write_byte(cmd);
 					break;
-				case __PUSHW:
-				case __PUSHB:
+				case REL_PUSHW:
+				case REL_PUSHB:
 					if ((val >= -128) && (val <= 127))
-						cmd = __PUSHB;
-					if (cmd == __PUSHB) {
+						cmd = REL_PUSHB;
+					if (cmd == REL_PUSHB) {
 						cval = val;
 						write_byte(cmd);
 						write_byte(cval);
@@ -1002,11 +1002,11 @@ sto_cmd(int cmd, int val) {
 						write_word(val);
 					}
 					break;
-				case __CODEW:
-				case __CODEB:
+				case REL_CODEW:
+				case REL_CODEB:
 					if ((val >= -128) && (val <= 127))
-						cmd = __CODEB;
-					if (cmd == __CODEB) {
+						cmd = REL_CODEB;
+					if (cmd == REL_CODEB) {
 						write_byte(cmd);
 						write_byte(cval);
 					} else {
@@ -1014,11 +1014,11 @@ sto_cmd(int cmd, int val) {
 						write_word(val);
 					}
 					break;
-				case __DATAW:
-				case __DATAB:
+				case REL_DATAW:
+				case REL_DATAB:
 					if ((val >= -128) && (val <= 127))
-						cmd = __DATAB;
-					if (cmd == __DATAB) {
+						cmd = REL_DATAB;
+					if (cmd == REL_DATAB) {
 						write_byte(cmd);
 						write_byte(cval);
 					} else {
@@ -1026,11 +1026,11 @@ sto_cmd(int cmd, int val) {
 						write_word(val);
 					}
 					break;
-				case __UDEFW:
-				case __UDEFB:
+				case REL_UDEFW:
+				case REL_UDEFB:
 					if ((val >= -128) && (val <= 127))
-						cmd = __UDEFB;
-					if (cmd == __UDEFB) {
+						cmd = REL_UDEFB;
+					if (cmd == REL_UDEFB) {
 						write_byte(cmd);
 						write_byte(cval);
 					} else {
@@ -1038,14 +1038,14 @@ sto_cmd(int cmd, int val) {
 						write_word(val);
 					}
 					break;
-				case __SYMBOL:
+				case REL_SYMBOL:
 					write_byte(cmd);
 					write_byte(lenname(val));
 					foutname(val);
 					break;
-				case __CODEDEF:
-				case __DATADEF:
-				case __UDEFDEF:
+				case REL_CODEDEF:
+				case REL_DATADEF:
+				case REL_UDEFDEF:
 					p = &name[val * NLAST];
 					write_byte(cmd);
 					write_word(p[NVALUE]);
@@ -1053,10 +1053,10 @@ sto_cmd(int cmd, int val) {
 					write_byte(cval);
 					foutname(val);
 					break;
-				case __CODEORG:
-				case __DATAORG:
-				case __UDEFORG:
-				case __DSB:
+				case REL_CODEORG:
+				case REL_DATAORG:
+				case REL_UDEFORG:
+				case REL_DSB:
 					write_byte(cmd);
 					write_word(val);
 					break;
@@ -1067,50 +1067,50 @@ sto_cmd(int cmd, int val) {
 			}
 		else {
 			switch (cmd) {
-			case __ADD: fprintf(outhdl, "ADD\n"); break;
-			case __SUB: fprintf(outhdl, "SUB\n"); break;
-			case __MUL: fprintf(outhdl, "MUL\n"); break;
-			case __DIV: fprintf(outhdl, "DIV\n"); break;
-			case __MOD: fprintf(outhdl, "MOD\n"); break;
-			case __LSR: fprintf(outhdl, "LSR\n"); break;
-			case __LSL: fprintf(outhdl, "LSL\n"); break;
-			case __AND: fprintf(outhdl, "AND\n"); break;
-			case __OR: fprintf(outhdl, "OR\n"); break;
-			case __XOR: fprintf(outhdl, "XOR\n"); break;
-			case __SWAP: fprintf(outhdl, "SWAP\n"); break;
-			case __POPB: fprintf(outhdl, "POPB\n"); break;
-			case __POPW: fprintf(outhdl, "POPW\n"); break;
-			case __PUSHW: fprintf(outhdl, "PUSHW %d\n", val); break;
-			case __PUSHB: fprintf(outhdl, "PUSHB %d\n", val); break;
-			case __CODEW: fprintf(outhdl, "CODEW %d\n", val); break;
-			case __CODEB: fprintf(outhdl, "CODEB %d\n", val); break;
-			case __DATAW: fprintf(outhdl, "DATAW %d\n", val); break;
-			case __DATAB: fprintf(outhdl, "DATAB %d\n", val); break;
-			case __UDEFW: fprintf(outhdl, "UDEFW %d\n", val); break;
-			case __UDEFB: fprintf(outhdl, "UDEFB %d\n", val); break;
-			case __DSB: fprintf(outhdl, "DSB %d\n", val); break;
-			case __END: fprintf(outhdl, "END\n", val); break;
-			case __CODEORG: fprintf(outhdl, "CODEORG %d\n", val); break;
-			case __DATAORG: fprintf(outhdl, "DATAORG %d\n", val); break;
-			case __UDEFORG: fprintf(outhdl, "UDEFORG %d\n", val); break;
-			case __SYMBOL:
+			case REL_ADD: fprintf(outhdl, "ADD\n"); break;
+			case REL_SUB: fprintf(outhdl, "SUB\n"); break;
+			case REL_MUL: fprintf(outhdl, "MUL\n"); break;
+			case REL_DIV: fprintf(outhdl, "DIV\n"); break;
+			case REL_MOD: fprintf(outhdl, "MOD\n"); break;
+			case REL_LSR: fprintf(outhdl, "LSR\n"); break;
+			case REL_LSL: fprintf(outhdl, "LSL\n"); break;
+			case REL_AND: fprintf(outhdl, "AND\n"); break;
+			case REL_OR: fprintf(outhdl, "OR\n"); break;
+			case REL_XOR: fprintf(outhdl, "XOR\n"); break;
+			case REL_SWAP: fprintf(outhdl, "SWAP\n"); break;
+			case REL_POPB: fprintf(outhdl, "POPB\n"); break;
+			case REL_POPW: fprintf(outhdl, "POPW\n"); break;
+			case REL_PUSHW: fprintf(outhdl, "PUSHW %d\n", val); break;
+			case REL_PUSHB: fprintf(outhdl, "PUSHB %d\n", val); break;
+			case REL_CODEW: fprintf(outhdl, "CODEW %d\n", val); break;
+			case REL_CODEB: fprintf(outhdl, "CODEB %d\n", val); break;
+			case REL_DATAW: fprintf(outhdl, "DATAW %d\n", val); break;
+			case REL_DATAB: fprintf(outhdl, "DATAB %d\n", val); break;
+			case REL_UDEFW: fprintf(outhdl, "UDEFW %d\n", val); break;
+			case REL_UDEFB: fprintf(outhdl, "UDEFB %d\n", val); break;
+			case REL_DSB: fprintf(outhdl, "DSB %d\n", val); break;
+			case REL_END: fprintf(outhdl, "END\n", val); break;
+			case REL_CODEORG: fprintf(outhdl, "CODEORG %d\n", val); break;
+			case REL_DATAORG: fprintf(outhdl, "DATAORG %d\n", val); break;
+			case REL_UDEFORG: fprintf(outhdl, "UDEFORG %d\n", val); break;
+			case REL_SYMBOL:
 				fprintf(outhdl, "SYMBOL ");
 				foutname(val);
 				fprintf(outhdl, "\n");
 				break;
-			case __CODEDEF:
+			case REL_CODEDEF:
 				p = &name[val * NLAST];
 				fprintf(outhdl, "CODEDEF %d,", p[NVALUE]);
 				foutname(val);
 				fprintf(outhdl, "\n", 0);
 				break;
-			case __DATADEF:
+			case REL_DATADEF:
 				p = &name[val * NLAST];
 				fprintf(outhdl, "DATADEF %d,", p[NVALUE]);
 				foutname(val);
 				fprintf(outhdl, "\n", 0);
 				break;
-			case __UDEFDEF:
+			case REL_UDEFDEF:
 				p = &name[val * NLAST];
 				fprintf(outhdl, "UDEFDEF %d,", p[NVALUE]);
 				foutname(val);

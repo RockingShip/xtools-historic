@@ -82,7 +82,7 @@ get_imm() {
 		sto_data(lval[LVALUE], BPW);
 	else {
 		loadlval(lval);
-		sto_cmd(__POPW, 0);
+		sto_cmd(REL_POPW, 0);
 	}
 }
 
@@ -128,53 +128,53 @@ get_mem() {
 do_opcode(register int p[]) {
 	if (pass == 1) {
 		switch (p[NVALUE]) {
-			case _ILLEGAL:
-			case _RSB:
+			case OPC_ILLEGAL:
+			case OPC_RSB:
 				curpos[curseg] += 1;
 				break;
-			case _PSHR:
-			case _POPR:
-			case _SVC:
+			case OPC_PSHR:
+			case OPC_POPR:
+			case OPC_SVC:
 				curpos[curseg] += 3;
 				break;
-			case _PSHB:
-			case _PSHW:
-			case _PSHA:
-			case _JSB:
+			case OPC_PSHB:
+			case OPC_PSHW:
+			case OPC_PSHA:
+			case OPC_JSB:
 				curpos[curseg] += 5;
 				break;
-			case _NEG:
-			case _NOT:
+			case OPC_NEG:
+			case OPC_NOT:
 				curpos[curseg] += 2;
 				break;
-			case _ADD:
-			case _SUB:
-			case _MUL:
-			case _DIV:
-			case _MOD:
-			case _BOR:
-			case _XOR:
-			case _BAND:
-			case _LSR:
-			case _LSL:
-			case _LODR:
-			case _CMP:
+			case OPC_ADD:
+			case OPC_SUB:
+			case OPC_MUL:
+			case OPC_DIV:
+			case OPC_MOD:
+			case OPC_OR:
+			case OPC_XOR:
+			case OPC_AND:
+			case OPC_LSR:
+			case OPC_LSL:
+			case OPC_LDR:
+			case OPC_CMP:
 				curpos[curseg] += 3;
 				break;
-			case _EQ:
-			case _NE:
-			case _LT:
-			case _LE:
-			case _GT:
-			case _GE:
-			case _JMP:
+			case OPC_EQ:
+			case OPC_NE:
+			case OPC_LT:
+			case OPC_LE:
+			case OPC_GT:
+			case OPC_GE:
+			case OPC_JMP:
 				curpos[curseg] += 5;
 				break;
-			case _LODB:
-			case _LODW:
-			case _LEA:
-			case _STOB:
-			case _STOW:
+			case OPC_LDB:
+			case OPC_LDW:
+			case OPC_LEA:
+			case OPC_STB:
+			case OPC_STW:
 				curpos[curseg] += 6;
 				break;
 			default:
@@ -185,61 +185,61 @@ do_opcode(register int p[]) {
 	} else {
 		sto_data(p[NVALUE], 1);
 		switch (p[NVALUE]) {
-		case _ILLEGAL:
-		case _RSB:
+		case OPC_ILLEGAL:
+		case OPC_RSB:
 			curpos[curseg] += 1;
 			break;
 			break;
-		case _PSHR:
-		case _POPR:
-		case _SVC:
+		case OPC_PSHR:
+		case OPC_POPR:
+		case OPC_SVC:
 			get_imm();
 			curpos[curseg] += 3;
 			break;
-		case _PSHB:
-		case _PSHW:
-		case _PSHA:
-		case _JSB:
+		case OPC_PSHB:
+		case OPC_PSHW:
+		case OPC_PSHA:
+		case OPC_JSB:
 			get_mem();
 			curpos[curseg] += 5;
 			break;
-		case _NEG:
-		case _NOT:
+		case OPC_NEG:
+		case OPC_NOT:
 			get_reg();
 			curpos[curseg] += 2;
 			break;
-		case _ADD:
-		case _SUB:
-		case _MUL:
-		case _DIV:
-		case _MOD:
-		case _BOR:
-		case _XOR:
-		case _BAND:
-		case _LSR:
-		case _LSL:
-		case _LODR:
-		case _CMP:
+		case OPC_ADD:
+		case OPC_SUB:
+		case OPC_MUL:
+		case OPC_DIV:
+		case OPC_MOD:
+		case OPC_OR:
+		case OPC_XOR:
+		case OPC_AND:
+		case OPC_LSR:
+		case OPC_LSL:
+		case OPC_LDR:
+		case OPC_CMP:
 			get_reg();
 			get_comma();
 			get_reg();
 			curpos[curseg] += 3;
 			break;
-		case _EQ:
-		case _NE:
-		case _LT:
-		case _LE:
-		case _GT:
-		case _GE:
-		case _JMP:
+		case OPC_EQ:
+		case OPC_NE:
+		case OPC_LT:
+		case OPC_LE:
+		case OPC_GT:
+		case OPC_GE:
+		case OPC_JMP:
 			get_mem();
 			curpos[curseg] += 5;
 			break;
-		case _LODB:
-		case _LODW:
-		case _LEA:
-		case _STOB:
-		case _STOW:
+		case OPC_LDB:
+		case OPC_LDW:
+		case OPC_LEA:
+		case OPC_STB:
+		case OPC_STW:
 			get_reg();
 			get_comma();
 			get_mem();
@@ -277,31 +277,31 @@ do_pseudo(register int p[]) {
 	register int size;
 
 	switch (p[NVALUE]) {
-	case _CODE:
+	case PSEUDO_CODE:
 		curseg = CODESEG;
-		sto_cmd(__CODEORG, curpos[CODESEG]);
+		sto_cmd(REL_CODEORG, curpos[CODESEG]);
 		break;
-	case _DATA:
+	case PSEUDO_DATA:
 		curseg = DATASEG;
-		sto_cmd(__DATAORG, curpos[DATASEG]);
+		sto_cmd(REL_DATAORG, curpos[DATASEG]);
 		break;
-	case _UDEF:
+	case PSEUDO_UDEF:
 		curseg = UDEFSEG;
-		sto_cmd(__UDEFORG, curpos[UDEFSEG]);
+		sto_cmd(REL_UDEFORG, curpos[UDEFSEG]);
 		break;
-	case _DSB:
-	case _DSW:
-		size = p[NVALUE] == _DSB ? 1 : BPW;
+	case PSEUDO_DSB:
+	case PSEUDO_DSW:
+		size = p[NVALUE] == PSEUDO_DSB ? 1 : BPW;
 		if (!constexpr(&val)) {
 			if (pass == 1)
 				error("constant required");
 		} else
 			curpos[curseg] += val * size;
-		sto_cmd(__DSB, val * size);
+		sto_cmd(REL_DSB, val * size);
 		break;
-	case _DCB:
-	case _DCW:
-		size = p[NVALUE] == _DCB ? 1 : BPW;
+	case PSEUDO_DCB:
+	case PSEUDO_DCW:
+		size = p[NVALUE] == PSEUDO_DCB ? 1 : BPW;
 		while (1) {
 			if (match("\"")) {
 				while (ch && (ch != '"')) {
@@ -317,9 +317,9 @@ do_pseudo(register int p[]) {
 					if (lval[LTYPE] != CONSTANT) {
 						loadlval(lval);
 						if (size == 1)
-							sto_cmd(__POPB, 0);
+							sto_cmd(REL_POPB, 0);
 						else
-							sto_cmd(__POPW, 0);
+							sto_cmd(REL_POPW, 0);
 					} else if (size == BPW)
 						sto_data(lval[LVALUE], BPW);
 					else if ((lval[LVALUE] >= -128) && (lval[LVALUE] <= 127))
@@ -333,7 +333,7 @@ do_pseudo(register int p[]) {
 				break;
 		}
 		break;
-	case _ORG:
+	case PSEUDO_ORG:
 		savmaxpos();
 		expression(lval);
 		if (lval[LTYPE] == CONSTANT) {
@@ -357,13 +357,13 @@ do_pseudo(register int p[]) {
 		if (pass == 2) {
 			switch (curseg) {
 			case CODESEG:
-				sto_cmd(__CODEORG, curpos[curseg]);
+				sto_cmd(REL_CODEORG, curpos[curseg]);
 				break;
 			case DATASEG:
-				sto_cmd(__DATAORG, curpos[curseg]);
+				sto_cmd(REL_DATAORG, curpos[curseg]);
 				break;
 			case UDEFSEG:
-				sto_cmd(__UDEFORG, curpos[curseg]);
+				sto_cmd(REL_UDEFORG, curpos[curseg]);
 				break;
 			}
 		}
@@ -462,7 +462,7 @@ parse() {
 							else
 								error("phase error");
 						if (ext && (pass == 2))
-							sto_cmd(__CODEDEF, hash);
+							sto_cmd(REL_CODEDEF, hash);
 					} else if (p[NTYPE] == DATA) {
 						if ((curseg != DATASEG) || (p[NVALUE] != curpos[DATASEG]))
 							if (pass == 1)
@@ -470,7 +470,7 @@ parse() {
 							else
 								error("phase error");
 						if (ext && (pass == 2))
-							sto_cmd(__DATADEF, hash);
+							sto_cmd(REL_DATADEF, hash);
 					} else if (p[NTYPE] == UDEF) {
 						if ((curseg != UDEFSEG) || (p[NVALUE] != curpos[UDEFSEG]))
 							if (pass == 1)
@@ -478,7 +478,7 @@ parse() {
 							else
 								error("phase error");
 						if (ext && (pass == 2))
-							sto_cmd(__UDEFDEF, hash);
+							sto_cmd(REL_UDEFDEF, hash);
 					} else {
 						error("not implemented");
 					}
@@ -498,7 +498,7 @@ parse() {
 				do_opcode(p);
 				break;
 			case PSEUDO:
-				if (p[NVALUE] == _END)
+				if (p[NVALUE] == PSEUDO_END)
 					return; // DONE
 				do_pseudo(p);
 				break;
