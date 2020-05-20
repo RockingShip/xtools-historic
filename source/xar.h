@@ -36,91 +36,105 @@
 
 // #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
-#define FILEMAX 50		// Size of filetable
-#define PATHMAX 80		// length of filename
+enum {
+	NAMEMAX = 2003,		// Size of nametable !!! MUST BE PRIME !!!
+	FILEMAX = 50,		// Size of filetable
+	PATHMAX = 80,		// length of filename
+};
 
 /*
  * Machine dependent parmeters
  */
 
-#define BPW		2       // Bytes per word
-#define SBIT            15      // Bit number of signed bit
+enum {
+	BPW = 2,		// Bytes per word
+	SBIT = 15,		// Bit number of signed bit
+};
 
 /*
  * Definitions for names's
  */
 
-#define NTAB		0
-#define NCHAR		1
-#define NLIB		2
-#define NLAST		3
+enum {
+	NTAB = 0,
+	NCHAR,
+	NLIB,
+	NLAST,
+};
 
 /*
  * Definitions for files's
  */
 
-#define FNAME		0
-#define FLENGTH		1
-#define FOFFSET		2
-#define FOLDOFS		3
-#define FLAST		4
+enum {
+	FNAME = 0,
+	FLENGTH,
+	FOFFSET,
+	FOLDOFS,
+	FLAST,
+};
 
 /*
  * Definitions for .OLB header
  */
 
-#define HNAME		0
-#define HFILE		1
-#define HLAST		2
+enum {
+	HNAME = 0,
+	HFILE,
+	HLAST,
+};
 
 /*
  * User commands
  */
 
-#define ADDCMD		1
-#define DELCMD		2
-#define CRECMD		3
-#define LISCMD		4
-#define EXTCMD		5
+enum {
+	ADDCMD = 1,
+	DELCMD,
+	CRECMD,
+	LISCMD,
+	EXTCMD,
+};
 
 /*
  * Object commands
  */
 
-#define __ADD		 1
-#define __SUB		 2
-#define __MUL		 3
-#define __DIV		 4
-#define __MOD		 5
-#define __LSR		 6
-#define __LSL		 7
-#define __XOR		 8
-#define __AND		 9
-#define __OR		10
-#define __NOT		11
-#define __NEG		12
-#define __SWAP		13
-#define __END		32
-#define __SYMBOL	33
-#define __PUSHB		34
-#define __PUSHW		35
-#define __POPW		36
-#define __POPB		37
-#define __DSB		38
+enum {
+	__ADD = 1,
+	__SUB = 2,
+	__MUL = 3,
+	__DIV = 4,
+	__MOD = 5,
+	__LSR = 6,
+	__LSL = 7,
+	__XOR = 8,
+	__AND = 9,
+	__OR = 10,
+	__NOT = 11,
+	__NEG = 12,
+	__SWAP = 13,
+	__END = 32,
+	__SYMBOL = 33,
+	__PUSHB = 34,
+	__PUSHW = 35,
+	__POPW = 36,
+	__POPB = 37,
+	__DSB = 38,
 
-#define __CODEB		64
-#define __CODEW		65
-#define __CODEDEF	66
-#define __CODEORG	67
-#define __DATAB		72
-#define __DATAW		73
-#define __DATADEF	74
-#define __DATAORG	75
-#define __UDEFB		80
-#define __UDEFW		81
-#define __UDEFDEF	82
-#define __UDEFORG	83
+	__CODEB = 64,
+	__CODEW = 65,
+	__CODEDEF = 66,
+	__CODEORG = 67,
+	__DATAB = 72,
+	__DATAW = 73,
+	__DATADEF = 74,
+	__DATAORG = 75,
+	__UDEFB = 80,
+	__UDEFW = 81,
+	__UDEFDEF = 82,
+	__UDEFORG = 83,
+};
 
 /*
  * Storage

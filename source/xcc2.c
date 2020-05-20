@@ -293,6 +293,70 @@ register int *ident, i;
   return 1;
 }
 
+//
+// General global definitions
+//
+declenum() {
+	int *s;
+	int seqnr;
+	register int i;
+	int len, sname;
+	int lval[LLAST];
+
+	needtoken("{");
+
+	// get values
+	seqnr = 0;
+	while (1) {
+		blanks();
+
+		if (ch == '}')
+			break;
+
+		if (!(len = dohash(lptr, &sname))) {
+			illname();
+			kill();
+			return;
+		}
+		bump(len);
+
+		// add symbol to symboltable
+		for (i = idinx - 1; i >= 0; i--) {
+			s = &idents[i * ILAST];
+			if (s[INAME] == sname)
+				break;
+		}
+		if (i >= 0)
+			multidef();
+		else if (idinx >= IDMAX)
+			fatal("identifier table overflow");
+		s = &idents[idinx++ * ILAST];
+
+		s[INAME] = sname;
+		s[ITYPE] = CONSTANT; // todo: this should actually be VARIABLE
+		s[IPTR] = 0;
+		s[ICLASS] = 0; // todo: this should actually be CONSTANT
+		s[IVALUE] = 0;
+		s[ISIZE] = 0;
+
+		if (match("=")) {
+			expression(lval, 0);
+			if (lval[LTYPE] != CONSTANT) {
+				error("expected expression");
+				return;
+			}
+			seqnr = lval[LVALUE];
+		}
+
+		s[IVALUE] = seqnr++;
+
+		if (!match(","))
+			break;
+	}
+	needtoken("}");
+	ns();
+}
+
 /*
  * open an include file
  */
@@ -849,7 +913,9 @@ parse ()
 {
   blanks ();
   while (inphdl) {
-    if (amatch ("extern"))
+    if (amatch("enum"))
+      declenum();
+    else if (amatch ("extern"))
       declvar (0, EXTERNAL);
     else if (amatch ("static"))
       declvar (0, STATIC);

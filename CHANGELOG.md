@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
-2020-05-17 23:16:04 Support for and convert to function prototypes.
+2020-05-20 20:43:30 Support for and convert to enums
+                    Drops need for a preprocessor.
+2020-05-20 10:16:04 Support for and convert to function prototypes.
                     Makes so many thing easier and IDE chokes on traditional.
 2020-05-19 23:09:16 Merge `declloc()/declgbl()` into `declvar()`.
                     Simplify near duplicate code.

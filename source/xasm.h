@@ -36,183 +36,202 @@
 
 // #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
-#define PBUFMAX 512		// Size of preprocessor buffer
-#define SBUFMAX 256		// Size of source buffer
-#define MACMAX 300		// Number of definable macro's
-#define MACQMAX MACMAX*7	// Expansiontable for macro's
-#define PATHMAX 80              // Length of filename
+enum {
+	NAMEMAX = 2003,         // Size of nametable !!! MUST BE PRIME !!!
+	PBUFMAX = 512,          // Size of preprocessor buffer
+	SBUFMAX = 256,          // Size of source buffer
+	MACMAX = 300,           // Number of definable macro's
+	MACQMAX = MACMAX * 7,   // Expansiontable for macro's
+	PATHMAX = 80,           // Length of filename
+	LITMAX = 1500,          // Literal pool
+};
 
 /*
  * Machine dependent parmeters
  */
 
-#define BPW		2       // Bytes per word
-#define SBIT            15      // Bit number of signed bit
+enum {
+	BPW = 2,                // Bytes per word
+	SBIT = 15,              // Bit number of signed bit
+};
 
 /* 
  * Reserved characters
  */
 
-#define BS		8
-#define HT		9
-#define NEWLINE		10
-#define FF		12
+enum {
+	BS = 8,
+	HT = 9,
+	NEWLINE = 10,
+	FF = 12,
+};
 
 /*
  * segment names
  */
 
-#define CODESEG		1
-#define DATASEG		2
-#define UDEFSEG		3
+enum {
+	CODESEG = 1,
+	DATASEG = 2,
+	UDEFSEG = 3,
+};
 
 /*
  * Definitions for names's
  */
 
-#define NTAB		0
-#define NCHAR		1
-#define NTYPE		2
-#define NVALUE		3
-#define NLAST		4
+enum {
+	NTAB = 0,
+	NCHAR,
+	NTYPE,
+	NVALUE,
+	NLAST,
+};
 
 /*
  * Definitions for lval's
  */
 
-#define LTYPE		0
-#define LVALUE		1
-#define LLAST		2
+enum {
+	LTYPE = 0,
+	LVALUE,
+	LLAST,
+};
 
 /*
  * values for NTYPE
  */
 
-#define UNDEF		 1
-#define	ABS		 2
-#define	CODE		 3
-#define DATA		 4
-#define UDEF		 5
-#define OPCODE		 6
-#define PSEUDO		 7
-#define REGISTER	 8
-#define LINK		 9
-#define POINT		10
+enum {
+	UNDEF = 1,
+	ABS,
+	CODE,
+	DATA,
+	UDEF,
+	OPCODE,
+	PSEUDO,
+	REGISTER,
+	LINK,
+	POINT,
+};
 
 /*
  * values for LTYPE
  */
 
-#define CONSTANT	 1
-#define SYMBOL		 2
-#define	EXPRESSION	 3
+enum {
+	CONSTANT = 1,
+	SYMBOL,
+	EXPRESSION,
+};
 
 /*
  * Definitions for macro's
  */
 
-#define MNAME		0
-#define MEXPAND		1
-#define MLAST		2
+enum {
+	MNAME = 0,
+	MEXPAND,
+	MLAST,
+};
 
 /*
  * Compiler-generated p-codes
  */
 
-#define _ILLEGAL	0x00
-#define _ADD		0x13
-#define _SUB		0x12
-#define _MUL		0x14
-#define _DIV		0x15
-#define _MOD		0x16
-#define _BOR		0x17
-#define _XOR		0x19
-#define _BAND		0x18
-#define _LSR		0x1B
-#define _LSL		0x1A
-#define _NEG		0x1D
-#define _NOT		0x1C
-#define _EQ		0x68
-#define _NE		0x67
-#define _LT		0x64
-#define _LE		0x63
-#define _GT		0x66
-#define _GE		0x65
-#define _LODB		0x04
-#define _LODW		0x01
-#define _LODR		0x11
-#define _LEA		0x03
-#define _CMP		0x10
-#define _STOB		0x05
-#define _STOW		0x02
-#define _JMP		0x6F
-#define _JSB		0x20
-#define _RSB		0x21
-#define _PSHR		0x23
-#define _POPR		0x24
-#define _PSHB		0x25
-#define _PSHW		0x26
-#define _PSHA		0x27
-#define _SVC		0x0A
+enum {
+	_ILLEGAL = 0x00,
+	_ADD = 0x13,
+	_SUB = 0x12,
+	_MUL = 0x14,
+	_DIV = 0x15,
+	_MOD = 0x16,
+	_BOR = 0x17,
+	_XOR = 0x19,
+	_BAND = 0x18,
+	_LSR = 0x1B,
+	_LSL = 0x1A,
+	_NEG = 0x1D,
+	_NOT = 0x1C,
+	_EQ = 0x68,
+	_NE = 0x67,
+	_LT = 0x64,
+	_LE = 0x63,
+	_GT = 0x66,
+	_GE = 0x65,
+	_LODB = 0x04,
+	_LODW = 0x01,
+	_LODR = 0x11,
+	_LEA = 0x03,
+	_CMP = 0x10,
+	_STOB = 0x05,
+	_STOW = 0x02,
+	_JMP = 0x6F,
+	_JSB = 0x20,
+	_RSB = 0x21,
+	_PSHR = 0x23,
+	_POPR = 0x24,
+	_PSHB = 0x25,
+	_PSHW = 0x26,
+	_PSHA = 0x27,
+	_SVC = 0x0A,
+};
 
 /*
  * Pseudo opcodes
  */
 
-#define _CODE		1
-#define _DATA		2
-#define _UDEF		3
-#define _ORG		4
-#define _END		5
-#define _DCB		6
-#define _DCW		7
-#define _DSB		8
-#define _DSW		9
+enum {
+	_CODE = 1,
+	_DATA,
+	_UDEF,
+	_ORG,
+	_END,
+	_DCB,
+	_DCW,
+	_DSB,
+	_DSW,
+};
 
 /*
  * Object commands
  */
 
-#define __ADD		 1
-#define __SUB		 2
-#define __MUL		 3
-#define __DIV		 4
-#define __MOD		 5
-#define __LSR		 6
-#define __LSL		 7
-#define __XOR		 8
-#define __AND		 9
-#define __OR		10
-#define __NOT		11
-#define __NEG		12
-#define __SWAP		13
-#define __END		32
-#define __SYMBOL	33
-#define __PUSHB		34
-#define __PUSHW		35
-#define __POPW		36
-#define __POPB		37
-#define __DSB		38
+enum {
+	__ADD = 1,
+	__SUB = 2,
+	__MUL = 3,
+	__DIV = 4,
+	__MOD = 5,
+	__LSR = 6,
+	__LSL = 7,
+	__XOR = 8,
+	__AND = 9,
+	__OR = 10,
+	__NOT = 11,
+	__NEG = 12,
+	__SWAP = 13,
+	__END = 32,
+	__SYMBOL = 33,
+	__PUSHB = 34,
+	__PUSHW = 35,
+	__POPW = 36,
+	__POPB = 37,
+	__DSB = 38,
 
-#define __CODEB		64
-#define __CODEW		65
-#define __CODEDEF	66
-#define __CODEORG	67
-#define __DATAB		72
-#define __DATAW		73
-#define __DATADEF	74
-#define __DATAORG	75
-#define __UDEFB		80
-#define __UDEFW		81
-#define __UDEFDEF	82
-#define __UDEFORG	83
-
-/* 
- * Literal pool
- */
-
-#define LITMAX		1500
+	__CODEB = 64,
+	__CODEW = 65,
+	__CODEDEF = 66,
+	__CODEORG = 67,
+	__DATAB = 72,
+	__DATAW = 73,
+	__DATADEF = 74,
+	__DATAORG = 75,
+	__UDEFB = 80,
+	__UDEFW = 81,
+	__UDEFDEF = 82,
+	__UDEFORG = 83,
+};
 
 /*
  * Storage

@@ -36,129 +36,149 @@
 
 // #define DYNAMIC		// allocate memory dynamically
 
-#define NAMEMAX 2003		// Size of nametable !!! MUST BE PRIME !!!
-#define FILEMAX	50	        // Number of files
-#define STACKMAX 50		// Size of linker stack
-#define PATHMAX 80		// Length of filename
+enum {
+	NAMEMAX = 2003,		// Size of nametable !!! MUST BE PRIME !!!
+	FILEMAX = 50,		// Number of files
+	STACKMAX = 50,		// Size of linker stack
+	PATHMAX = 80,		// Length of filename
+};
 
 /*
  * Machine dependent parmeters
  */
 
-#define BPW		2       // Bytes per word
-#define SBIT            15      // Bit number of signed bit
+enum {
+	BPW = 2,		// Bytes per word
+	SBIT = 15,		// Bit number of signed bit
+};
 
 /*
  * segment names
  */
 
-#define CODESEG		1
-#define DATASEG		2
-#define UDEFSEG		3
+enum {
+	CODESEG = 1,
+	DATASEG = 2,
+	UDEFSEG = 3,
+};
 
 /*
  * Definitions for names's
  */
 
-#define NTAB		0
-#define NCHAR		1
-#define NTYPE		2
-#define NMODULE		3
-#define NVALUE		4
-#define NLAST		5
+enum {
+	NTAB = 0,
+	NCHAR,
+	NTYPE,
+	NMODULE,
+	NVALUE,
+	NLAST,
+};
 
 /*
  * Definitions for files's
  */
 
-#define FFILE		 0
-#define FLIB		 1
-#define FOFFSET		 2
-#define FCODEBASE	 3
-#define FCODELEN	 4
-#define FCODEPOS	 5
-#define FDATABASE	 6
-#define FDATALEN	 7
-#define FDATAPOS	 8
-#define FUDEFBASE 	 9
-#define FUDEFLEN	10
-#define FUDEFPOS	11
-#define FLAST		12
+enum {
+	FFILE = 0,
+	FLIB,
+	FOFFSET,
+	FCODEBASE,
+	FCODELEN,
+	FCODEPOS,
+	FDATABASE,
+	FDATALEN,
+	FDATAPOS,
+	FUDEFBASE,
+	FUDEFLEN,
+	FUDEFPOS,
+	FLAST,
+};
 
 /*
  * Definitions for .OLB header
  */
 
-#define LBHNAME		0
-#define LBHFILE		1
-#define LBHLAST		2
+enum {
+	LBHNAME = 0,
+	LBHFILE,
+	LBHLAST,
+};
 
 /*
  * Definitions for .OLB filetable
  */
 
-#define LBFNAME		0
-#define LBFLENGTH	1
-#define LBFOFFSET	2
-#define LBFOLDOFS	3
-#define LBFLAST		4
+enum {
+	LBFNAME = 0,
+	LBFLENGTH,
+	LBFOFFSET,
+	LBFOLDOFS,
+	LBFLAST,
+};
 
 /*
  * Definitions for .OLB nametable
  */
 
-#define LBNTAB		0
-#define LBNCHAR		1
-#define LBNLIB		2
-#define LBNLAST		3
+enum {
+	LBNTAB = 0,
+	LBNCHAR,
+	LBNLIB,
+	LBNLAST,
+};
 
 /*
  * values for NTYPE
  */
 
-#define	CODE		 1
-#define DATA		 2
-#define UDEF		 3
-#define	ABS		 4
-#define UNDEF		 5
+enum {
+	CODE = 1,
+	DATA,
+	UDEF,
+	ABS,
+	UNDEF,
+};
 
 /*
  * Object commands
  */
 
-#define __ADD		 1
-#define __SUB		 2
-#define __MUL		 3
-#define __DIV		 4
-#define __MOD		 5
-#define __LSR		 6
-#define __LSL		 7
-#define __XOR		 8
-#define __AND		 9
-#define __OR		10
-#define __NOT		11
-#define __NEG		12
-#define __SWAP		13
-#define __END		32
-#define __SYMBOL	33
-#define __PUSHB		34
-#define __PUSHW		35
-#define __POPW		36
-#define __POPB		37
-#define __DSB		38
+enum {
+	__ADD = 1,
+	__SUB = 2,
+	__MUL = 3,
+	__DIV = 4,
+	__MOD = 5,
+	__LSR = 6,
+	__LSL = 7,
+	__XOR = 8,
+	__AND = 9,
+	__OR = 10,
+	__NOT = 11,
+	__NEG = 12,
+	__SWAP = 13,
+	__END = 32,
+	__SYMBOL = 33,
+	__PUSHB = 34,
+	__PUSHW = 35,
+	__POPW = 36,
+	__POPB = 37,
+	__DSB = 38,
 
-#define __CODEB		64
-#define __CODEW		65
-#define __CODEDEF	66
-#define __CODEORG	67
-#define __DATAB		72
-#define __DATAW		73
-#define __DATADEF	74
-#define __DATAORG	75
-#define __UDEFB		80
-#define __UDEFW		81
-#define __UDEFDEF	82
-#define __UDEFORG	83
+	__CODEB = 64,
+	__CODEW = 65,
+	__CODEDEF = 66,
+	__CODEORG = 67,
+	__DATAB = 72,
+	__DATAW = 73,
+	__DATADEF = 74,
+	__DATAORG = 75,
+	__UDEFB = 80,
+	__UDEFW = 81,
+	__UDEFDEF = 82,
+	__UDEFORG = 83,
+};
 
 /*
  * Storage

@@ -516,7 +516,12 @@ int sname, len;
       lval[LSIZE] = ident[ISIZE];
       lval[LNAME] = lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
 
-      if (ident[ICLASS] == REGISTER) {
+      if (ident[ITYPE] == CONSTANT) {
+      	 // @date 2020-05-20 18:37:39
+      	 // todo: this list shows that constants should actually be ICLASS=CONSTANT,ITYPE=VARIABLE
+	lval[LVALUE] = ident[IVALUE];
+        lval[LEA] = EA_ADDR;
+      } else if (ident[ICLASS] == REGISTER) {
         lval[LREG1] = ident[IVALUE];
         lval[LEA] = EA_REG;
       } else if (ident[ICLASS] == AP_AUTO) {
