@@ -88,7 +88,7 @@ allocreg() {
 
 	for (i = 2; i < REG_0; i++) {
 		mask = 1 << i;
-		if (!(reguse & mask)) {
+		if (~(regresvd | reguse) & mask) {
 			regsum |= reguse |= mask;
 			return i;
 		}
@@ -104,7 +104,7 @@ freereg(register int reg) {
 	register int mask;
 
 	mask = 1 << reg;
-	if (!(REG_RESVD & mask)) {
+	if (!(regresvd & mask)) {
 		if (reguse & mask) {
 			reguse &= ~mask;
 			reglock &= ~mask;
@@ -205,7 +205,7 @@ loadlval(register int lval[], register int reg) {
 		lval[LREG1] = reg;
 		lval[LREG2] = 0;
 	} else if (((reg > 0) && (lval[LREG1] != reg)) ||
-		   (REG_RESVD & (1 << lval[LREG1])) ||
+		   (regresvd & (1 << lval[LREG1])) ||
 		   ((reg != -1) && (reglock & (1 << lval[LREG1])))) {
 		freelval(lval);
 		if (reg <= 0)
@@ -667,22 +667,14 @@ hier14(register int lval[]) {
 		}
 		needtoken(")");
 		// Push ARGC
-		if (argc == BPW)
-			reg = REG_BPW;
-		else if (argc == 4)
-			reg = REG_4;
-		else {
-			reg = allocreg();
-			gencode_I(TOK_LDA, reg, argc);
-		}
-		gencode_IND(TOK_PSHA, 0, 0, reg);
+		gencode_I(TOK_PSHA, 0, argc);
+
 		// call
 		gencode_M(TOK_JSB, 0, lval);
 		freelval(lval);
 		// Pop args
-		gencode_R(TOK_ADD, REG_SP, reg);
-		if (reg < REG_0)
-			freereg(reg);
+		gencode_IND(TOK_LDA, REG_SP, argc, REG_SP);
+
 		csp = sav_csp;
 
 		lval[LTYPE] = EXPR;

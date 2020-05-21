@@ -163,7 +163,6 @@ enum {
 	REG_4 = 12,
 	REG_1 = 11,
 	REG_0 = 10,
-	REG_RESVD = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_4) | (1 << REG_1) | (1 << REG_0) | (1 << 1) | (1 << 0)),
 };
 
 /*
@@ -265,6 +264,7 @@ EXTERN int
 	reglock,		// Register locked by 'register' vars
 	regsum,			// Summary of all used registers
 	reguse,			// Currently used registers
+	regresvd,		// reserved registers
 	skiplevel,		// level at which #if skipping starts
 	sw[SWMAX*SLAST],
 	swinx,			// Position in switch table

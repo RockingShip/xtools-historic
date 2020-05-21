@@ -54,6 +54,7 @@ initialize() {
 	macinx = macqinx = 0;
 	inclnr = inplnr = 0;
 	lastlbl = ++nxtlabel; // first label MUST be "1"
+	regresvd = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_4) | (1 << REG_1) | (1 << REG_0) | (1 << 1) | (1 << 0));
 
 	// character properties
 	for (i = '0'; i <= '9'; i++)

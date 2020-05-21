@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-21 19:41:07 Support for global registers.
+                    Bonus code. 
+                    Reduced code to push/pop function ARGC/args.
 2020-05-21 01:11:19 Support for and convert to `asm()`.
                     Use builtin function instead of preprocessor and IDE chokes on `#asm"`. 
 2020-05-21 18:36:59 Global constructors.

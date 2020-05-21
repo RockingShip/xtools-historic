@@ -923,8 +923,9 @@ parse() {
 		else if (amatch("static"))
 			declvar(0, STATIC);
 		else if (amatch("register")) {
-			error("global register variables not allowed");
-			declvar(0, GLOBAL);
+			reglock = 0;
+			if (declvar(0, REGISTER))
+				regresvd |= reglock;
 		} else if (declvar(0, GLOBAL))
 			;
 		else if (amatch("#include"))
