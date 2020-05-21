@@ -34,8 +34,6 @@
  * Compiler dependent parameters
  */
 
-// #define DYNAMIC		// allocate memory dynamically
-
 enum {
 	NAMEMAX = 2003,			// Size of nametable !!! MUST BE PRIME !!!
 	FILEMAX = 50,			// Number of files
@@ -186,53 +184,32 @@ enum {
  */
 
 EXTERN int
-
-#ifdef DYNAMIC
-  *name,		/* Nametable */
-  *file,		/* Files */
-  *stack,		/* Linker stack */
-#else
-  name[NAMEMAX*NLAST],
-  file1[FILEMAX*FLAST],
-  file2[FILEMAX*FLAST],
-  lbname[NAMEMAX*LBNLAST],
-  lbfile[FILEMAX*LBFLAST],
-  stack[STACKMAX*BPW],
-#endif
-
 	curobj,			// index of current .OLB file
 	curpos[4],		// Position in segment
 	curseg,			// Current segment
 	datlen,			// length of data in datbuf
 	debug,			// Debug   -d specified
 	errflag,		// True if an error has occurred
+	file1[FILEMAX*FLAST],	// files as arguments
 	file1inx,		// Index to next entry
+	file2[FILEMAX*FLAST],	// files processed
 	file2inx,		// Index to next entry
 	inphdl,			// handle for .OBJ/.OLB file
+	lbfile[FILEMAX*LBFLAST],
 	lbhdr[LBHLAST],		// .OLB header
+	lbname[NAMEMAX*LBNLAST],// Library name table
 	lishdl, 		// handle for .MAP file
 	maxpos[4],		// Size of segment
+	name[NAMEMAX*NLAST],	// Name table
 	outhdl,			// handle for .IMG file
 	pass,			// Pass number
+	stack[STACKMAX*BPW],	// REL evaluation stack
 	stackinx,		// Poisition in stack
 	stksiz,			// Stksiz  -s specified
 	undef,			// Undef   -u specified
 	verbose;		// Verbose -v specified
 
 EXTERN char
-
-#ifdef DYNAMIC
-  *sbuf,		/* Source buffer */
-  *pbuf,		/* Preprocessor buffer */
-  *macq,		/* Macro string buffer */
-#else
-/*
-  sbuf[SBUFMAX],
-  pbuf[PBUFMAX],
-  macq[MACQMAX],
-*/
-#endif
-
 	*line,			// Pointer to current input buffer
 	*lptr,			// Pointer to current character in input buffer
 	ch,			// Current character in line being scanned

@@ -34,8 +34,6 @@
  * Compiler dependent parameters
  */
 
-// #define DYNAMIC		// allocate memory dynamically
-
 enum {
 	NAMEMAX = 2003,		// Size of nametable !!! MUST BE PRIME !!!
 	PBUFMAX = 512,		// Size of preprocessor buffer
@@ -239,17 +237,6 @@ enum {
  */
 
 EXTERN int
-
-#ifdef DYNAMIC
-*name,		/* Nametable */
-*mac,			/* Macro entries */
-*litq,		/* Literal pool */
-#else
-	name[NAMEMAX * NLAST],
-	mac[MACMAX * MLAST],
-	litq[LITMAX],
-#endif
-
 	curpos[4],		// Position in segment
 	curseg,			// Current segment
 	datlen,			// length of data in datbuf
@@ -264,9 +251,12 @@ EXTERN int
 	inplnr,			// Linenumber of .C file
 	lishdl,			// handle for .LIS file
 	litinx,			// Index to next entry
+	litq[LITMAX],		// Temporary storage for initialisers
+	mac[MACMAX * MLAST],	// macros
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq
 	maxpos[4],		// Size in segment
+	name[NAMEMAX * NLAST],	// string name table
 	outhdl,			// handle for .OBJ file
 	pass,			// Pass number
 	pinx,			// Position in preprocessor buffer
@@ -275,17 +265,6 @@ EXTERN int
 	verbose;		// Verbose -v specified
 
 EXTERN char
-
-#ifdef DYNAMIC
-*sbuf,		/* Source buffer */
-*pbuf,		/* Preprocessor buffer */
-*macq,		/* Macro string buffer */
-#else
-	sbuf[SBUFMAX],
-	pbuf[PBUFMAX],
-	macq[MACQMAX],
-#endif
-
 	ch,			// Current character in line being scanned
 	datbuf[128],		// storage buffer for sto_data
 	incfn[PATHMAX],		// include filename
@@ -293,5 +272,8 @@ EXTERN char
 	*line,			// Pointer to current input buffer
 	lisfn[PATHMAX],		// listing filename
 	*lptr,			// Pointer to current character in input buffer
+	macq[MACQMAX],
 	nch,			// Next character in line being scanned
-	outfn[PATHMAX];		// output filename
+	outfn[PATHMAX],		// output filename
+	pbuf[PBUFMAX],
+	sbuf[SBUFMAX];

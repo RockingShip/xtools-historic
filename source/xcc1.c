@@ -55,19 +55,6 @@ initialize() {
 	ccode = 1;
 	inclnr = inplnr = 0;
 
-#ifdef DYNAMIC
-	! check this first
-	litq = calloc (LITMAX*BPW);
-	namech = calloc (NAMEMAX);
-	nametab = calloc (NAMEMAX*BPW);
-	sbuf = calloc (SBUFMAX);
-	pbuf = calloc (PBUFMAX);
-	mac = calloc (MACMAX*BPW*MLAST);
-	macq = aclloc (MACQMAX);
-	glbsym = calloc (GLBMAX*BPW*ILAST);
-	locsym = calloc (LOCMAX*BPW*ILAST);
-#endif;
-
 	// reset table
 	for (i = 0; i < NAMEMAX; i++)
 		namech[i] = nametab[i] = 0;

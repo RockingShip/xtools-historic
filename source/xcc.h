@@ -34,8 +34,6 @@
  * Compiler dependent parameters
  */
 
-// #define DYNAMIC		// allocate memory dynamically
-
 enum {
 	SYMMAX = 300,		// Number of identifiers
 	LITMAX = 1500,		// literal pool
@@ -229,21 +227,6 @@ enum {
  */
 
 EXTERN int
-
-#ifdef DYNAMIC
-  *nametab,		/* Nametable */
-  *syms,		/* Identifiers */
-  *mac,			/* Macro entries */
-  *litq,		/* Literal pool */
-  *sw,			/* Cases in switch */
-#else
-  nametab[NAMEMAX],
-  syms[SYMMAX*ILAST],
-  mac[MACMAX*MLAST],
-  litq[LITMAX],
-  sw[SWMAX*SLAST],
-#endif
-
 	argcid,			// hash value of reserved word
 	argvid,			// hash value of reserved word
 	ccode,			// True for C source, else ASM source
@@ -259,9 +242,12 @@ EXTERN int
 	inplnr,			// Linenumber of .C file
 	lishdl,			// handle for .LIS file
 	litinx,			// Index to next entry
+	litq[LITMAX],
+	mac[MACMAX*MLAST],
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq
 	maklis,			// Listing -h specified
+	nametab[NAMEMAX],	// Name table
 	nxtlabel,		// Next label number
 	outhdl,			// handle for .ASM file
 	pinx,			// Position in preprocessor buffer
@@ -270,28 +256,21 @@ EXTERN int
 	regsum,			// Summary of all used registers
 	reguse,			// Currently used registers
 	skiplevel,		// level at which #if skipping starts
+	sw[SWMAX*SLAST],
 	swinx,			// Position in switch table
 	symidx,			// Next free identifier
+	syms[SYMMAX*ILAST],	// Symbols/identifiers
 	verbose;		// Verbose -v specified
 
 EXTERN char
-
-#ifdef DYNAMIC
-  *sbuf,		/* Source buffer */
-  *pbuf,		/* Preprocessor buffer */
-  *namech,		/* Nametable */
-  *macq,		/* Macro string buffer */
-#else
-  sbuf[SBUFMAX],
-  pbuf[PBUFMAX],
-  namech[NAMEMAX],
-  macq[MACQMAX],
-#endif
-
 	ch,			// Current character in line being scanned
 	incfn[PATHMAX],		// include filename
 	inpfn[PATHMAX],		// input filename
 	*line,			// Pointer to current input buffer
 	*lptr,			// Pointer to current character in input buffer
+	macq[MACQMAX],
+	namech[NAMEMAX],
 	nch,			// Next character in line being scanned
-	outfn[PATHMAX];		// output filename
+	outfn[PATHMAX],		// output filename
+	pbuf[PBUFMAX],
+	sbuf[SBUFMAX];

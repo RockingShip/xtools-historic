@@ -34,8 +34,6 @@
  * Compiler dependent parameters
  */
 
-// #define DYNAMIC		// allocate memory dynamically
-
 enum {
 	NAMEMAX = 2003,		// Size of nametable !!! MUST BE PRIME !!!
 	FILEMAX = 50,		// Size of filetable
@@ -142,18 +140,11 @@ enum {
  */
 
 EXTERN int
-
-#ifdef DYNAMIC
-  *name,		/* Nametable */
-  *file,		/* Filetable */
-#else
-  name[NAMEMAX*NLAST],
-  file[FILEMAX*NLAST],
-#endif
-
 	datlen,			// length of datbuf
 	debug,			// Debug   -d specified
 	errflag,		// Error occurred
+	file[FILEMAX*NLAST],
+	name[NAMEMAX*NLAST],
 	objhdl,			// handle for .OBJ file
 	olbhdl,			// handle for source .OLB file
 	olbhdr[HLAST],		// .OLB header
@@ -162,7 +153,6 @@ EXTERN int
 	verbose;		// Verbose -v specified
 
 EXTERN char
-
 	bakfn[PATHMAX],		// .BAK filename
 	datbuf[512],		// internal scratch buffer
 	modn[PATHMAX],		// name of module

@@ -80,18 +80,6 @@ initialize() {
 	inpfn[0] = 0;
 	datlen = 0;
 
-#ifdef DYNAMIC
-	! check this first
-	litq = calloc (LITMAX*BPW);
-	name = calloc (NAMEMAX*BPW*NLAST);
-	sbuf = calloc (SBUFMAX);
-	pbuf = calloc (PBUFMAX);
-	mac = calloc (MACMAX*BPW*MLAST);
-	macq = calloc (MACQMAX);
-	glbsym = calloc (GLBMAX*BPW*ILAST);
-	locsym = calloc (LOCMAX*BPW*ILAST);
-#endif;
-
 	// reset table
 	for (i = 0; i < NAMEMAX; i++) {
 		p = &name[i * NLAST];
