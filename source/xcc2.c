@@ -393,23 +393,6 @@ doinclude() {
 }
 
 /*
- * Copy assembler source directly to the output file
- */
-doasm() {
-	ccode = 0; // mark mode as "asm"
-	readline(); // skip #asm
-	while (inphdl) {
-		white();
-		if (ch && amatch("#endasm"))
-			break;
-		fprintf(outhdl, "%s\n", line);
-		readline();
-	}
-	kill(); // erase to eoln
-	ccode = 1;
-}
-
-/*
  * Declare/define a macro
  */
 declmac() {
@@ -811,8 +794,6 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		ns();
 	} else if (!ch) {
 		return; // EOF
-	} else if (amatch("#asm")) {
-		doasm();
 	} else if (ch != ';') {
 		expression(lval, 1);
 		freelval(lval);
@@ -944,9 +925,8 @@ parse() {
 		else if (amatch("register")) {
 			error("global register variables not allowed");
 			declvar(0, GLOBAL);
-		} else if (declvar(0, GLOBAL));
-		else if (amatch("#asm"))
-			doasm();
+		} else if (declvar(0, GLOBAL))
+			;
 		else if (amatch("#include"))
 			doinclude();
 		else if (amatch("#define"))

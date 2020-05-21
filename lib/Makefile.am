@@ -9,6 +9,7 @@ CLEANFILES = *.xs *.xo *.xs3 *.xo3 stamp-stage2 stamp-stage3 stage3-xlib.xa
 
 MODULES = \
 	fgets.c \
+	fputc.c \
 	fputs.c \
 	isalnum.c \
 	isalpha.c \

@@ -481,6 +481,35 @@ primary(register int lval[]) {
 		return 1;
 	}
 
+	// test for "asm()"
+	if (amatch("asm")) {
+		needtoken("(");
+
+		if (!qstr()) {
+			error("expected string");
+		} else {
+			register int i;
+
+			fputc('\t', outhdl);
+			for (i = 0; i < litinx - 1; i++) // one less for trailing zero
+				fputc(litq[i], outhdl);
+			fputc('\n', outhdl);
+		}
+
+		blanks();
+		needtoken(")");
+
+		// make R1 available
+		lval[LTYPE] = EXPR;
+		lval[LPTR] = 0;
+		lval[LSIZE] = BPW;
+		lval[LEA] = EA_REG;
+		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LREG1] = 1;
+		lval[LREG2] = 0;
+		return 1;
+	}
+
 	// load identifier
 	if (!(len = dohash(lptr, &sname)))
 		return constant(lval);
@@ -934,8 +963,10 @@ expression(register int lval[], int comma) {
 	do {
 		if (lval[LTYPE] != CONSTANT)
 			freelval(lval);
-		if (!hier1(lval))
+		if (!hier1(lval)) {
 			error("expression required");
+			junk();
+		}
 	} while (comma && match(","));
 }
 

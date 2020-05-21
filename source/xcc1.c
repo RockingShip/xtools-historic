@@ -52,7 +52,6 @@ initialize() {
 	currseg = 0;
 	inpfn[0] = 0;
 	macinx = macqinx = 0;
-	ccode = 1;
 	inclnr = inplnr = 0;
 	lastlbl = ++nxtlabel; // first label MUST be "1"
 
@@ -417,14 +416,9 @@ preprocess() {
 	int *mptr;
 	int sname;
 
-	if (ccode) {
-		ifline();
-		if (!inphdl)
-			return 0;
-	} else {
-		readline();
+	ifline();
+	if (!inphdl)
 		return 0;
-	}
 
 	// Now expand current line
 	pinx = 0;
@@ -696,7 +690,7 @@ junk() {
 		while (ctype[ch] & CSYMNEXT)
 			gch();
 	} else {
-		while (ch & (~ctype[ch] & CSYMNEXT))
+		while (ch && (~ctype[ch] & CSYMNEXT))
 			gch();
 	}
 	blanks();
@@ -745,8 +739,6 @@ main(int argc, int *argv) {
 	parse();             // GO !!!
 	if (iflevel)
 		error("no closing #endif");
-	if (!ccode)
-		error("no closing #endasm");
 	fprintf(outhdl, "_%d:", lastlbl); // end of constructor list
 	fprintf(outhdl, "\t.END\n");
 

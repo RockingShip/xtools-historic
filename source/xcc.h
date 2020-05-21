@@ -239,7 +239,6 @@ enum {
 EXTERN int
 	argcid,			// hash value of reserved word
 	argvid,			// hash value of reserved word
-	ccode,			// True for C source, else ASM source
 	csp,			// stackpointer seen from scope coding
 	currseg,		// Current output segment
 	errflag,		// True if an error has occurred

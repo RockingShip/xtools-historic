@@ -7,12 +7,11 @@ __START()
 	/* r12 REG_4   constant 2*BPW */
 	/* r11 REG_1   constant 1 */
 	/* R10 REG_0   constant 0 */
-#asm
-	lda	r13,2
-	lda	r12,4
-	lda	r11,1
-	lda	r10,0
-#endasm
+
+	asm("lda r13,2");
+	asm("lda r12,4");
+	asm("lda r11,1");
+	asm("lda r10,0");
 
 	osprint("testing oscalls\n");
 
