@@ -203,7 +203,7 @@ enum {
 	TOK_LDB = 20,
 	TOK_LDW = 21,
 	TOK_LDR = 22,
-	TOK_LEA = 23,
+	TOK_LDA = 23,
 	TOK_CMP = 24,
 	TOK_TST = 25,
 	TOK_STB = 26,

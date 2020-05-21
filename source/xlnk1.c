@@ -61,12 +61,6 @@ initialize() {
 	datlen = 0;
 	file1inx = file2inx = 0;
 
-#ifdef DYNAMIC
-	! check this first
-	name = calloc (NAMEMAX*BPW*NLAST);
-	file = calloc (FILEMAX*BPW*FLAST);
-#endif;
-
 	// reset tables
 	for (i = 0; i < NAMEMAX; i++) {
 		p = &name[i * NLAST];

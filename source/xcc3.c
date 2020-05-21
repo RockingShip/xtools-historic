@@ -129,7 +129,7 @@ loadlval(register int lval[], register int reg) {
 	if (lval[LTYPE] == CONSTANT) {
 		// test for a predefined register
 		if (reg > 0)
-			gencode_I(TOK_LEA, reg, lval[LVALUE]);
+			gencode_I(TOK_LDA, reg, lval[LVALUE]);
 		else {
 			if (lval[LVALUE] == 0)
 				srcreg = REG_0;
@@ -141,7 +141,7 @@ loadlval(register int lval[], register int reg) {
 				srcreg = REG_4;
 			else {
 				srcreg = allocreg();
-				gencode_I(TOK_LEA, srcreg, lval[LVALUE]);
+				gencode_I(TOK_LDA, srcreg, lval[LVALUE]);
 			}
 
 			if (reg == -1)
@@ -198,7 +198,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(TOK_LEA, reg, lval);
+		gencode_M(TOK_LDA, reg, lval);
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
@@ -644,7 +644,7 @@ hier14(register int lval[]) {
 			reg = REG_4;
 		else {
 			reg = allocreg();
-			gencode_I(TOK_LEA, reg, argc);
+			gencode_I(TOK_LDA, reg, argc);
 		}
 		gencode_IND(TOK_PSHA, 0, 0, reg);
 		// call

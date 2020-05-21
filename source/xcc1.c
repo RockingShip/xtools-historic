@@ -796,7 +796,7 @@ genopc(int opc) {
 	case TOK_LDB: fprintf(outhdl, "\tLDB\t"); break;
 	case TOK_LDW: fprintf(outhdl, "\tLDW\t"); break;
 	case TOK_LDR: fprintf(outhdl, "\tLDR\t"); break;
-	case TOK_LEA : fprintf(outhdl, "\tLDA\t"); break;
+	case TOK_LDA : fprintf(outhdl, "\tLDA\t"); break;
 	case TOK_CMP : fprintf(outhdl, "\tCMP\t"); break;
 	case TOK_TST : fprintf(outhdl, "\tTST\t"); break;
 	case TOK_STB: fprintf(outhdl, "\tSTB\t"); break;

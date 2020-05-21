@@ -881,10 +881,10 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	// generate code (use j as reg)
 	fprintf(outhdl, "_%d:", codlbl);
 	j = allocreg();
-	gencode_I(TOK_LEA, j, lo);
+	gencode_I(TOK_LDA, j, lo);
 	gencode_R(TOK_SUB, 1, j);
 	gencode_L(TOK_BLT, deflbl);
-	gencode_I(TOK_LEA, j, hi - lo);
+	gencode_I(TOK_LDA, j, hi - lo);
 	gencode_R(TOK_CMP, 1, j);
 	gencode_L(TOK_BGT, deflbl);
 	gencode_R(TOK_MUL, 1, REG_BPW);
@@ -913,10 +913,10 @@ parse() {
 
 			// initialise reserved registers on first call
 			if (lastlbl == 1) {
-				gencode_I(TOK_LEA, 13, BPW);
-				gencode_I(TOK_LEA, 12, BPW * 2);
-				gencode_I(TOK_LEA, 11, 1);
-				gencode_I(TOK_LEA, 10, 0);
+				gencode_I(TOK_LDA, 13, BPW);
+				gencode_I(TOK_LDA, 12, BPW * 2);
+				gencode_I(TOK_LDA, 11, 1);
+				gencode_I(TOK_LDA, 10, 0);
 			}
 
 			int returnlbl;
