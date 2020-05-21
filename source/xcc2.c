@@ -38,7 +38,7 @@
  */
 declarg(int scope, register int class, register int argnr) {
 	int size, sname, len, ptr, type, cnt, reg;
-	register int *ident, i;
+	register int *sym, i;
 
 	// get size of type
 	if (amatch("char"))
@@ -63,9 +63,9 @@ declarg(int scope, register int class, register int argnr) {
 		if (len)
 			bump(len);
 
-		for (i = scope; i < idinx; i++) {
-			ident = &idents[i * ILAST];
-			if (ident[INAME] == sname) {
+		for (i = scope; i < symidx; i++) {
+			sym = &syms[i * ILAST];
+			if (sym[INAME] == sname) {
 				multidef();
 				break;
 			}
@@ -102,19 +102,19 @@ declarg(int scope, register int class, register int argnr) {
 		}
 
 		// add symbol to symboltable
-		if (idinx >= IDMAX)
+		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
-		ident = &idents[idinx++ * ILAST];
-		ident[INAME] = sname;
-		ident[ITYPE] = type;
-		ident[IPTR] = ptr;
-		ident[ICLASS] = class;
-		ident[ISIZE] = size;
-		ident[IVALUE] = (-argnr + 1) * BPW;
+		sym = &syms[symidx++ * ILAST];
+		sym[INAME] = sname;
+		sym[ITYPE] = type;
+		sym[IPTR] = ptr;
+		sym[ICLASS] = class;
+		sym[ISIZE] = size;
+		sym[IVALUE] = (-argnr + 1) * BPW;
 
 		// modify location if chars. Chars are pushed as words, adjust to point to lo-byte
 		if (size == 1 && !ptr)
-			ident[IVALUE] += BPW - 1;
+			sym[IVALUE] += BPW - 1;
 
 		// only one
 		break;
@@ -126,7 +126,7 @@ declarg(int scope, register int class, register int argnr) {
  */
 declvar(int scope, register int class) {
 	int size, sname, len, ptr, type, cnt;
-	register int *ident, i;
+	register int *sym, i;
 
 	// get size of type
 	if (amatch("char"))
@@ -144,11 +144,11 @@ declvar(int scope, register int class) {
 		if (len)
 			bump(len);
 
-		for (i = scope; i < idinx; i++) {
-			if (idents[i * ILAST + INAME] == sname)
+		for (i = scope; i < symidx; i++) {
+			if (syms[i * ILAST + INAME] == sname)
 				break;
 		}
-		if (i < idinx)
+		if (i < symidx)
 			multidef();
 
 		match(")");
@@ -179,15 +179,15 @@ declvar(int scope, register int class) {
 		}
 
 		// add symbol to symboltable
-		if (idinx >= IDMAX)
+		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
-		ident = &idents[idinx++ * ILAST];
-		ident[INAME] = sname;
-		ident[ITYPE] = type;
-		ident[IPTR] = ptr;
-		ident[ICLASS] = class;
-		ident[ISIZE] = size;
-		ident[IVALUE] = 0;
+		sym = &syms[symidx++ * ILAST];
+		sym[INAME] = sname;
+		sym[ITYPE] = type;
+		sym[IPTR] = ptr;
+		sym[ICLASS] = class;
+		sym[ISIZE] = size;
+		sym[IVALUE] = 0;
 
 		// Now generate code
 		if (match("=")) {
@@ -261,19 +261,19 @@ declvar(int scope, register int class) {
 				else
 					fprintf(outhdl, "\t.DSW\t%d\n", cnt);
 
-		} else if (ident[ICLASS] == REGISTER) {
-			ident[IVALUE] = allocreg();
-			reglock |= (1 << ident[IVALUE]);
+		} else if (sym[ICLASS] == REGISTER) {
+			sym[IVALUE] = allocreg();
+			reglock |= (1 << sym[IVALUE]);
 
-		} else if (ident[ICLASS] == SP_AUTO) {
+		} else if (sym[ICLASS] == SP_AUTO) {
 			if (ptr)
-				ident[IVALUE] = (csp -= BPW);
+				sym[IVALUE] = (csp -= BPW);
 			else if (size == 1)
-				ident[IVALUE] = (csp -= cnt);
+				sym[IVALUE] = (csp -= cnt);
 			else
-				ident[IVALUE] = (csp -= cnt * BPW);
+				sym[IVALUE] = (csp -= cnt * BPW);
 
-		} else if (ident[ICLASS] != EXTERNAL) {
+		} else if (sym[ICLASS] != EXTERNAL) {
 			toseg(UDEFSEG);
 			fprintf(outhdl, "_");
 			symname(sname);
@@ -302,7 +302,7 @@ declvar(int scope, register int class) {
 // General global definitions
 //
 declenum() {
-	int *s;
+	int *sym;
 	int seqnr;
 	register int i;
 	int len, sname;
@@ -326,23 +326,23 @@ declenum() {
 		bump(len);
 
 		// add symbol to symboltable
-		for (i = idinx - 1; i >= 0; i--) {
-			s = &idents[i * ILAST];
-			if (s[INAME] == sname)
+		for (i = symidx - 1; i >= 0; i--) {
+			sym = &syms[i * ILAST];
+			if (sym[INAME] == sname)
 				break;
 		}
 		if (i >= 0)
 			multidef();
-		else if (idinx >= IDMAX)
+		else if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
-		s = &idents[idinx++ * ILAST];
+		sym = &syms[symidx++ * ILAST];
 
-		s[INAME] = sname;
-		s[ITYPE] = CONSTANT; // todo: this should actually be VARIABLE
-		s[IPTR] = 0;
-		s[ICLASS] = 0; // todo: this should actually be CONSTANT
-		s[IVALUE] = 0;
-		s[ISIZE] = 0;
+		sym[INAME] = sname;
+		sym[ITYPE] = CONSTANT; // todo: this should actually be VARIABLE
+		sym[IPTR] = 0;
+		sym[ICLASS] = 0; // todo: this should actually be CONSTANT
+		sym[IVALUE] = 0;
+		sym[ISIZE] = 0;
 
 		if (match("=")) {
 			expression(lval, 0);
@@ -353,7 +353,7 @@ declenum() {
 			seqnr = lval[LVALUE];
 		}
 
-		s[IVALUE] = seqnr++;
+		sym[IVALUE] = seqnr++;
 
 		if (!match(","))
 			break;
@@ -443,7 +443,7 @@ declmac() {
  */
 declfunc() {
 	int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc, scope;
-	register int *ident, i, numarg;
+	register int *sym, i, numarg;
 
 	returnlbl = ++nxtlabel;
 	reguse = regsum = reglock = 1 << REG_AP; // reset all registers
@@ -461,37 +461,37 @@ declfunc() {
 	}
 	bump(len);
 
-	scope = idinx;
+	scope = symidx;
 
-	for (i = 0; i < idinx; i++) {
-		ident = &idents[i * ILAST];
-		if (ident[INAME] == sname)
+	for (i = 0; i < symidx; i++) {
+		sym = &syms[i * ILAST];
+		if (sym[INAME] == sname)
 			break;
 	}
-	if (i < idinx && ident[ICLASS] != AUTOEXT)
+	if (i < symidx && sym[ICLASS] != AUTOEXT)
 		multidef();
-	if (idinx >= IDMAX)
+	if (symidx >= SYMMAX)
 		fatal("identifier table overflow");
 
-	if (i >= idinx)
-		ident = &idents[idinx++ * ILAST];
+	if (i >= symidx)
+		sym = &syms[symidx++ * ILAST];
 
 	// (re)define procedure
-	ident[INAME] = sname;
-	ident[ITYPE] = FUNCTION;
-	ident[IPTR] = 0;
-	ident[ICLASS] = GLOBAL;
-	ident[IVALUE] = 0;
-	ident[ISIZE] = BPW;
+	sym[INAME] = sname;
+	sym[ITYPE] = FUNCTION;
+	sym[IPTR] = 0;
+	sym[ICLASS] = GLOBAL;
+	sym[IVALUE] = 0;
+	sym[ISIZE] = BPW;
 	// Generate global label
 	fprintf(outhdl, "_");
 	symname(sname);
 	fprintf(outhdl, "::");
-	gencode_R(OPC_LDR, 1, REG_SP);
+	gencode_R(TOK_LDR, 1, REG_SP);
 	lbl1 = ++nxtlabel;
 	fprintf(outhdl, "_%d:", lbl1);
-	gencode_I(OPC_PSHR, 0, 0);
-	gencode_R(OPC_LDR, REG_AP, 1);
+	gencode_I(TOK_PSHR, 0, 0);
+	gencode_R(TOK_LDR, REG_AP, 1);
 
 	// get arguments
 	if (!match("("))
@@ -512,19 +512,19 @@ declfunc() {
 	needtoken(")");
 
 	// post-process arguments
-	for (i = scope; i < idinx; i++) {
-		ident = &idents[i * ILAST];
+	for (i = scope; i < symidx; i++) {
+		sym = &syms[i * ILAST];
 
 		// tweak ap offsets
-		ident[IVALUE] += numarg * BPW;
+		sym[IVALUE] += numarg * BPW;
 
 		// generate code for register variables
-		if (ident[ICLASS] == REGISTER) {
+		if (sym[ICLASS] == REGISTER) {
 			int reg;
 			reg = allocreg();
 			reglock |= (1 << reg);
-			gencode_IND(((ident[LSIZE] == BPW) || ident[LPTR]) ? OPC_LDW : OPC_LDB, reg, ident[IVALUE], REG_AP);
-			ident[IVALUE] = reg;
+			gencode_IND(((sym[LSIZE] == BPW) || sym[LPTR]) ? TOK_LDW : TOK_LDB, reg, sym[IVALUE], REG_AP);
+			sym[IVALUE] = reg;
 		}
 	}
 
@@ -539,13 +539,13 @@ declfunc() {
 	// trailing statements
 	lbl2 = ++nxtlabel;
 	fprintf(outhdl, "_%d:\t.ORG\t_%d\n", lbl2, lbl1);
-	gencode_I(OPC_PSHR, 0, regsum);
+	gencode_I(TOK_PSHR, 0, regsum);
 	fprintf(outhdl, "\t.ORG\t_%d\n", lbl2);
 	fprintf(outhdl, "_%d:", returnlbl);
-	gencode_I(OPC_POPR, 0, regsum);
-	gencode(OPC_RSB);
+	gencode_I(TOK_POPR, 0, regsum);
+	gencode(TOK_RSB);
 
-	idinx = scope;
+	symidx = scope;
 }
 
 /*
@@ -553,12 +553,12 @@ declfunc() {
  */
 statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int contsp) {
 	int lval[LLAST], scope, sav_sw;
-	register int sav_csp, i, *ptr;
+	register int sav_csp, i, *sym;
 	int lbl1, lbl2, lbl3;
 
 	if (match("{")) {
 		sav_csp = csp;
-		scope = idinx;
+		scope = symidx;
 		while (!match("}")) {
 			if (ch <= ' ')
 				blanks();
@@ -589,12 +589,12 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			csp = sav_csp;
 		}
 		// free local registers
-		for (i = scope; i < idinx; i++) {
-			ptr = &idents[i * ILAST];
-			if (ptr[ICLASS] == REGISTER)
-				freereg(ptr[IVALUE]);
+		for (i = scope; i < symidx; i++) {
+			sym = &syms[i * ILAST];
+			if (sym[ICLASS] == REGISTER)
+				freereg(sym[IVALUE]);
 		}
-		idinx = scope;
+		symidx = scope;
 		return;
 	}
 
@@ -610,7 +610,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			loadlval(lval, 0);
 			lval[LFALSE] = ++nxtlabel;
 			lval[LTRUE] = 0;
-			gencode_L(OPC_EQ, lval[LFALSE]);
+			gencode_L(TOK_BEQ, lval[LFALSE]);
 		}
 		if (lval[LTRUE])
 			fprintf(outhdl, "_%d:", lval[LTRUE]);
@@ -630,7 +630,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			// F:  statement
 			// L1:
 			lbl1 = ++nxtlabel;
-			gencode_L(OPC_JMP, lbl1);
+			gencode_L(TOK_JMP, lbl1);
 			fprintf(outhdl, "_%d:", lval[LFALSE]);
 			statement(swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
 			fprintf(outhdl, "_%d:", lbl1);
@@ -656,13 +656,13 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			loadlval(lval, 0);
 			lval[LFALSE] = ++nxtlabel;
 			lval[LTRUE] = 0;
-			gencode_L(OPC_EQ, lval[LFALSE]);
+			gencode_L(TOK_BEQ, lval[LFALSE]);
 		}
 		if (lval[LTRUE])
 			fprintf(outhdl, "_%d:", lval[LTRUE]);
 		freelval(lval);
 		statement(swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
-		gencode_L(OPC_JMP, lbl1);
+		gencode_L(TOK_JMP, lbl1);
 		fprintf(outhdl, "_%d:", lval[LFALSE]);
 	} else if (amatch("do")) {
 		// @date 2020-05-19 12:37:46
@@ -689,7 +689,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 				fprintf(outhdl, "_%d:", lval[LFALSE]);
 		} else {
 			loadlval(lval, 0);
-			gencode_L(OPC_NE, lbl1);
+			gencode_L(TOK_BNE, lbl1);
 		}
 		freelval(lval);
 	} else if (amatch("for")) {
@@ -727,11 +727,11 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 				lval[LFALSE] = ++nxtlabel;
 				lval[LTRUE] = ++nxtlabel;
 				loadlval(lval, 0);
-				gencode_L(OPC_EQ, lval[LFALSE]);
+				gencode_L(TOK_BEQ, lval[LFALSE]);
 			}
 			freelval(lval);
 		}
-		gencode_L(OPC_JMP, lval[LTRUE]);
+		gencode_L(TOK_JMP, lval[LTRUE]);
 		needtoken(";");
 		fprintf(outhdl, "_%d:", lbl2);
 		if (ch <= ' ')
@@ -740,11 +740,11 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			expression(lval, 1);
 			freelval(lval);
 		}
-		gencode_L(OPC_JMP, lbl1);
+		gencode_L(TOK_JMP, lbl1);
 		needtoken(")");
 		fprintf(outhdl, "_%d:", lval[LTRUE]);
 		statement(swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
-		gencode_L(OPC_JMP, lbl2);
+		gencode_L(TOK_JMP, lbl2);
 		fprintf(outhdl, "_%d:", lval[LFALSE]);
 	} else if (amatch("switch")) {
 		needtoken("(");
@@ -753,13 +753,13 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		loadlval(lval, 1);
 		lbl1 = ++nxtlabel;
 		lbl2 = ++nxtlabel;
-		gencode_L(OPC_JMP, lbl1);
+		gencode_L(TOK_JMP, lbl1);
 		sav_sw = swinx;
 		if (swinx >= SWMAX)
 			fatal("switch table overflow");
 		sw[swinx++ * SLAST + SLABEL] = 0; // enable default
 		statement(sav_sw, returnlbl, lbl2, contlbl, csp, contsp);
-		gencode_L(OPC_JMP, lbl2);
+		gencode_L(TOK_JMP, lbl2);
 		dumpsw(sav_sw, lbl1, lbl2);
 		fprintf(outhdl, "_%d:", lbl2);
 		swinx = sav_sw;
@@ -776,19 +776,19 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		fprintf(outhdl, "_%d:", lbl1);
 		if (swinx >= SWMAX)
 			fatal("switch table overflow");
-		ptr = &sw[swinx++ * SLAST];
-		ptr[SCASE] = lbl3;
-		ptr[SLABEL] = lbl1;
+		sym = &sw[swinx++ * SLAST];
+		sym[SCASE] = lbl3;
+		sym[SLABEL] = lbl1;
 	} else if (amatch("default")) {
 		if (!swbase)
 			error("not in switch");
 		needtoken(":");
-		ptr = &sw[swbase * SLAST];
-		if (ptr[SLABEL])
+		sym = &sw[swbase * SLAST];
+		if (sym[SLABEL])
 			error("multiple defaults");
 		lbl1 = ++nxtlabel;
 		fprintf(outhdl, "_%d:", lbl1);
-		ptr[SLABEL] = lbl1;
+		sym[SLABEL] = lbl1;
 	} else if (amatch("return")) {
 		if (!endst()) {
 			// generate a return value in R1
@@ -797,21 +797,21 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		}
 		if (csp != -1)
 			gencode_ADJSP(-1 - csp);
-		gencode_L(OPC_JMP, returnlbl);
+		gencode_L(TOK_JMP, returnlbl);
 		ns();
 	} else if (amatch("break")) {
 		if (!breaklbl)
 			error("not in block");
 		if (csp != breaksp)
 			gencode_ADJSP(breaksp - csp);
-		gencode_L(OPC_JMP, breaklbl);
+		gencode_L(TOK_JMP, breaklbl);
 		ns();
 	} else if (amatch("continue")) {
 		if (!contlbl)
 			error("not in block");
 		if (csp != contsp)
 			gencode_ADJSP(contsp - csp);
-		gencode_L(OPC_JMP, contlbl);
+		gencode_L(TOK_JMP, contlbl);
 		ns();
 	} else if (!ch) {
 		return; // EOF
@@ -836,7 +836,7 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 		// no cases specified
 		ptr = &sw[swbase * SLAST];
 		if (ptr[SLABEL])
-			gencode_L(OPC_JMP, ptr[SLABEL]);
+			gencode_L(TOK_JMP, ptr[SLABEL]);
 		return;
 	}
 
@@ -885,19 +885,19 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	// generate code (use j as reg)
 	fprintf(outhdl, "_%d:", codlbl);
 	j = allocreg();
-	gencode_I(OPC_LEA, j, lo);
-	gencode_R(OPC_SUB, 1, j);
-	gencode_L(OPC_LT, deflbl);
-	gencode_I(OPC_LEA, j, hi - lo);
-	gencode_R(OPC_CMP, 1, j);
-	gencode_L(OPC_GT, deflbl);
-	gencode_R(OPC_MUL, 1, REG_BPW);
+	gencode_I(TOK_LEA, j, lo);
+	gencode_R(TOK_SUB, 1, j);
+	gencode_L(TOK_BLT, deflbl);
+	gencode_I(TOK_LEA, j, hi - lo);
+	gencode_R(TOK_CMP, 1, j);
+	gencode_L(TOK_BGT, deflbl);
+	gencode_R(TOK_MUL, 1, REG_BPW);
 	lval[LTYPE] = LABEL;
 	lval[LNAME] = maplbl;
 	lval[LREG1] = 1;
 	lval[LREG2] = lval[LVALUE] = 0;
-	gencode_M(OPC_LDW, j, lval);
-	gencode_IND(OPC_JMP, 0, 0, j);
+	gencode_M(TOK_LDW, j, lval);
+	gencode_IND(TOK_JMP, 0, 0, j);
 	freereg(j);
 }
 

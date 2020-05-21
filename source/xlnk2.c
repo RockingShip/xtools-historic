@@ -51,16 +51,16 @@ objerr(register int *fp, char *msg, int curseg) {
  * Trying all possibilities reveals:
  * unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000"
  */
-unsignedGT(int i, int j) {
+unsigned_GT(int i, int j) {
 	return ((j ^ i) & (1 << SBIT) ? i & (1 << SBIT) : (j - i) & (1 << SBIT));
 }
 
-savmaxseg(register int *fp) {
-	if (unsignedGT(fp[FCODEPOS], fp[FCODELEN]))
+save_seg_size(register int *fp) {
+	if (unsigned_GT(fp[FCODEPOS], fp[FCODELEN]))
 		fp[FCODELEN] = fp[FCODEPOS];
-	if (unsignedGT(fp[FDATAPOS], fp[FDATALEN]))
+	if (unsigned_GT(fp[FDATAPOS], fp[FDATALEN]))
 		fp[FDATALEN] = fp[FDATAPOS];
-	if (unsignedGT(fp[FUDEFPOS], fp[FUDEFLEN]))
+	if (unsigned_GT(fp[FUDEFPOS], fp[FUDEFLEN]))
 		fp[FUDEFLEN] = fp[FUDEFPOS];
 }
 
@@ -209,7 +209,7 @@ dopass1(int fileid, int libid, int libofs) {
 						fp[FUDEFPOS] += symofs;
 					break;
 				case REL_END:
-					savmaxseg(fp);
+					save_seg_size(fp);
 					return;
 				case REL_CODEDEF:
 				case REL_DATADEF:
@@ -245,7 +245,7 @@ dopass1(int fileid, int libid, int libofs) {
 				case REL_DATAORG:
 				case REL_UDEFORG:
 					symofs = read_word(); // segment offset
-					savmaxseg(fp);
+					save_seg_size(fp);
 					if (cmd == REL_CODEORG) {
 						curseg = CODESEG;
 						fp[FCODEPOS] = symofs;

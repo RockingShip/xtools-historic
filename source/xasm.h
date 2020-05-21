@@ -153,12 +153,12 @@ enum {
 	OPC_LSL = 0x1A,
 	OPC_NEG = 0x1D,
 	OPC_NOT = 0x1C,
-	OPC_EQ = 0x68,
-	OPC_NE = 0x67,
-	OPC_LT = 0x64,
-	OPC_LE = 0x63,
-	OPC_GT = 0x66,
-	OPC_GE = 0x65,
+	OPC_BEQ = 0x68,
+	OPC_BNE = 0x67,
+	OPC_BLT = 0x64,
+	OPC_BLE = 0x63,
+	OPC_BGT = 0x66,
+	OPC_BGE = 0x65,
 	OPC_LDB = 0x04,
 	OPC_LDW = 0x01,
 	OPC_LDR = 0x11,
@@ -250,28 +250,29 @@ EXTERN int
 	litq[LITMAX],
 #endif
 
-	datlen,			// length of data in datbuf
-	hier_str[20],		// Array containing hierarchical operators
-	hier_oper[20],		// Internal translation of the above
-	pass,			// Pass number
+	curpos[4],		// Position in segment
 	curseg,			// Current segment
-	curpos[4], maxpos[4],	// Position in segment
-	inplnr,			// Linenumber of .C file
+	datlen,			// length of data in datbuf
+	debug,			// Debug   -d specified
+	errflag,		// True if an error has occurred
+	hier_oper[20],		// Internal translation of the above
+	hier_str[20],		// Array containing hierarchical operators
+	iflevel,		// #if nesting level
+	inchdl,			// handle for .H   file
 	inclnr,			// Linenumber of .H file
+	inphdl,			// handle for .ASM file
+	inplnr,			// Linenumber of .C file
+	lishdl,			// handle for .LIS file
+	litinx,			// Index to next entry
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq
-	pinx,			// Position in preprocessor buffer
-	iflevel,		// #if nesting level
-	skiplevel,		// level at which #if skipping starts
-	errflag,		// True if an error has occurred
-	undef,			// Auto-external -u specified
-	verbose,		// Verbose -v specified
-	debug,			// Debug   -d specified
+	maxpos[4],		// Size in segment
 	outhdl,			// handle for .OBJ file
-	lishdl,			// handle for .LIS file
-	inphdl,			// handle for .ASM file
-	inchdl,			// handle for .H   file
-	litinx;			// Index to next entry
+	pass,			// Pass number
+	pinx,			// Position in preprocessor buffer
+	skiplevel,		// level at which #if skipping starts
+	undef,			// Auto-external -u specified
+	verbose;		// Verbose -v specified
 
 EXTERN char
 
@@ -285,12 +286,12 @@ EXTERN char
 	macq[MACQMAX],
 #endif
 
-	datbuf[128],		// storage buffer for sto_data
-	inpfn[PATHMAX],		// input filename
-	incfn[PATHMAX],		// include filename
-	outfn[PATHMAX],		// output filename
-	lisfn[PATHMAX],		// listing filename
-	*line,			// Pointer to current input buffer
-	*lptr,			// Pointer to current character in input buffer
 	ch,			// Current character in line being scanned
-	nch;			// Next character in line being scanned
+	datbuf[128],		// storage buffer for sto_data
+	incfn[PATHMAX],		// include filename
+	inpfn[PATHMAX],		// input filename
+	*line,			// Pointer to current input buffer
+	lisfn[PATHMAX],		// listing filename
+	*lptr,			// Pointer to current character in input buffer
+	nch,			// Next character in line being scanned
+	outfn[PATHMAX];		// output filename

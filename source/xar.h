@@ -152,20 +152,20 @@ EXTERN int
 #endif
 
 	datlen,			// length of datbuf
-	olbhdr[HLAST],		// .OLB header
-	usercmd,		// user command
-	verbose,		// Verbose -v specified
-	errflag,		// Error occurred
 	debug,			// Debug   -d specified
+	errflag,		// Error occurred
+	objhdl,			// handle for .OBJ file
 	olbhdl,			// handle for source .OLB file
+	olbhdr[HLAST],		// .OLB header
 	outhdl,			// handle for destination .OLB file
-	objhdl;			// handle for .OBJ file
+	usercmd,		// user command
+	verbose;		// Verbose -v specified
 
 EXTERN char
 
+	bakfn[PATHMAX],		// .BAK filename
 	datbuf[512],		// internal scratch buffer
 	modn[PATHMAX],		// name of module
+	objfn[PATHMAX],		// .OBJ filename
 	olbfn[PATHMAX],		// source .OLB filename
-	outfn[PATHMAX],		// destination .OLB filename
-	bakfn[PATHMAX],		// .BAK filename
-	objfn[PATHMAX];		// .OBJ filename
+	outfn[PATHMAX];		// destination .OLB filename

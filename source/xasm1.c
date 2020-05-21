@@ -121,12 +121,12 @@ initialize() {
 	add_res("LSL", OPCODE, OPC_LSL);
 	add_res("NEG", OPCODE, OPC_NEG);
 	add_res("NOT", OPCODE, OPC_NOT);
-	add_res("BEQ", OPCODE, OPC_EQ);
-	add_res("BNE", OPCODE, OPC_NE);
-	add_res("BLT", OPCODE, OPC_LT);
-	add_res("BLE", OPCODE, OPC_LE);
-	add_res("BGT", OPCODE, OPC_GT);
-	add_res("BGE", OPCODE, OPC_GE);
+	add_res("BEQ", OPCODE, OPC_BEQ);
+	add_res("BNE", OPCODE, OPC_BNE);
+	add_res("BLT", OPCODE, OPC_BLT);
+	add_res("BLE", OPCODE, OPC_BLE);
+	add_res("BGT", OPCODE, OPC_BGT);
+	add_res("BGE", OPCODE, OPC_BGE);
 	add_res("LDB", OPCODE, OPC_LDB);
 	add_res("LDW", OPCODE, OPC_LDW);
 	add_res("LDR", OPCODE, OPC_LDR);
@@ -363,13 +363,13 @@ lenname(register int hash) {
 dohash(register char *ident, int *retval) {
 	register int start, hash, tab, len, *p;
 
-	if (!alpha(*ident))
+	if (!sym_first(*ident))
 		return 0; // Not a symbol
 
 	tab = 0;
 	len = 0;
 	hash = 0;
-	while (an(*ident)) {
+	while (sym_next(*ident)) {
 		start = hash = (hash + *ident * *ident) % NAMEMAX;
 		while (1) {
 			p = &name[hash * NLAST];
@@ -650,32 +650,9 @@ white() {
 }
 
 /*
- * Convert a character to uppercase
- */
-toupper(register int c) {
-	return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
-}
-
-/*
- * Return 'true' if c is a decimal digit
- */
-isdigit(register int c) {
-	return ((c >= '0') && (c <= '9'));
-}
-
-/*
- * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
- */
-isxdigit(register int c) {
-	return (((c >= '0') && (c <= '9')) ||
-		((c >= 'a') && (c <= 'f')) ||
-		((c >= 'A') && (c <= 'F')));
-}
-
-/*
  * Return 'true' if c is alphanumeric
  */
-an(register int c) {
+sym_next(register int c) {
 	return (((c >= 'a') && (c <= 'z')) ||
 		((c >= 'A') && (c <= 'Z')) ||
 		((c >= '0') && (c <= '9')) ||
@@ -685,7 +662,7 @@ an(register int c) {
 /*
  * Return 'true' if c is alphabetic
  */
-alpha(register int c) {
+sym_first(register int c) {
 	return (((c >= 'a') && (c <= 'z')) ||
 		((c >= 'A') && (c <= 'Z')) ||
 		(c == '_') || (c == '.'));
@@ -718,7 +695,7 @@ astreq(register char *str1, register char *str2) {
 			return 0;
 		i++;
 	}
-	if (an(str1[i]))
+	if (sym_next(str1[i]))
 		return 0;
 	return i;
 }
@@ -820,11 +797,11 @@ needtoken(char *str) {
  * Skip current symbol
  */
 junk() {
-	if (an(ch)) {
-		while (ch && an(ch))
+	if (sym_next(ch)) {
+		while (ch && sym_next(ch))
 			gch();
 	} else {
-		while (ch && !an(ch))
+		while (ch && !sym_next(ch))
 			gch();
 	}
 	white();
@@ -877,7 +854,7 @@ main(int argc, int *argv) {
 	macinx = macqinx = 0;
 	iflevel = skiplevel = 0;
 	inclnr = inplnr = 0;
-	savmaxpos();
+	save_seg_size();
 	curseg = CODESEG;
 	curpos[CODESEG] = curpos[DATASEG] = curpos[UDEFSEG] = 0;
 	datlen = 0;

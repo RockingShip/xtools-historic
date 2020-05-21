@@ -71,8 +71,8 @@ initialize() {
 	// reset table
 	for (i = 0; i < NAMEMAX; i++)
 		namech[i] = nametab[i] = 0;
-	for (i = 0; i < IDMAX; i++)
-		idents[i * ILAST + INAME] = 0;
+	for (i = 0; i < SYMMAX; i++)
+		syms[i * ILAST + INAME] = 0;
 	for (i = 0; i < SWMAX; i++)
 		sw[i * SLAST + SLABEL] = 0;
 
@@ -80,33 +80,33 @@ initialize() {
 	namech[0] = '?';
 
 	// setup array containing hieriachal operators
-	hier_str[ 0] = "||"; hier_oper[ 0] = OPC_OR;    // hier3
+	hier_str[ 0] = "||"; hier_oper[ 0] = TOK_OR;    // hier3
 	hier_str[ 1] = 0;
-	hier_str[ 2] = "&&"; hier_oper[ 2] = OPC_AND;   // hier4
+	hier_str[ 2] = "&&"; hier_oper[ 2] = TOK_AND;   // hier4
 	hier_str[ 3] = 0;
-	hier_str[ 4] = "|";  hier_oper[ 4] = OPC_OR;    // hier5
+	hier_str[ 4] = "|";  hier_oper[ 4] = TOK_OR;    // hier5
 	hier_str[ 5] = 0;
-	hier_str[ 6] = "^";  hier_oper[ 6] = OPC_XOR;    // hier6
+	hier_str[ 6] = "^";  hier_oper[ 6] = TOK_XOR;    // hier6
 	hier_str[ 7] = 0;
-	hier_str[ 8] = "&";  hier_oper[ 8] = OPC_AND;   // hier7
+	hier_str[ 8] = "&";  hier_oper[ 8] = TOK_AND;   // hier7
 	hier_str[ 9] = 0;
-	hier_str[10] = "=="; hier_oper[10] = OPC_EQ;     // hier8
-	hier_str[11] = "!="; hier_oper[11] = OPC_NE;
+	hier_str[10] = "=="; hier_oper[10] = TOK_BEQ;     // hier8
+	hier_str[11] = "!="; hier_oper[11] = TOK_BNE;
 	hier_str[12] = 0;
-	hier_str[13] = "<="; hier_oper[13] = OPC_LE;     // hier9
-	hier_str[14] = ">="; hier_oper[14] = OPC_GE;
-	hier_str[15] = "<";  hier_oper[15] = OPC_LT;
-	hier_str[16] = ">";  hier_oper[16] = OPC_GT;
+	hier_str[13] = "<="; hier_oper[13] = TOK_BLE;     // hier9
+	hier_str[14] = ">="; hier_oper[14] = TOK_BGE;
+	hier_str[15] = "<";  hier_oper[15] = TOK_BLT;
+	hier_str[16] = ">";  hier_oper[16] = TOK_BGT;
 	hier_str[17] = 0;
-	hier_str[18] = ">>"; hier_oper[18] = OPC_LSR;    // hier10
-	hier_str[19] = "<<"; hier_oper[19] = OPC_LSL;
+	hier_str[18] = ">>"; hier_oper[18] = TOK_LSR;    // hier10
+	hier_str[19] = "<<"; hier_oper[19] = TOK_LSL;
 	hier_str[20] = 0;
-	hier_str[21] = "+";  hier_oper[21] = OPC_ADD;    // hier11
-	hier_str[22] = "-";  hier_oper[22] = OPC_SUB;
+	hier_str[21] = "+";  hier_oper[21] = TOK_ADD;    // hier11
+	hier_str[22] = "-";  hier_oper[22] = TOK_SUB;
 	hier_str[23] = 0;
-	hier_str[24] = "*";  hier_oper[24] = OPC_MUL;    // hier12
-	hier_str[25] = "/";  hier_oper[25] = OPC_DIV;
-	hier_str[26] = "%";  hier_oper[26] = OPC_MOD;
+	hier_str[24] = "*";  hier_oper[24] = TOK_MUL;    // hier12
+	hier_str[25] = "/";  hier_oper[25] = TOK_DIV;
+	hier_str[26] = "%";  hier_oper[26] = TOK_MOD;
 	hier_str[27] = 0;
 
 	// reserved words
@@ -270,13 +270,13 @@ symname(register int tab) {
 dohash(register char *name, int *retval) {
 	register int start, hash, tab, len;
 
-	if (!alpha(*name))
+	if (!sym_first(*name))
 		return 0; // Not a symbol
 
 	tab = 0;
 	len = 0;
 	hash = 0;
-	while (an(*name)) {
+	while (sym_next(*name)) {
 		start = hash = (hash + *name * *name) % NAMEMAX;
 		while (1) {
 			if ((namech[hash] == *name) && (nametab[hash] == tab)) {
@@ -530,44 +530,22 @@ blanks() {
 }
 
 /*
- * Convert a character to uppercase
+ * Return 'true' if c is alphabetic
  */
-toupper(register int c) {
-	return ((c >= 'a') && (c <= 'z')) ? c - 'a' + 'A' : c;
+sym_first(register int c) {
+	return (((c >= 'a') && (c <= 'z')) ||
+		((c >= 'A') && (c <= 'Z')) ||
+		(c == '_'));
 }
 
-/*
- * Return 'true' if c is a decimal digit
- */
-isdigit(register int c) {
-	return ((c >= '0') && (c <= '9'));
-}
-
-/*
- * Return 'true' if c is a hexadecimal digit (0-9, A-F, or a-f)
- */
-isxdigit(register int c) {
-	return (((c >= '0') && (c <= '9')) ||
-		((c >= 'a') && (c <= 'f')) ||
-		((c >= 'A') && (c <= 'F')));
-}
 
 /*
  * Return 'true' if c is alphanumeric
  */
-an(register int c) {
+sym_next(register int c) {
 	return (((c >= 'a') && (c <= 'z')) ||
 		((c >= 'A') && (c <= 'Z')) ||
 		((c >= '0') && (c <= '9')) ||
-		(c == '_'));
-}
-
-/*
- * Return 'true' if c is alphabetic
- */
-alpha(register int c) {
-	return (((c >= 'a') && (c <= 'z')) ||
-		((c >= 'A') && (c <= 'Z')) ||
 		(c == '_'));
 }
 
@@ -598,7 +576,7 @@ astreq(register char *str1, register char *str2) {
 			return 0;
 		i++;
 	}
-	if (an(str1[i]))
+	if (sym_next(str1[i]))
 		return 0;
 	return i;
 }
@@ -690,13 +668,13 @@ fatal(char *msg) {
 
 exprerr() {
 	error("Invalid expression");
-	gencode(OPC_ILLEGAL);
+	gencode(TOK_ILLEGAL);
 	junk();
 }
 
 needlval() {
 	error("must be lvalue");
-	gencode(OPC_ILLEGAL);
+	gencode(TOK_ILLEGAL);
 }
 
 illname() {
@@ -729,11 +707,11 @@ needtoken(char *str) {
  * Skip current symbol
  */
 junk() {
-	if (an(ch)) {
-		while (ch && an(ch))
+	if (sym_next(ch)) {
+		while (ch && sym_next(ch))
 			gch();
 	} else {
-		while (ch && !an(ch))
+		while (ch && !sym_next(ch))
 			gch();
 	}
 	blanks();
@@ -786,8 +764,8 @@ main(int argc, int *argv) {
 	j = 0;
 	for (i = 0; i < NAMEMAX; i++) if (namech[i]) j++;
 	fprintf(outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
-	for (i = 0; i < IDMAX && idents[i * ILAST + INAME]; i++);
-	fprintf(outhdl, "; Identifiers  : %5d/%5d\n", i, IDMAX);
+	for (i = 0; i < SYMMAX && syms[i * ILAST + INAME]; i++);
+	fprintf(outhdl, "; Identifiers  : %5d/%5d\n", i, SYMMAX);
 	fprintf(outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
 	fprintf(outhdl, "; Local labels : %5d\n", nxtlabel);
 	for (i = 1; (i < SWMAX) && sw[i * SLAST + SLABEL]; i++);
@@ -807,43 +785,43 @@ main(int argc, int *argv) {
  */
 genopc(int opc) {
 	switch (opc) {
-	case OPC_ILLEGAL: fprintf(outhdl, "\tILLEGAL\t"); break;
-	case OPC_ADD : fprintf(outhdl, "\tADD\t"); break;
-	case OPC_SUB : fprintf(outhdl, "\tSUB\t"); break;
-	case OPC_MUL : fprintf(outhdl, "\tMUL\t"); break;
-	case OPC_DIV : fprintf(outhdl, "\tDIV\t"); break;
-	case OPC_MOD : fprintf(outhdl, "\tMOD\t"); break;
-	case OPC_OR  : fprintf(outhdl, "\tOR\t"); break;
-	case OPC_XOR : fprintf(outhdl, "\tXOR\t"); break;
-	case OPC_AND : fprintf(outhdl, "\tAND\t"); break;
-	case OPC_LSR : fprintf(outhdl, "\tLSR\t"); break;
-	case OPC_LSL : fprintf(outhdl, "\tLSL\t"); break;
-	case OPC_NEG : fprintf(outhdl, "\tNEG\t"); break;
-	case OPC_NOT : fprintf(outhdl, "\tNOT\t"); break;
-	case OPC_EQ  : fprintf(outhdl, "\tBEQ\t"); break;
-	case OPC_NE  : fprintf(outhdl, "\tBNE\t"); break;
-	case OPC_LT  : fprintf(outhdl, "\tBLT\t"); break;
-	case OPC_LE  : fprintf(outhdl, "\tBLE\t"); break;
-	case OPC_GT  : fprintf(outhdl, "\tBGT\t"); break;
-	case OPC_GE  : fprintf(outhdl, "\tBGE\t"); break;
-	case OPC_LDB: fprintf(outhdl, "\tLDB\t"); break;
-	case OPC_LDW: fprintf(outhdl, "\tLDW\t"); break;
-	case OPC_LDR: fprintf(outhdl, "\tLDR\t"); break;
-	case OPC_LEA : fprintf(outhdl, "\tLDA\t"); break;
-	case OPC_CMP : fprintf(outhdl, "\tCMP\t"); break;
-	case OPC_TST : fprintf(outhdl, "\tTST\t"); break;
-	case OPC_STB: fprintf(outhdl, "\tSTB\t"); break;
-	case OPC_STW: fprintf(outhdl, "\tSTW\t"); break;
-	case OPC_JMP : fprintf(outhdl, "\tJMP\t"); break;
-	case OPC_JSB : fprintf(outhdl, "\tJSB\t"); break;
-	case OPC_RSB : fprintf(outhdl, "\tRSB\t"); break;
-	case OPC_PSHB: fprintf(outhdl, "\tPSHB\t"); break;
-	case OPC_PSHW: fprintf(outhdl, "\tPSHW\t"); break;
-	case OPC_PSHA: fprintf(outhdl, "\tPSHA\t"); break;
-	case OPC_PSHR: fprintf(outhdl, "\tPSHR\t"); break;
-	case OPC_POPR: fprintf(outhdl, "\tPOPR\t"); break;
+	case TOK_ILLEGAL: fprintf(outhdl, "\tILLEGAL\t"); break;
+	case TOK_ADD : fprintf(outhdl, "\tADD\t"); break;
+	case TOK_SUB : fprintf(outhdl, "\tSUB\t"); break;
+	case TOK_MUL : fprintf(outhdl, "\tMUL\t"); break;
+	case TOK_DIV : fprintf(outhdl, "\tDIV\t"); break;
+	case TOK_MOD : fprintf(outhdl, "\tMOD\t"); break;
+	case TOK_OR  : fprintf(outhdl, "\tOR\t"); break;
+	case TOK_XOR : fprintf(outhdl, "\tXOR\t"); break;
+	case TOK_AND : fprintf(outhdl, "\tAND\t"); break;
+	case TOK_LSR : fprintf(outhdl, "\tLSR\t"); break;
+	case TOK_LSL : fprintf(outhdl, "\tLSL\t"); break;
+	case TOK_NEG : fprintf(outhdl, "\tNEG\t"); break;
+	case TOK_NOT : fprintf(outhdl, "\tNOT\t"); break;
+	case TOK_BEQ  : fprintf(outhdl, "\tBEQ\t"); break;
+	case TOK_BNE  : fprintf(outhdl, "\tBNE\t"); break;
+	case TOK_BLT  : fprintf(outhdl, "\tBLT\t"); break;
+	case TOK_BLE  : fprintf(outhdl, "\tBLE\t"); break;
+	case TOK_BGT  : fprintf(outhdl, "\tBGT\t"); break;
+	case TOK_BGE  : fprintf(outhdl, "\tBGE\t"); break;
+	case TOK_LDB: fprintf(outhdl, "\tLDB\t"); break;
+	case TOK_LDW: fprintf(outhdl, "\tLDW\t"); break;
+	case TOK_LDR: fprintf(outhdl, "\tLDR\t"); break;
+	case TOK_LEA : fprintf(outhdl, "\tLDA\t"); break;
+	case TOK_CMP : fprintf(outhdl, "\tCMP\t"); break;
+	case TOK_TST : fprintf(outhdl, "\tTST\t"); break;
+	case TOK_STB: fprintf(outhdl, "\tSTB\t"); break;
+	case TOK_STW: fprintf(outhdl, "\tSTW\t"); break;
+	case TOK_JMP : fprintf(outhdl, "\tJMP\t"); break;
+	case TOK_JSB : fprintf(outhdl, "\tJSB\t"); break;
+	case TOK_RSB : fprintf(outhdl, "\tRSB\t"); break;
+	case TOK_PSHB: fprintf(outhdl, "\tPSHB\t"); break;
+	case TOK_PSHW: fprintf(outhdl, "\tPSHW\t"); break;
+	case TOK_PSHA: fprintf(outhdl, "\tPSHA\t"); break;
+	case TOK_PSHR: fprintf(outhdl, "\tPSHR\t"); break;
+	case TOK_POPR: fprintf(outhdl, "\tPOPR\t"); break;
 	default:
-		fprintf(outhdl, "\tOPC_%d\t", opc);
+		fprintf(outhdl, "\tTOK_%d\t", opc);
 		break;
 	}
 }

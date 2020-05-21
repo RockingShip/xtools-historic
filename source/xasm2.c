@@ -161,12 +161,12 @@ do_opcode(register int p[]) {
 			case OPC_CMP:
 				curpos[curseg] += 3;
 				break;
-			case OPC_EQ:
-			case OPC_NE:
-			case OPC_LT:
-			case OPC_LE:
-			case OPC_GT:
-			case OPC_GE:
+			case OPC_BEQ:
+			case OPC_BNE:
+			case OPC_BLT:
+			case OPC_BLE:
+			case OPC_BGT:
+			case OPC_BGE:
 			case OPC_JMP:
 				curpos[curseg] += 5;
 				break;
@@ -225,12 +225,12 @@ do_opcode(register int p[]) {
 			get_reg();
 			curpos[curseg] += 3;
 			break;
-		case OPC_EQ:
-		case OPC_NE:
-		case OPC_LT:
-		case OPC_LE:
-		case OPC_GT:
-		case OPC_GE:
+		case OPC_BEQ:
+		case OPC_BNE:
+		case OPC_BLT:
+		case OPC_BLE:
+		case OPC_BGT:
+		case OPC_BGE:
 		case OPC_JMP:
 			get_mem();
 			curpos[curseg] += 5;
@@ -258,16 +258,16 @@ do_opcode(register int p[]) {
  * Trying all possibilities reveals:
  * unsigned "i>j" can be rewritten as "(j^i)&0x8000 ?  i&0x8000 : (j-i)&0x8000"
  */
-unsignedGT(int i, int j) {
+unsigned_GT(int i, int j) {
 	return ((j ^ i) & (1 << SBIT) ? i & (1 << SBIT) : (j - i) & (1 << SBIT));
 }
 
-savmaxpos() {
-	if (unsignedGT(curpos[CODESEG], maxpos[CODESEG]))
+save_seg_size() {
+	if (unsigned_GT(curpos[CODESEG], maxpos[CODESEG]))
 		maxpos[CODESEG] = curpos[CODESEG];
-	if (unsignedGT(curpos[DATASEG], maxpos[DATASEG]))
+	if (unsigned_GT(curpos[DATASEG], maxpos[DATASEG]))
 		maxpos[DATASEG] = curpos[DATASEG];
-	if (unsignedGT(curpos[UDEFSEG], maxpos[UDEFSEG]))
+	if (unsigned_GT(curpos[UDEFSEG], maxpos[UDEFSEG]))
 		maxpos[UDEFSEG] = curpos[UDEFSEG];
 
 }
@@ -334,7 +334,7 @@ do_pseudo(register int p[]) {
 		}
 		break;
 	case PSEUDO_ORG:
-		savmaxpos();
+		save_seg_size();
 		expression(lval);
 		if (lval[LTYPE] == CONSTANT) {
 			curpos[curseg] = lval[LVALUE];

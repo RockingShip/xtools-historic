@@ -37,7 +37,7 @@
 // #define DYNAMIC		// allocate memory dynamically
 
 enum {
-	IDMAX = 300,		// Number of identifiers
+	SYMMAX = 300,		// Number of identifiers
 	LITMAX = 1500,		// literal pool
 	MACMAX = 300,		// Number of definable macro's
 	MACQMAX = MACMAX * 7,	// Expansiontable for macro's
@@ -187,42 +187,41 @@ enum {
  */
 
 enum {
-	OPC_ILLEGAL = 1,
-	OPC_ADD = 2,
-	OPC_SUB = 3,
-	OPC_MUL = 4,
-	OPC_DIV = 5,
-	OPC_MOD = 6,
-	OPC_OR = 7,
-	OPC_XOR = 8,
-	OPC_AND = 9,
-	OPC_LSR = 10,
-	OPC_LSL = 11,
-	OPC_NEG = 12,
-	OPC_NOT = 13,
-	OPC_EQ = 14,
-	OPC_NE = 15,
-	OPC_LT = 16,
-	OPC_LE = 17,
-	OPC_GT = 18,
-	OPC_GE = 19,
-	OPC_LDB = 20,
-	OPC_LDW = 21,
-	OPC_LDR = 22,
-	OPC_LEA = 23,
-	OPC_CMP = 24,
-	OPC_TST = 25,
-	OPC_STB = 26,
-	OPC_STW = 27,
-	OPC_JMP = 28,
-	_ADJSP = 29,
-	OPC_JSB = 30,
-	OPC_RSB = 31,
-	OPC_PSHR = 32,
-	OPC_POPR = 33,
-	OPC_PSHB = 34,
-	OPC_PSHW = 35,
-	OPC_PSHA = 36,
+	TOK_ILLEGAL = 1,
+	TOK_ADD = 2,
+	TOK_SUB = 3,
+	TOK_MUL = 4,
+	TOK_DIV = 5,
+	TOK_MOD = 6,
+	TOK_OR = 7,
+	TOK_XOR = 8,
+	TOK_AND = 9,
+	TOK_LSR = 10,
+	TOK_LSL = 11,
+	TOK_NEG = 12,
+	TOK_NOT = 13,
+	TOK_BEQ = 14,
+	TOK_BNE = 15,
+	TOK_BLT = 16,
+	TOK_BLE = 17,
+	TOK_BGT = 18,
+	TOK_BGE = 19,
+	TOK_LDB = 20,
+	TOK_LDW = 21,
+	TOK_LDR = 22,
+	TOK_LEA = 23,
+	TOK_CMP = 24,
+	TOK_TST = 25,
+	TOK_STB = 26,
+	TOK_STW = 27,
+	TOK_JMP = 28,
+	TOK_JSB = 29,
+	TOK_RSB = 30,
+	TOK_PSHR = 31,
+	TOK_POPR = 32,
+	TOK_PSHB = 33,
+	TOK_PSHW = 34,
+	TOK_PSHA = 35,
 };
 
 /*
@@ -233,46 +232,47 @@ EXTERN int
 
 #ifdef DYNAMIC
   *nametab,		/* Nametable */
-  *idents,		/* Identifiers */
+  *syms,		/* Identifiers */
   *mac,			/* Macro entries */
   *litq,		/* Literal pool */
   *sw,			/* Cases in switch */
 #else
   nametab[NAMEMAX],
-  idents[IDMAX*ILAST],
+  syms[SYMMAX*ILAST],
   mac[MACMAX*MLAST],
   litq[LITMAX],
   sw[SWMAX*SLAST],
 #endif
 
-	argcid, argvid,		// hashvalues of reserved words
-	swinx,			// Position in switch table
-	csp,			// stackpointer seen from scope coding
-	hier_str[30],		// Array containing hierarchical operators
-	hier_oper[30],		// Internal translation of the above
-	idinx,			// Next free identifier
-	inplnr,			// Linenumber of .C file
-	inclnr,			// Linenumber of .H file
+	argcid,			// hash value of reserved word
+	argvid,			// hash value of reserved word
 	ccode,			// True for C source, else ASM source
+	csp,			// stackpointer seen from scope coding
+	currseg,		// Current output segment
+	errflag,		// True if an error has occurred
+	hier_oper[30],		// Internal translation of the above
+	hier_str[30],		// Array containing hierarchical operators
+	iflevel,		// #if nesting level
+	inchdl,			// handle for .H file
+	inclnr,			// Linenumber of .H file
+	inphdl,			// handle for .C file
+	inplnr,			// Linenumber of .C file
+	lishdl,			// handle for .LIS file
+	litinx,			// Index to next entry
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq
-	pinx,			// Position in preprocessor buffer
-	iflevel,		// #if nesting level
-	skiplevel,		// level at which #if skipping starts
-	errflag,		// True if an error has occurred
-	verbose,		// Verbose -v specified
 	maklis,			// Listing -h specified
-	outhdl,			// handle for .ASM file
-	lishdl,			// handle for .LIS file
-	inphdl,			// handle for .C file
-	inchdl,			// handle for .H file
-	reguse,			// Currently used registers
-	regsum,			// Summary of all used registers
-	reglock,		// Register locked by 'register' vars
 	nxtlabel,		// Next label number
-	currseg,		// Current output segment
+	outhdl,			// handle for .ASM file
+	pinx,			// Position in preprocessor buffer
 	prevseg,		// Previous output segment
-	litinx;			// Index to next entry
+	reglock,		// Register locked by 'register' vars
+	regsum,			// Summary of all used registers
+	reguse,			// Currently used registers
+	skiplevel,		// level at which #if skipping starts
+	swinx,			// Position in switch table
+	symidx,			// Next free identifier
+	verbose;		// Verbose -v specified
 
 EXTERN char
 
@@ -288,10 +288,10 @@ EXTERN char
   macq[MACQMAX],
 #endif
 
-	inpfn[PATHMAX],		// input filename
+	ch,			// Current character in line being scanned
 	incfn[PATHMAX],		// include filename
-	outfn[PATHMAX],		// output filename
+	inpfn[PATHMAX],		// input filename
 	*line,			// Pointer to current input buffer
 	*lptr,			// Pointer to current character in input buffer
-	ch,			// Current character in line being scanned
-	nch;			// Next character in line being scanned
+	nch,			// Next character in line being scanned
+	outfn[PATHMAX];		// output filename

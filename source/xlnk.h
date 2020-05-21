@@ -200,23 +200,24 @@ EXTERN int
   stack[STACKMAX*BPW],
 #endif
 
-	lbhdr[LBHLAST],		// .OLB header
-	stackinx,		// Poisition in stack
-	datlen,			// length of data in datbuf
-	pass,			// Pass number
+	curobj,			// index of current .OLB file
+	curpos[4],		// Position in segment
 	curseg,			// Current segment
-	curpos[4],maxpos[4],	// Position in segment
+	datlen,			// length of data in datbuf
+	debug,			// Debug   -d specified
 	errflag,		// True if an error has occurred
+	file1inx,		// Index to next entry
+	file2inx,		// Index to next entry
+	inphdl,			// handle for .OBJ/.OLB file
+	lbhdr[LBHLAST],		// .OLB header
+	lishdl, 		// handle for .MAP file
+	maxpos[4],		// Size of segment
+	outhdl,			// handle for .IMG file
+	pass,			// Pass number
+	stackinx,		// Poisition in stack
 	stksiz,			// Stksiz  -s specified
 	undef,			// Undef   -u specified
-	verbose,		// Verbose -v specified
-	debug,			// Debug   -d specified
-	outhdl,			// handle for .IMG file
-	lishdl, 		// handle for .MAP file
-	inphdl,			// handle for .OBJ/.OLB file
-	curobj,			// index of current .OLB file
-	file1inx,		// Index to next entry
-	file2inx;		// Index to next entry
+	verbose;		// Verbose -v specified
 
 EXTERN char
 
@@ -232,11 +233,11 @@ EXTERN char
 */
 #endif
 
-	datbuf[512],		// storage buffer for sto_data
-	inpfn[PATHMAX],		// input filename
-	outfn[PATHMAX],		// output filename
-	lisfn[PATHMAX],		// listing filename
 	*line,			// Pointer to current input buffer
 	*lptr,			// Pointer to current character in input buffer
 	ch,			// Current character in line being scanned
-	nch;			// Next character in line being scanned
+	datbuf[512],		// storage buffer for sto_data
+	inpfn[PATHMAX],		// input filename
+	lisfn[PATHMAX],		// listing filename
+	nch,			// Next character in line being scanned
+	outfn[PATHMAX];		// output filename

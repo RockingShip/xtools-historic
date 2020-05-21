@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ```
 2020-05-20 23:21:31 Rename identifiers.
+                    Code uses symbol as reference to identifiers.  
                     Weed out legacy and bad choices.
+                    Minor fixes as a consequence.
 2020-05-20 21:10:04 Reformat sources. No code change.
                     Finally.
 2020-05-20 20:43:30 Support for and convert to enums
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
                     Also, identifier scoping is now more managable. 
 2020-05-17 23:16:04 Support for and convert to double-slash comments.
                     Implementation in `xcc1.c:preprocess()`
-2020-05-17 23:16:04 Added `unsignedGT()`.
+2020-05-17 23:16:04 Added `unsigned_GT()`.
                     `xasm/xlnk` need unsigned compare for large storage.
 ```
 
