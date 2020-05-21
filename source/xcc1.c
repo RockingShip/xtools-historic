@@ -55,6 +55,25 @@ initialize() {
 	ccode = 1;
 	inclnr = inplnr = 0;
 
+	// character properties
+	for (i = '0'; i <= '9'; i++)
+		ctype[i] = CISDIGIT | CISXDIGIT | CSYMNEXT;
+	for (i = 'A'; i <= 'F'; i++)
+		ctype[i] = CISUPPER | CISXDIGIT | CSYMFIRST | CSYMNEXT;
+	for (i = 'G'; i <= 'Z'; i++)
+		ctype[i] = CISUPPER | CSYMFIRST | CSYMNEXT;
+	for (i = 'a'; i <= 'f'; i++)
+		ctype[i] = CISLOWER | CISXDIGIT | CSYMFIRST | CSYMNEXT;
+	for (i = 'g'; i <= 'z'; i++)
+		ctype[i] = CISLOWER | CSYMFIRST | CSYMNEXT;
+	ctype['_'] = CSYMFIRST | CSYMNEXT;
+	ctype[' '] = CISSPACE;
+	ctype['\f'] = CISSPACE;
+	ctype['\n'] = CISSPACE;
+	ctype['\r'] = CISSPACE;
+	ctype['\t'] = CISSPACE;
+	ctype['\v'] = CISSPACE;
+
 	// reset table
 	for (i = 0; i < NAMEMAX; i++)
 		namech[i] = nametab[i] = 0;
@@ -257,13 +276,13 @@ symname(register int tab) {
 dohash(register char *name, int *retval) {
 	register int start, hash, tab, len;
 
-	if (!sym_first(*name))
+	if (~ctype[*name] & CSYMFIRST)
 		return 0; // Not a symbol
 
 	tab = 0;
 	len = 0;
 	hash = 0;
-	while (sym_next(*name)) {
+	while (ctype[*name] & CSYMNEXT) {
 		start = hash = (hash + *name * *name) % NAMEMAX;
 		while (1) {
 			if ((namech[hash] == *name) && (nametab[hash] == tab)) {
@@ -409,9 +428,9 @@ preprocess() {
 	// Now expand current line
 	pinx = 0;
 	while (ch) {
-		if (ch <= ' ') {
+		if (ctype[ch] & CISSPACE) {
 			keepch(' ');
-			while (ch && (ch <= ' '))
+			while (ctype[ch] & CISSPACE)
 				gch();
 		} else if (ch == '"') {
 			keepch(gch());
@@ -482,7 +501,7 @@ preprocess() {
 	if (maklis) {
 		int len;
 		len = strlen(line);
-		while (len && line[len - 1] <= ' ')
+		while (len && (ctype[line[len - 1]] & CISSPACE))
 			len--;
 		fprintf(outhdl, "; %d %s\n", inchdl ? inclnr : inplnr, line);
 	}
@@ -498,7 +517,7 @@ preprocess() {
  * Skip all spaces in current line
  */
 white() {
-	while (ch && (ch <= ' '))
+	while (ctype[ch] & CISSPACE)
 		gch();
 }
 
@@ -506,7 +525,7 @@ white() {
  * Skip all spaces until next non-space
  */
 blanks() {
-	while (ch <= ' ')
+	while (!ch || ctype[ch] & CISSPACE) {
 		if (!ch) {
 			if (!inphdl)
 				break;
@@ -514,26 +533,7 @@ blanks() {
 				preprocess();
 		} else
 			gch();
-}
-
-/*
- * Return 'true' if c is alphabetic
- */
-sym_first(register int c) {
-	return (((c >= 'a') && (c <= 'z')) ||
-		((c >= 'A') && (c <= 'Z')) ||
-		(c == '_'));
-}
-
-
-/*
- * Return 'true' if c is alphanumeric
- */
-sym_next(register int c) {
-	return (((c >= 'a') && (c <= 'z')) ||
-		((c >= 'A') && (c <= 'Z')) ||
-		((c >= '0') && (c <= '9')) ||
-		(c == '_'));
+	}
 }
 
 /*
@@ -563,7 +563,7 @@ astreq(register char *str1, register char *str2) {
 			return 0;
 		i++;
 	}
-	if (sym_next(str1[i]))
+	if (ctype[str1[i]] & CSYMNEXT)
 		return 0;
 	return i;
 }
@@ -574,8 +574,7 @@ astreq(register char *str1, register char *str2) {
 match(char *lit) {
 	register int i;
 
-	if (lptr[0] <= ' ')
-		blanks();
+	blanks();
 	if (i = streq(lptr, lit)) {
 		bump(i);
 		return 1;
@@ -589,8 +588,7 @@ match(char *lit) {
 amatch(char *lit) {
 	register int i;
 
-	if (lptr[0] <= ' ')
-		blanks();
+	blanks();
 	if (i = astreq(lptr, lit)) {
 		bump(i);
 		return 1;
@@ -602,8 +600,7 @@ amatch(char *lit) {
  * Return 'true' if next operator equals 'lit'
  */
 omatch(register char *lit) {
-	if (lptr[0] <= ' ')
-		blanks();
+	blanks();
 	if (lptr[0] != lit[0])
 		return 0;
 	if (!lit[1]) {
@@ -694,11 +691,11 @@ needtoken(char *str) {
  * Skip current symbol
  */
 junk() {
-	if (sym_next(ch)) {
-		while (ch && sym_next(ch))
+	if (ctype[ch] & CSYMNEXT) {
+		while (ctype[ch] & CSYMNEXT)
 			gch();
 	} else {
-		while (ch && !sym_next(ch))
+		while (ch & (~ctype[ch] & CSYMNEXT))
 			gch();
 	}
 	blanks();

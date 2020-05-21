@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-21 15:33:57 Modified copy of `ctype[]` for `xcc`
+                    `symfirst/symnext` is a complext `if()`.
+                    The linker orders undefs based on hash value and broke stage3 after ctypes were moved to the library.  
 2020-05-21 11:48:43 Allow mixing of statements and declarations.
                     Not being able was only to conform towards traditional C.
 2020-05-21 01:11:19 Fixed `ostest.c`.

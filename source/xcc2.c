@@ -50,6 +50,8 @@ declarg(int scope, register int class, register int argnr) {
 
 	// scan definitions
 	while (1) {
+		blanks();
+
 		if (match("*"))
 			ptr = 1;
 		else if (match("(")) {
@@ -138,6 +140,8 @@ declvar(int scope, register int class) {
 
 	// scan definitions
 	while (1) {
+		blanks();
+
 		ptr = (match("(*") || match("*"));
 		if (!(len = dohash(lptr, &sname)))
 			illname();
@@ -562,8 +566,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		last_csp = sav_csp = csp;
 		scope = symidx;
 		while (!match("}")) {
-			if (ch <= ' ')
-				blanks();
+			blanks();
 			if (!ch) {
 				error("no closing }"); // EOF
 				return;
@@ -701,16 +704,14 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		lbl1 = ++nxtlabel;
 		lbl2 = ++nxtlabel;
 		needtoken("(");
-		if (ch <= ' ')
-			blanks();
+		blanks();
 		if (ch != ';') {
 			expression(lval, 1);
 			freelval(lval);
 		}
 		needtoken(";");
 		fprintf(outhdl, "_%d:", lbl1);
-		if (ch <= ' ')
-			blanks();
+		blanks();
 		if (ch != ';') {
 			expression(lval, 1);
 			if (lval[LTYPE] == BRANCH) {
@@ -730,8 +731,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		gencode_L(TOK_JMP, lval[LTRUE]);
 		needtoken(";");
 		fprintf(outhdl, "_%d:", lbl2);
-		if (ch <= ' ')
-			blanks();
+		blanks();
 		if (ch != ')') {
 			expression(lval, 1);
 			freelval(lval);

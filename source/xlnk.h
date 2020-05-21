@@ -35,10 +35,10 @@
  */
 
 enum {
-	NAMEMAX = 2003,			// Size of nametable !!! MUST BE PRIME !!!
 	FILEMAX = 50,			// Number of files
-	STACKMAX = 50,			// Size of linker stack
+	NAMEMAX = 2003,			// Size of nametable !!! MUST BE PRIME !!!
 	PATHMAX = 80,			// Length of filename
+	STACKMAX = 50,			// Size of linker stack
 };
 
 /*

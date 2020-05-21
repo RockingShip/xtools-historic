@@ -53,17 +53,6 @@ enum {
 	SBIT = 15,		// Bit number of signed bit
 };
 
-/* 
- * Reserved characters
- */
-
-enum {
-	BS = 8,
-	HT = 9,
-	NEWLINE = 10,
-	FF = 12,
-};
-
 /*
  * segment names
  */

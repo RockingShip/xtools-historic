@@ -338,18 +338,24 @@ litchar() {
 		return gch();
 	gch();
 	switch (ch) {
-	case 'n':
+	case 'b': // bell
 		gch();
-		return NEWLINE;
-	case 't':
+		return 8;
+	case 'f': // form-feed
 		gch();
-		return HT;
-	case 'b':
+		return 12;
+	case 'n': // newline
 		gch();
-		return BS;
-	case 'f':
+		return 10;
+	case 'r': // carriage return
 		gch();
-		return FF;
+		return 13;
+	case 't': // horizontal tab
+		gch();
+		return 9;
+	case 'v': // vertical tab
+		gch();
+		return 11;
 	}
 	i = 0;
 	oct = 0;

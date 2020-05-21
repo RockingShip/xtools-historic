@@ -991,20 +991,22 @@ number(register int *val) {
 	register int i, minus;
 
 	i = minus = 0;
-	if (!isdigit(ch))
+	if (~ctype[ch] & CISDIGIT)
 		return 0;
 	if ((ch == '0') && (toupper(nch) == 'X')) {
 		bump(2);
-		while (isxdigit(ch)) {
-			if (ch <= '9')
+		while (1) {
+			if (ctype[ch] & CISDIGIT)
 				i = i * 16 + (gch() - '0');
-			else if (ch >= 'a')
+			else if (ctype[ch] & CISLOWER)
 				i = i * 16 + (gch() - 'a' + 10);
-			else
+			else if (ctype[ch] & CISUPPER)
 				i = i * 16 + (gch() - 'A' + 10);
+			else
+				break;
 		}
 	} else {
-		while (isdigit(ch))
+		while (ctype[ch] & CISDIGIT)
 			i = i * 10 + (gch() - '0');
 	}
 	*val = i;
@@ -1052,18 +1054,24 @@ litchar() {
 		return gch();
 	gch();
 	switch (ch) {
-	case 'n':
+	case 'b': // bell
 		gch();
-		return NEWLINE;
-	case 't':
+		return 8;
+	case 'f': // form-feed
 		gch();
-		return HT;
-	case 'b':
+		return 12;
+	case 'n': // newline
 		gch();
-		return BS;
-	case 'f':
+		return 10;
+	case 'r': // carriage return
 		gch();
-		return FF;
+		return 13;
+	case 't': // horizontal tab
+		gch();
+		return 9;
+	case 'v': // vertical tab
+		gch();
+		return 11;
 	}
 	i = 0;
 	oct = 0;

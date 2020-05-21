@@ -35,7 +35,6 @@
  */
 
 enum {
-	SYMMAX = 300,		// Number of identifiers
 	LITMAX = 1500,		// literal pool
 	MACMAX = 300,		// Number of definable macro's
 	MACQMAX = MACMAX * 7,	// Expansiontable for macro's
@@ -44,6 +43,7 @@ enum {
 	PBUFMAX = 512,		// Size of preprocessor buffer
 	SBUFMAX = 256,		// Size of source buffer
 	SWMAX = 100,		// Number of switch cases
+	SYMMAX = 300,		// Number of identifiers
 };
 
 /*
@@ -53,17 +53,6 @@ enum {
 enum {
 	BPW = 2,		// Bytes per word
 	SBIT = 15,		// Bit number of signed bit
-};
-
-/*
- * Reserved characters
- */
-
-enum {
-	BS = 8,
-	HT = 9,
-	NEWLINE = 10,
-	FF = 12,
 };
 
 /*
@@ -223,6 +212,20 @@ enum {
 };
 
 /*
+ * vharacter properties
+ */
+
+enum {
+	CISSPACE = 1 << 0,	// is a space
+	CISDIGIT = 1 << 1,	// is a digit
+	CISXDIGIT = 1 << 2,	// is a hex digit
+	CISUPPER = 1 << 3,	// is lowercase
+	CISLOWER = 1 << 4,	// is uppercase
+	CSYMFIRST = 1 << 5,	// first character of an identifier name
+	CSYMNEXT = 1 << 6,	// next character of an identifier name
+};
+
+/*
  * Storage
  */
 
@@ -264,6 +267,7 @@ EXTERN int
 
 EXTERN char
 	ch,			// Current character in line being scanned
+	ctype[256],		// character properties
 	incfn[PATHMAX],		// include filename
 	inpfn[PATHMAX],		// input filename
 	*line,			// Pointer to current input buffer
