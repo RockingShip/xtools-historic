@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-21 01:11:19 Fixed `ostest.c`.
+                    Oops.
 2020-05-21 00:17:11 Remove macro `DYNAMIC`.
                     `malloc()` was never supported.
 2020-05-20 23:21:31 Rename identifiers.

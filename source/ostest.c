@@ -105,7 +105,7 @@ osprint("#14\n");
 	/* final failing reopen */
 osprint("#15\n");
 	ret = fopen("ostest.pmt", "r");
-	if (ret == 0)
+	if (ret != 0)
 		osprint("open deleted false success\n");
 
 	osprint("done\n");

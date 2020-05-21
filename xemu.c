@@ -432,13 +432,17 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 			ctrl[2]     = pb[4] << 8 | pb[5];
 
 			long ofs = ctrl[1];
-			/* sign extend */
-			ofs |= -(ofs & (1 << 15));
+
+			/* ofs is unsigned for SEEK_SET and signed otherwise */
+			if (ctrl[2] == SEEK_SET)
+				ofs &= 0xffff;
+			else
+				ofs |= -(ofs & (1 << 15));
 
 			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
 				regs[1] = -1;
 			else
-				regs[1] = fseek(handles[ctrl[0]], ofs & 0xffff, ctrl[2]);
+				regs[1] = fseek(handles[ctrl[0]], ofs, ctrl[2]);
 			break;
 		}
 		case 45: { /* unlink() */
