@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-21 11:48:43 Allow mixing of statements and declarations.
+                    Not being able was only to conform towards traditional C.
 2020-05-21 01:11:19 Fixed `ostest.c`.
                     Oops.
 2020-05-21 00:17:11 Remove macro `DYNAMIC`.

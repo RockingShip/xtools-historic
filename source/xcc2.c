@@ -553,11 +553,13 @@ declfunc() {
  */
 statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int contsp) {
 	int lval[LLAST], scope, sav_sw;
-	register int sav_csp, i, *sym;
+	register int i, *sym;
 	int lbl1, lbl2, lbl3;
 
 	if (match("{")) {
-		sav_csp = csp;
+		int last_csp, sav_csp;
+
+		last_csp = sav_csp = csp;
 		scope = symidx;
 		while (!match("}")) {
 			if (ch <= ' ')
@@ -567,23 +569,17 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 				return;
 			} else if (amatch("register")) {
 				declvar(scope, REGISTER);
-				if (sav_csp > 0)
-					error("Definitions not allowed here");
 			} else if (declvar(scope, SP_AUTO)) {
-				if (sav_csp > 0)
-					error("Definitions not allowed here");
 			} else {
 				// allocate locals
-				if ((sav_csp < 0) && (csp != sav_csp)) {
-					gencode_ADJSP(csp - sav_csp);
-					sav_csp = -sav_csp;
+				if (csp != last_csp) {
+					gencode_ADJSP(csp - last_csp);
+					last_csp = csp;
 				}
 				statement(swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
 			}
 		}
-		// done
-		if (sav_csp > 0)
-			sav_csp = -sav_csp;
+		// unwind stack
 		if (csp != sav_csp) {
 			gencode_ADJSP(sav_csp - csp);
 			csp = sav_csp;
