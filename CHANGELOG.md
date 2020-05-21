@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Release [1.2.0] 2020-05-21 00:10:38
+
+XTools/XLibrary supports:
+ - Double-slash comments.
+ - Function prototypes.
+ - Enums.
+ - Global registers variables
+ - Global constructors.
+ - `asm()` with return value (register R1).
+
+Also, improved naming and source code reformatting.
+
+Known issues:
+  - Variable initialisers.
+  - Pointer arithmetic. Only `"&arr[ofs]"` works.
+
 ```
 2020-05-21 19:41:07 Support for global registers.
                     Bonus code. 
@@ -129,5 +145,6 @@ Original 1991 submitted school assignment.
 2020-05-09 11:26:17 Changed license and '\n' line separators. 
 ```
 
-[Unreleased]: /RockingShip/xtools/compare/v1.1.0...HEAD
+[Unreleased]: /RockingShip/xtools/compare/v1.2.0...HEAD
+[1.2.0]: /RockingShip/xtools/compare/v1.1.0...v1.2.0
 [1.1.0]: /RockingShip/xtools/compare/v1.0.0...v1.1.0
