@@ -907,7 +907,35 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 parse() {
 	blanks();
 	while (inphdl) {
-		if (amatch("enum"))
+		if (ch == '{') {
+			toseg(CODESEG);
+			fprintf(outhdl, "_%d:", lastlbl); // constructor chain
+
+			// initialise reserved registers on first call
+			if (lastlbl == 1) {
+				gencode_I(TOK_LEA, 13, BPW);
+				gencode_I(TOK_LEA, 12, BPW * 2);
+				gencode_I(TOK_LEA, 11, 1);
+				gencode_I(TOK_LEA, 10, 0);
+			}
+
+			int returnlbl;
+
+			returnlbl = ++nxtlabel;
+			reguse = regsum = reglock = 1 << REG_AP; // reset all registers
+			csp = -1; // reset stack
+			swinx = 1;
+
+			// get statement
+			statement(swinx, returnlbl, 0, 0, csp, csp);
+			if (csp != -1)
+				error("internal error. stack not released");
+
+			fprintf(outhdl, "_%d:", returnlbl);
+			lastlbl = ++nxtlabel;
+			gencode_L(TOK_JMP, lastlbl); // forward reference to constructor chain
+
+		} else if (amatch("enum"))
 			declenum();
 		else if (amatch("extern"))
 			declvar(0, EXTERNAL);

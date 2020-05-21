@@ -54,6 +54,7 @@ initialize() {
 	macinx = macqinx = 0;
 	ccode = 1;
 	inclnr = inplnr = 0;
+	lastlbl = ++nxtlabel; // first label MUST be "1"
 
 	// character properties
 	for (i = '0'; i <= '9'; i++)
@@ -738,11 +739,15 @@ main(int argc, int *argv) {
 	openfile();          // Open all files
 	preprocess();        // fetch first line
 	toseg(CODESEG);      // setup initial segment //
+
+	gencode_L(TOK_JMP, lastlbl); // forward reference to constructor chain
+
 	parse();             // GO !!!
 	if (iflevel)
 		error("no closing #endif");
 	if (!ccode)
 		error("no closing #endasm");
+	fprintf(outhdl, "_%d:", lastlbl); // end of constructor list
 	fprintf(outhdl, "\t.END\n");
 
 	j = 0;

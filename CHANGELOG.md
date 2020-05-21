@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-21 18:36:59 Global constructors.
+                    Easy implementable low-priority todo which was needed for testing. 
 2020-05-21 15:33:57 Modified copy of `ctype[]` for `xcc`
                     `symfirst/symnext` is a complext `if()`.
                     The linker orders undefs based on hash value and broke stage3 after ctypes were moved to the library.  

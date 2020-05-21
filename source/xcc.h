@@ -1,5 +1,12 @@
 /*
  * X-C-Compiler/Assembler/Linker/Archiver
+ *
+ * @date 2020-05-21 18:26:59
+ *
+ * Constructors are written as global level statements within parenthesis.
+ * Each compilation unit starts with a `"JMP"` instruction to the next constructor block.
+ * Each constructor block ends with a `"JMP"` to the next constructor block.
+ * The last `"JMP"` jumps to the first location after the compilation unit, expecting the next `"JMP"`.
  */
 
 /*
@@ -243,6 +250,7 @@ EXTERN int
 	inclnr,			// Linenumber of .H file
 	inphdl,			// handle for .C file
 	inplnr,			// Linenumber of .C file
+	lastlbl,		// Label of the next constructor block.
 	lishdl,			// handle for .LIS file
 	litinx,			// Index to next entry
 	litq[LITMAX],

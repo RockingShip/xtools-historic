@@ -203,6 +203,7 @@ EXTERN int
 	name[NAMEMAX*NLAST],	// Name table
 	outhdl,			// handle for .IMG file
 	pass,			// Pass number
+	posjmpstart,		// position where to write "JMP ___ENTRY"
 	stack[STACKMAX*BPW],	// REL evaluation stack
 	stackinx,		// Poisition in stack
 	stksiz,			// Stksiz  -s specified

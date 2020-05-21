@@ -517,7 +517,7 @@ doreloc() {
 
 	dohash("___CODEBASE", &hash);
 	name[hash * NLAST + NVALUE] = 0;
-	curpos = 5;  // Reserve space for JMP ___START
+	curpos = 0;
 	curlen = 0;
 
 	// relocate CODE
@@ -529,6 +529,10 @@ doreloc() {
 			curlen += p[FCODELEN];
 		}
 	}
+
+	posjmpstart = curpos;
+	curlen += 5;  // Reserve space for JMP ___START
+	curpos += 5;
 
 	dohash("___CODELEN", &hash);
 	name[hash * NLAST + NVALUE] = curlen;
@@ -661,15 +665,6 @@ process() {
 	if (verbose)
 		printf("Pass 2\n");
 
-	// generate prefix "JMP ___START"
-	datbuf[0] = 0x6F;  // opcode for JMP
-	dohash("___START", &hash);
-	datbuf[1] = name[hash * NLAST + NVALUE] >> 8; // hi
-	datbuf[2] = name[hash * NLAST + NVALUE]; // lo
-	datbuf[3] = 0; // reg1
-	datbuf[4] = 0; // reg2
-	fwrite(datbuf, 1, 5, outhdl);
-
 	// process pass 2
 	for (i = 0; i < file2inx; i++) {
 		fp = &file2[i * FLAST];
@@ -695,4 +690,14 @@ process() {
 			fclose(inphdl);
 		}
 	}
+
+	// generate prefix "JMP ___START"
+	dohash("___START", &hash);
+	datbuf[0] = 0x6F;  // opcode for JMP
+	datbuf[1] = name[hash * NLAST + NVALUE] >> 8; // hi
+	datbuf[2] = name[hash * NLAST + NVALUE]; // lo
+	datbuf[3] = 0; // reg1
+	datbuf[4] = 0; // reg2
+	fseek(outhdl, posjmpstart, 0);
+	fwrite(datbuf, 1, 5, outhdl);
 }
