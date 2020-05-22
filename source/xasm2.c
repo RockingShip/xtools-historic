@@ -38,7 +38,7 @@ get_comma() {
 	if (ch == ',')
 		gch();
 	else
-		error("expected comma");
+		error("comma expected");
 }
 
 get_reg() {
@@ -52,7 +52,7 @@ get_reg() {
 	else
 		len = dohash(lptr, &hash);
 	if (!len) {
-		error("expected register");
+		error("register expected");
 		junk();
 		reg = 0;
 	} else {
@@ -65,7 +65,7 @@ get_reg() {
 				hash = p[NVALUE];
 		}
 		if (p[NTYPE] != REGISTER) {
-			error("expected register");
+			error("register expected");
 			reg = 0;
 		} else
 			reg = p[NVALUE];
@@ -121,7 +121,7 @@ get_mem() {
 		if (ch == ')')
 			gch();
 		else
-			error("expected )");
+			error(") expected");
 	}
 }
 
@@ -400,7 +400,7 @@ parse() {
 			len = dohash(lptr, &hash);
 			if (!len) {
 				if (pass == 1)
-					error("expected opcode");
+					error("opcode expected");
 				kill();
 				break;
 			}
@@ -509,7 +509,7 @@ parse() {
 				break;
 			default:
 				if (pass == 1)
-					error("expected opcode");
+					error("opcode expected");
 				break;
 			}
 

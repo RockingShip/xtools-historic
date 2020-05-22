@@ -486,7 +486,7 @@ primary(register int lval[]) {
 		needtoken("(");
 
 		if (!qstr()) {
-			error("expected string");
+			error("string expected");
 		} else {
 			register int i;
 

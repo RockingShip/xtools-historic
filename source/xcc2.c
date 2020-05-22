@@ -209,7 +209,7 @@ declvar(int scope, register int class) {
 			if (!match("{")) {
 				// single value
 				if (!hier1(lval))
-					error("expected a constant");
+					error("constant expected");
 				if (lval[LTYPE] == CONSTANT) {
 					if (ptr || (type == ARRAY))
 						error("cannot assign constant to pointer or array");
@@ -219,7 +219,7 @@ declvar(int scope, register int class) {
 						error("must assign to char pointers or arrays");
 					// at this point, literal queue has been filled with string
 				} else {
-					error("expected a constant");
+					error("constant expected");
 					litinx = 2;
 				}
 			} else {
@@ -231,14 +231,14 @@ declvar(int scope, register int class) {
 				while (1) {
 					--cnt;
 					if (!hier1(lval))
-						error("expected a constant");
+						error("constant expected");
 					if (lval[LTYPE] == CONSTANT) {
 						addlits(lval[LVALUE], size);
 					} else if (lval[LTYPE] == LABEL) {
 						error("multiple strings not allowed");
 						litinx = 2;
 					} else {
-						error("expected a constant");
+						error("constant expected");
 					}
 
 					// test for reloop
@@ -247,7 +247,7 @@ declvar(int scope, register int class) {
 					else if (match("}"))
 						break;
 					else
-						error("expected }");
+						error("constant expected");
 				}
 			}
 
@@ -351,7 +351,7 @@ declenum() {
 		if (match("=")) {
 			expression(lval, 0);
 			if (lval[LTYPE] != CONSTANT) {
-				error("expected expression");
+				error("constant expected");
 				return;
 			}
 			seqnr = lval[LVALUE];
