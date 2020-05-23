@@ -729,7 +729,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		needtoken("(");
 		expression(lval, 1);
 		needtoken(")");
-		loadlval(lval, 1);
+		loadlval(lval, REG_RETURN);
 		lbl1 = ++nxtlabel;
 		lbl2 = ++nxtlabel;
 		gencode_L(TOK_JMP, lbl1);
@@ -772,7 +772,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		if (!endst()) {
 			// generate a return value in R1
 			expression(lval, 1);
-			loadlval(lval, 1);
+			loadlval(lval, REG_RETURN);
 		}
 		if (csp != -1)
 			gencode_ADJSP(-1 - csp);

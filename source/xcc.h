@@ -71,7 +71,7 @@ enum {
 	CONSTANT = 1,	// constant without storage
 	STATIC,		// static global variables
 	SP_AUTO,	// local variables
-	AP_AUTO,	// procedure parameters
+	AP_AUTO,	// procedure arguments
 	EXTERNAL,	// external global variables
 	GLOBAL,		// global variables
 	REGISTER,	// register variables
