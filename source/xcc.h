@@ -60,6 +60,7 @@ enum {
 enum {
 	BPW = 2,		// Bytes per word
 	SBIT = 15,		// Bit number of signed bit
+	REGMAX = 16,		// Number of registers
 };
 
 /*
@@ -160,9 +161,9 @@ enum {
 	REG_SP = 15,
 	REG_AP = 14,
 	REG_BPW = 13,
-	REG_4 = 12,
-	REG_1 = 11,
-	REG_0 = 10,
+	REG_1 = 12,
+	REG_0 = 11,
+	REG_RETURN = 1,
 };
 
 /*

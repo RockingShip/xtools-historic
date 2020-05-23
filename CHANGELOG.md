@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+```
+2020-05-22 23:03:28 Drop REG_4 and better register naming.
+                    Constant '4' was only used 9 times.                    
+```
+
 ## Release [1.2.0] 2020-05-21 00:10:38
 
 XTools/XLibrary supports:

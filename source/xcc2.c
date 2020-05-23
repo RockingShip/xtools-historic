@@ -520,7 +520,7 @@ declfunc() {
 	statement(swinx, returnlbl, 0, 0, csp, csp);
 	if (csp != -1)
 		error("internal error. stack not released");
-	if (reglock != inireg)
+	if (inireg != reglock)
 		error("internal error. registers not unlocked");
 
 	// trailing statements
@@ -863,15 +863,15 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	fprintf(outhdl, "_%d:", codlbl);
 	j = allocreg();
 	gencode_I(TOK_LDA, j, lo);
-	gencode_R(TOK_SUB, 1, j);
+	gencode_R(TOK_SUB, REG_RETURN, j);
 	gencode_L(TOK_BLT, deflbl);
 	gencode_I(TOK_LDA, j, hi - lo);
-	gencode_R(TOK_CMP, 1, j);
+	gencode_R(TOK_CMP, REG_RETURN, j);
 	gencode_L(TOK_BGT, deflbl);
-	gencode_R(TOK_MUL, 1, REG_BPW);
+	gencode_R(TOK_MUL, REG_RETURN, REG_BPW);
 	lval[LTYPE] = LABEL;
 	lval[LNAME] = maplbl;
-	lval[LREG1] = 1;
+	lval[LREG1] = REG_RETURN;
 	lval[LREG2] = lval[LVALUE] = 0;
 	gencode_M(TOK_LDW, j, lval);
 	gencode_IND(TOK_JMP, 0, 0, j);
@@ -894,10 +894,9 @@ parse() {
 
 			// initialise reserved registers on first call
 			if (lastlbl == 1) {
-				gencode_I(TOK_LDA, 13, BPW);
-				gencode_I(TOK_LDA, 12, BPW * 2);
-				gencode_I(TOK_LDA, 11, 1);
-				gencode_I(TOK_LDA, 10, 0);
+				gencode_I(TOK_LDA, REG_BPW, BPW);
+				gencode_I(TOK_LDA, REG_1, 1);
+				gencode_I(TOK_LDA, REG_0, 0);
 			}
 
 			int returnlbl;

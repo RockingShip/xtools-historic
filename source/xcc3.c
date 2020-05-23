@@ -86,7 +86,7 @@ calc(register int left, int oper, int right) {
 allocreg() {
 	register int i, mask;
 
-	for (i = 2; i < REG_0; i++) {
+	for (i = 2; i < REGMAX; i++) {
 		mask = 1 << i;
 		if (~(regresvd | reguse) & mask) {
 			regsum |= reguse |= mask;
@@ -137,8 +137,6 @@ loadlval(register int lval[], register int reg) {
 				srcreg = REG_1;
 			else if (lval[LVALUE] == BPW)
 				srcreg = REG_BPW;
-			else if (lval[LVALUE] == 4)
-				srcreg = REG_4;
 			else {
 				srcreg = allocreg();
 				gencode_I(TOK_LDA, srcreg, lval[LVALUE]);
@@ -505,7 +503,7 @@ primary(register int lval[]) {
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = 1;
+		lval[LREG1] = REG_RETURN;
 		lval[LREG2] = 0;
 		return 1;
 	}
@@ -682,7 +680,7 @@ hier14(register int lval[]) {
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = 1;
+		lval[LREG1] = REG_RETURN;
 		lval[LREG2] = 0;
 	}
 	return 1;
