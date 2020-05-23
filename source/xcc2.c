@@ -455,7 +455,7 @@ declfunc() {
 		if (sym[INAME] == sname)
 			break;
 	}
-	if (i < symidx && sym[ICLASS] != AUTOEXT)
+	if (i < symidx)
 		multidef();
 	if (symidx >= SYMMAX)
 		fatal("identifier table overflow");

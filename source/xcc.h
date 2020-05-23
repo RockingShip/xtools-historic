@@ -73,7 +73,6 @@ enum {
 	SP_AUTO,	// local variables
 	AP_AUTO,	// procedure parameters
 	EXTERNAL,	// external global variables
-	AUTOEXT,	// referenced names
 	GLOBAL,		// global variables
 	REGISTER,	// register variables
 };

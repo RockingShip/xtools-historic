@@ -574,7 +574,7 @@ primary(register int lval[]) {
 		return 0;
 	}
 
-	// make it AUTOEXT
+	// could be external function names
 	lval[LTYPE] = FUNCTION;
 	lval[LPTR] = 0;
 	lval[LSIZE] = BPW;
@@ -582,17 +582,6 @@ primary(register int lval[]) {
 	lval[LNAME] = sname;
 	lval[LVALUE] = 0;
 	lval[LREG] = 0;
-
-	// add symbol to symboltable
-	if (symidx >= SYMMAX)
-		fatal("identifier table overflow");
-	sym = &syms[symidx++ * ILAST];
-	sym[INAME] = sname;
-	sym[ICLASS] = AUTOEXT;
-	sym[ITYPE] = FUNCTION;
-	sym[IPTR] = 0;
-	sym[IVALUE] = 0;
-	sym[ISIZE] = BPW;
 
 	return 1;
 }
