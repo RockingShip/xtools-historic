@@ -307,14 +307,14 @@ void disp_opc(uint16_t pc) {
 		case _PSHB:
 		case _PSHW:
 		case _PSHA:
-			printf("%s %02x%02x(R%d,R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3], image[pc + 4]);
+			printf("%s %02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3]);
 			break;
 		case _MOVB:
 		case _MOVW:
 		case _LEA:
 		case _STOB:
 		case _STOW:
-			printf("%s R%d,%02x%02x(R%d,R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3], image[pc + 4], image[pc + 5]);
+			printf("%s R%d,%02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3], image[pc + 4]);
 			break;
 		case _PSHR:
 		case _POPR:
@@ -644,8 +644,6 @@ void run(uint16_t inisp) {
 				rval += image[pc++] & 0xFF;
 				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
 				++pc;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
 				pc = rval & 0xffff;
 				break;
 			case _EQ:
@@ -657,8 +655,6 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
 				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
 				++pc;
 				/* process */
@@ -686,8 +682,6 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
 				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
 				++pc;
 				/* process */
@@ -723,8 +717,6 @@ void run(uint16_t inisp) {
 				rval += image[pc++] & 0xFF;
 				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
 				++pc;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
 				/* process */
 				if (opc == _PSHA) {
 					regs[15] -= BPW;
@@ -754,8 +746,6 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
 				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
 				++pc;
 				/* save old PC */

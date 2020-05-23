@@ -98,25 +98,11 @@ get_mem() {
 	// test for registers
 	if (ch <= ' ') white();
 	if (ch != '(') {
-		sto_data(0, 1); // dummy lreg
-		sto_data(0, 1); // dummy rreg
+		sto_data(0, 1); // dummy reg
 	} else {
 		gch();
 		if (ch <= ' ') white();
-		if ((ch == ',') || (ch == ')'))
-			sto_data(0, 1); // dummy lreg
-		else
-			get_reg();
-		if (ch <= ' ') white();
-		if (ch == ',') {
-			gch();
-			if (ch <= ' ') white();
-			if (ch == ')')
-				sto_data(0, 1); // dummy rreg
-			else
-				get_reg();
-		} else
-			sto_data(0, 1); // dummy rreg
+		get_reg();
 		if (ch <= ' ') white();
 		if (ch == ')')
 			gch();
@@ -141,7 +127,7 @@ do_opcode(register int p[]) {
 			case OPC_PSHW:
 			case OPC_PSHA:
 			case OPC_JSB:
-				curpos[curseg] += 5;
+				curpos[curseg] += 4;
 				break;
 			case OPC_NEG:
 			case OPC_NOT:
@@ -168,14 +154,14 @@ do_opcode(register int p[]) {
 			case OPC_BGT:
 			case OPC_BGE:
 			case OPC_JMP:
-				curpos[curseg] += 5;
+				curpos[curseg] += 4;
 				break;
 			case OPC_LDB:
 			case OPC_LDW:
 			case OPC_LEA:
 			case OPC_STB:
 			case OPC_STW:
-				curpos[curseg] += 6;
+				curpos[curseg] += 5;
 				break;
 			default:
 				error("unimplemented opcode");
@@ -201,7 +187,7 @@ do_opcode(register int p[]) {
 		case OPC_PSHA:
 		case OPC_JSB:
 			get_mem();
-			curpos[curseg] += 5;
+			curpos[curseg] += 4;
 			break;
 		case OPC_NEG:
 		case OPC_NOT:
@@ -233,7 +219,7 @@ do_opcode(register int p[]) {
 		case OPC_BGE:
 		case OPC_JMP:
 			get_mem();
-			curpos[curseg] += 5;
+			curpos[curseg] += 4;
 			break;
 		case OPC_LDB:
 		case OPC_LDW:
@@ -243,7 +229,7 @@ do_opcode(register int p[]) {
 			get_reg();
 			get_comma();
 			get_mem();
-			curpos[curseg] += 6;
+			curpos[curseg] += 5;
 			break;
 		default:
 			error("unimplemented opcode");

@@ -157,8 +157,7 @@ loadlval(register int lval[], register int reg) {
 		lval[LPTR] = 0;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = reg;
-		lval[LREG2] = 0;
+		lval[LREG] = reg;
 	} else if (lval[LTYPE] == BRANCH) {
 		int lblX;
 		lblX = ++nxtlabel;
@@ -180,8 +179,7 @@ loadlval(register int lval[], register int reg) {
 		lval[LPTR] = 0;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = reg;
-		lval[LREG2] = 0;
+		lval[LREG] = reg;
 	} else if (lval[LEA] == EA_IND) {
 		freelval(lval);
 		if (reg <= 0)
@@ -190,8 +188,7 @@ loadlval(register int lval[], register int reg) {
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = reg;
-		lval[LREG2] = 0;
+		lval[LREG] = reg;
 	} else if (lval[LEA] != EA_REG) {
 		freelval(lval);
 		if (reg <= 0)
@@ -200,17 +197,16 @@ loadlval(register int lval[], register int reg) {
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = reg;
-		lval[LREG2] = 0;
-	} else if (((reg > 0) && (lval[LREG1] != reg)) ||
-		   (regresvd & (1 << lval[LREG1])) ||
-		   ((reg != -1) && (reglock & (1 << lval[LREG1])))) {
+		lval[LREG] = reg;
+	} else if (((reg > 0) && (lval[LREG] != reg)) ||
+		   (regresvd & (1 << lval[LREG])) ||
+		   ((reg != -1) && (reglock & (1 << lval[LREG])))) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_R(TOK_LDR, reg, lval[LREG1]);
+		gencode_R(TOK_LDR, reg, lval[LREG]);
 
-		lval[LREG1] = reg;
+		lval[LREG] = reg;
 	}
 }
 
@@ -220,10 +216,8 @@ loadlval(register int lval[], register int reg) {
 freelval(register int lval[]) {
 	if ((lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
 		return;
-	if (!(reglock & (1 << lval[LREG1])))
-		freereg(lval[LREG1]);
-	if (!(reglock & (1 << lval[LREG2])))
-		freereg(lval[LREG2]);
+	if (!(reglock & (1 << lval[LREG])))
+		freereg(lval[LREG]);
 }
 
 
@@ -271,7 +265,7 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 			loadlval(rval, -1);
 
 			// Execute operation and release rval
-			gencode_R(hier_oper[entry], lval[LREG1], rval[LREG1]);
+			gencode_R(hier_oper[entry], lval[LREG], rval[LREG]);
 			freelval(rval);
 
 			// Modify lval
@@ -317,7 +311,7 @@ xplng2(register int (*hier)(), register int start, register int lval[]) {
 		loadlval(rval, -1);
 
 		// Compare and release values
-		gencode_R(TOK_CMP, lval[LREG1], rval[LREG1]);
+		gencode_R(TOK_CMP, lval[LREG], rval[LREG]);
 		freelval(lval);
 		freelval(rval);
 
@@ -442,26 +436,25 @@ step(register int pre, register int lval[], register int post) {
 	dest[LEA] = lval[LEA];
 	dest[LNAME] = lval[LNAME];
 	dest[LVALUE] = lval[LVALUE];
-	dest[LREG1] = lval[LREG1];
-	dest[LREG2] = lval[LREG2];
+	dest[LREG] = lval[LREG];
 
 	if (lval[LEA] == EA_REG) {
-		gencode_R((pre | post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
+		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
 		if (post) {
 			reg = allocreg();
-			gencode_R(TOK_LDR, reg, lval[LREG1]);
+			gencode_R(TOK_LDR, reg, lval[LREG]);
 			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
 			freelval(lval);
-			lval[LREG1] = reg;
+			lval[LREG] = reg;
 		}
 	} else {
 		reg = allocreg();
 		loadlval(lval, reg);
-		gencode_R((pre | post), lval[LREG1], lval_ISIPTR ? REG_BPW : REG_1);
-		gencode_M(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG1], dest);
+		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
+		gencode_M(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
 		if (post) {
 			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
-			lval[LREG1] = reg;
+			lval[LREG] = reg;
 		}
 	}
 }
@@ -503,8 +496,7 @@ primary(register int lval[]) {
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = REG_RETURN;
-		lval[LREG2] = 0;
+		lval[LREG] = REG_RETURN;
 		return 1;
 	}
 
@@ -520,7 +512,7 @@ primary(register int lval[]) {
 			lval[LTYPE] = sym[ITYPE];
 			lval[LPTR] = sym[IPTR];
 			lval[LSIZE] = sym[ISIZE];
-			lval[LNAME] = lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
+			lval[LNAME] = lval[LVALUE] = lval[LREG] = 0;
 
 			if (sym[ITYPE] == CONSTANT) {
 				// @date 2020-05-20 18:37:39
@@ -528,14 +520,14 @@ primary(register int lval[]) {
 				lval[LVALUE] = sym[IVALUE];
 				lval[LEA] = EA_ADDR;
 			} else if (sym[ICLASS] == REGISTER) {
-				lval[LREG1] = sym[IVALUE];
+				lval[LREG] = sym[IVALUE];
 				lval[LEA] = EA_REG;
 			} else if (sym[ICLASS] == AP_AUTO) {
-				lval[LREG1] = REG_AP;
+				lval[LREG] = REG_AP;
 				lval[LVALUE] = sym[IVALUE];
 				lval[LEA] = EA_IND;
 			} else if (sym[ICLASS] == SP_AUTO) {
-				lval[LREG1] = REG_SP;
+				lval[LREG] = REG_SP;
 				lval[LVALUE] = sym[IVALUE];
 				lval[LEA] = EA_IND;
 			} else {
@@ -562,12 +554,11 @@ primary(register int lval[]) {
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = allocreg();
-		lval[LREG2] = 0;
+		lval[LREG] = allocreg();
 
-		gencode_IND(TOK_LDW, lval[LREG1], BPW, REG_AP);
-		gencode_R(TOK_SUB, lval[LREG1], REG_BPW);
-		gencode_R(TOK_DIV, lval[LREG1], REG_BPW);
+		gencode_IND(TOK_LDW, lval[LREG], BPW, REG_AP);
+		gencode_R(TOK_SUB, lval[LREG], REG_BPW);
+		gencode_R(TOK_DIV, lval[LREG], REG_BPW);
 		return 1;
 	} else if (sname == argvid) {
 		exprerr();
@@ -580,7 +571,7 @@ primary(register int lval[]) {
 	lval[LSIZE] = BPW;
 	lval[LEA] = EA_ADDR;
 	lval[LNAME] = sname;
-	lval[LREG1] = lval[LREG2] = lval[LVALUE] = 0;
+	lval[LREG] = lval[LVALUE] = 0;
 
 	// add symbol to symboltable
 	if (symidx >= SYMMAX)
@@ -618,15 +609,24 @@ hier14(register int lval[]) {
 				lval[LVALUE] += lval2[LVALUE] * lval[LSIZE];
 			} else {
 				// Subscript is a variable/complex-expression
-				if ((lval[LEA] == EA_IND) || lval[LREG2])
+				if (lval[LEA] == EA_IND)
 					loadlval(lval, 0); // make LREG2 available
 				loadlval(lval2, 0);
 				if (lval[LSIZE] == BPW)
-					gencode_R(TOK_MUL, lval2[LREG1], REG_BPW); // size index
-				if (!lval[LREG1])
-					lval[LREG1] = lval2[LREG1];
-				else
-					lval[LREG2] = lval2[LREG1];
+					gencode_R(TOK_MUL, lval2[LREG], REG_BPW); // size index
+				if (!lval[LREG])
+					lval[LREG] = lval2[LREG];
+				else {
+					if ((1<<lval[LREG]) & reglock) {
+						// register in lval is locked and needs to be made writable
+						freelval(lval);
+						reg = allocreg();
+						gencode_R(TOK_LDR, reg, lval[LREG]);
+						lval[LREG] = reg;
+					}
+					gencode_R(TOK_ADD, lval[LREG], lval2[LREG]);
+					freelval(lval2);
+				}
 			}
 			// Update data type
 			lval[LPTR] = 0;
@@ -680,8 +680,7 @@ hier14(register int lval[]) {
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = REG_RETURN;
-		lval[LREG2] = 0;
+		lval[LREG] = REG_RETURN;
 	}
 	return 1;
 }
@@ -709,7 +708,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = ~lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(TOK_NOT, 0, lval[LREG1]);
+			gencode_R(TOK_NOT, 0, lval[LREG]);
 		}
 	} else if (match("!")) {
 		if (!hier13(lval)) {
@@ -739,7 +738,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = -lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(TOK_NEG, 0, lval[LREG1]);
+			gencode_R(TOK_NEG, 0, lval[LREG]);
 		}
 	} else if (match("+")) {
 		if (!hier13(lval)) {
@@ -908,14 +907,13 @@ hier1(register int lval[]) {
 
 	if (oper == -1) {
 		if (lval[LEA] == EA_REG)
-			gencode_R(TOK_LDR, lval[LREG1], rval[LREG1]);
+			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else {
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG1], lval);
+			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval);
 			freelval(lval);
 		}
 		lval[LNAME] = lval[LVALUE] = 0;
-		lval[LREG1] = rval[LREG1];
-		lval[LREG2] = 0;
+		lval[LREG] = rval[LREG];
 	} else {
 		// Copy lval
 		dest[LTYPE] = lval[LTYPE];
@@ -924,17 +922,16 @@ hier1(register int lval[]) {
 		dest[LEA] = lval[LEA];
 		dest[LNAME] = lval[LNAME];
 		dest[LVALUE] = lval[LVALUE];
-		dest[LREG1] = lval[LREG1];
-		dest[LREG2] = lval[LREG2];
+		dest[LREG] = lval[LREG];
 
 		// load lval into reg, modify it with rval and copy result into dest
 		loadlval(lval, allocreg()); // don't reuse regs for dest
-		gencode_R(oper, lval[LREG1], rval[LREG1]);
+		gencode_R(oper, lval[LREG], rval[LREG]);
 		freelval(rval);
 		if (dest[LEA] == EA_REG)
-			gencode_R(TOK_LDR, dest[LREG1], lval[LREG1]);
+			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG1], dest);
+			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
 	}
 
 	// resulting type is undefined, so modify LTYPE
@@ -994,7 +991,7 @@ constant(register int lval[]) {
 		lval[LSIZE] = 1;
 		lval[LEA] = EA_ADDR;
 		lval[LNAME] = ++nxtlabel;
-		lval[LVALUE] = lval[LREG1] = lval[LREG2] = 0;
+		lval[LVALUE] = lval[LREG] = 0;
 		// Generate data
 		toseg(DATASEG);
 		fprintf(outhdl, "_%d:", lval[LNAME]);

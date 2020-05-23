@@ -54,7 +54,7 @@ initialize() {
 	macinx = macqinx = 0;
 	inclnr = inplnr = 0;
 	lastlbl = ++nxtlabel; // first label MUST be "1"
-	regresvd = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_1) | (1 << REG_0) | (1 << 1) | (1 << 0));
+	regresvd = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_1) | (1 << REG_0) | (1 << REG_RETURN) | (1 << 0));
 
 	// character properties
 	for (i = '0'; i <= '9'; i++)
@@ -876,7 +876,7 @@ gencode_M(int opc, int reg, register int lval[]) {
 		fprintf(outhdl, "R%d,", reg);
 
 	// apply any stack ajustments
-	if ((lval[LREG1] == REG_SP) || (lval[LREG2] == REG_SP))
+	if (lval[LREG] == REG_SP)
 		lval[LVALUE] = lval[LVALUE] - csp;
 
 	if (lval[LNAME]) {
@@ -896,11 +896,8 @@ gencode_M(int opc, int reg, register int lval[]) {
 		fprintf(outhdl, "+%d", ofs);
 	else if (lval[LVALUE] < 0)
 		fprintf(outhdl, "%d", ofs);
-	if (lval[LREG1]) {
-		fprintf(outhdl, "(R%d", lval[LREG1]);
-		if (lval[LREG2])
-			fprintf(outhdl, ",R%d", lval[LREG2]);
-		fprintf(outhdl, ")");
+	if (lval[LREG]) {
+		fprintf(outhdl, "(R%d)", lval[LREG]);
 	}
 
 	fprintf(outhdl, "\n");

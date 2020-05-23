@@ -871,8 +871,8 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	gencode_R(TOK_MUL, REG_RETURN, REG_BPW);
 	lval[LTYPE] = LABEL;
 	lval[LNAME] = maplbl;
-	lval[LREG1] = REG_RETURN;
-	lval[LREG2] = lval[LVALUE] = 0;
+	lval[LREG] = REG_RETURN;
+	lval[LVALUE] = 0;
 	gencode_M(TOK_LDW, j, lval);
 	gencode_IND(TOK_JMP, 0, 0, j);
 	freereg(j);
@@ -902,7 +902,7 @@ parse() {
 			int returnlbl;
 
 			returnlbl = ++nxtlabel;
-			reguse = regsum = reglock = 1 << REG_AP; // reset all registers
+			reguse = regsum = reglock = regresvd; // reset all registers
 			csp = -1; // reset stack
 			swinx = 1;
 

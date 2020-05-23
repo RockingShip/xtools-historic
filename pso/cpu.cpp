@@ -79,24 +79,19 @@ BOOLEAN CPU::get_pc_word(int *value) {
 }
 
 BOOLEAN CPU::get_ea(int *value) {
-	int imm, lval, rval;
-	char lreg, rreg;
+	int imm, val;
+	char reg;
 
 	// get immediate value
 	if (!get_pc_word(&imm))
 		return FALSE;
 	// get left register
-	if (!get_pc_byte(&lreg))
+	if (!get_pc_byte(&reg))
 		return FALSE;
-	// get right register
-	if (!get_pc_byte(&rreg))
-		return FALSE;
-	// if lreg non-zero, then read contence
-	lval = lreg ? context.getreg(lreg) : 0;
-	// if rreg non-zero, then read contence
-	rval = rreg ? context.getreg(rreg) : 0;
+	// if lreg non-zero, then read contents
+	val = reg ? context.getreg(reg) : 0;
 	// merge everything into a result
-	*value = imm + lval + rval;
+	*value = imm + val;
 	return TRUE;
 }
 
@@ -187,14 +182,14 @@ void disp_opc(unsigned char *arr) {
 		case _PSHB:
 		case _PSHW:
 		case _PSHA:
-			printf("%s %02x%02x(R%d,R%d)\n", opc_name[arr[0]], arr[1], arr[2], arr[3], arr[4]);
+			printf("%s %02x%02x(R%d)\n", opc_name[arr[0]], arr[1], arr[2], arr[3]);
 			break;
 		case _MOVB:
 		case _MOVW:
 		case _LEA:
 		case _STOB:
 		case _STOW:
-			printf("%s R%d,%02x%02x(R%d,R%d)\n", opc_name[arr[0]], arr[1], arr[2], arr[3], arr[4], arr[5]);
+			printf("%s R%d,%02x%02x(R%d)\n", opc_name[arr[0]], arr[1], arr[2], arr[3], arr[4]);
 			break;
 		case _PSHR:
 		case _POPR:
@@ -277,7 +272,7 @@ void CPU::tick() {
 		case SVC: // SVC I
 			// load SVC opcode
 			if (get_pc_word(&val)) {
-				// get contence of R0 and R1
+				// get contents of R0 and R1
 				R0 = context.getreg(0);
 				R1 = context.getreg(1);
 				if (kernel.supervisor(val, &R0, &R1)) {
@@ -386,7 +381,7 @@ void CPU::tick() {
 		case PSHB: // PSHB M
 			// load operands
 			if (get_ea(&addr)) {
-				// get contence of addr
+				// get contents of addr
 				if (read_byte(addr, &ch)) {
 					// execute EA calculation of -(sp)
 					spaddr = context.getreg(15) - 2;
@@ -399,7 +394,7 @@ void CPU::tick() {
 		case PSHW: // PSHW M
 			// load operands
 			if (get_ea(&addr)) {
-				// get contence of addr
+				// get contents of addr
 				if (read_word(addr, &val)) {
 					// execute EA calculation of -(sp)
 					spaddr = context.getreg(15) - 2;

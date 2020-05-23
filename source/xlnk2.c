@@ -531,8 +531,8 @@ doreloc() {
 	}
 
 	posjmpstart = curpos;
-	curlen += 5;  // Reserve space for JMP ___START
-	curpos += 5;
+	curlen += 4;  // Reserve space for JMP ___START
+	curpos += 4;
 
 	dohash("___CODELEN", &hash);
 	name[hash * NLAST + NVALUE] = curlen;
@@ -696,8 +696,7 @@ process() {
 	datbuf[0] = 0x6F;  // opcode for JMP
 	datbuf[1] = name[hash * NLAST + NVALUE] >> 8; // hi
 	datbuf[2] = name[hash * NLAST + NVALUE]; // lo
-	datbuf[3] = 0; // reg1
-	datbuf[4] = 0; // reg2
+	datbuf[3] = 0; // reg
 	fseek(outhdl, posjmpstart, 0);
-	fwrite(datbuf, 1, 5, outhdl);
+	fwrite(datbuf, 1, 4, outhdl);
 }
