@@ -64,31 +64,31 @@ enum {
 };
 
 /*
- * Possible values for "TYPE"
- */
-
-enum {
-	CONSTANT = 1,
-	VARIABLE,
-	ARRAY,
-	LABEL,
-	FUNCTION,
-	EXPR,
-	BRANCH,
-};
-
-/*
  * Possible values for "CLASS"
  */
 
 enum {
-	STATIC = 1,	// static global variables
+	CONSTANT = 1,	// constant without storage
+	STATIC,		// static global variables
 	SP_AUTO,	// local variables
 	AP_AUTO,	// procedure parameters
 	EXTERNAL,	// external global variables
 	AUTOEXT,	// referenced names
 	GLOBAL,		// global variables
 	REGISTER,	// register variables
+};
+
+/*
+ * Possible values for "TYPE"
+ */
+
+enum {
+	VARIABLE = 1,
+	ARRAY,
+	LABEL,
+	FUNCTION,
+	EXPR,
+	BRANCH,
 };
 
 /*

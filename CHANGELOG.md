@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-23 17:51:37 Constants are now `ICLASS=EXPR,LTYPE=EXPR,LPTR=0,LEA=EA_IMM`.
+                    Added `isConstant()` to tets if `lval[]` contains a constant.
+                    `CONSTANT` no longer expression `LTYPE` but storage `ICLASS`.
 2020-05-23 00:53:27 Drop second indirect register from instruction set.
                     Significantly reduces generated code size and source complexity.  
 2020-05-22 23:03:28 Drop REG_4 and better register naming.

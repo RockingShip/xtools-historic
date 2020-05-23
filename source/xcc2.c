@@ -108,9 +108,9 @@ declarg(int scope, register int class, register int argnr) {
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
 		sym[INAME] = sname;
+		sym[ICLASS] = class;
 		sym[ITYPE] = type;
 		sym[IPTR] = ptr;
-		sym[ICLASS] = class;
 		sym[ISIZE] = size;
 		sym[IVALUE] = (-argnr + 1) * BPW;
 
@@ -187,9 +187,9 @@ declvar(int scope, register int class) {
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
 		sym[INAME] = sname;
+		sym[ICLASS] = class;
 		sym[ITYPE] = type;
 		sym[IPTR] = ptr;
-		sym[ICLASS] = class;
 		sym[ISIZE] = size;
 		sym[IVALUE] = 0;
 
@@ -210,7 +210,7 @@ declvar(int scope, register int class) {
 				// single value
 				if (!hier1(lval))
 					error("constant expected");
-				if (lval[LTYPE] == CONSTANT) {
+				if (isConstant(lval)) {
 					if (ptr || (type == ARRAY))
 						error("cannot assign constant to pointer or array");
 					addlits(lval[LVALUE], size);
@@ -232,7 +232,7 @@ declvar(int scope, register int class) {
 					--cnt;
 					if (!hier1(lval))
 						error("constant expected");
-					if (lval[LTYPE] == CONSTANT) {
+					if (isConstant(lval)) {
 						addlits(lval[LVALUE], size);
 					} else if (lval[LTYPE] == LABEL) {
 						error("multiple strings not allowed");
@@ -342,15 +342,15 @@ declenum() {
 		sym = &syms[symidx++ * ILAST];
 
 		sym[INAME] = sname;
-		sym[ITYPE] = CONSTANT; // todo: this should actually be VARIABLE
+		sym[ICLASS] = CONSTANT;
+		sym[ITYPE] = EXPR;
 		sym[IPTR] = 0;
-		sym[ICLASS] = 0; // todo: this should actually be CONSTANT
 		sym[IVALUE] = 0;
 		sym[ISIZE] = 0;
 
 		if (match("=")) {
 			expression(lval, 0);
-			if (lval[LTYPE] != CONSTANT) {
+			if (!isConstant(lval)) {
 				error("constant expected");
 				return;
 			}
@@ -465,9 +465,9 @@ declfunc() {
 
 	// (re)define procedure
 	sym[INAME] = sname;
+	sym[ICLASS] = GLOBAL;
 	sym[ITYPE] = FUNCTION;
 	sym[IPTR] = 0;
-	sym[ICLASS] = GLOBAL;
 	sym[IVALUE] = 0;
 	sym[ISIZE] = BPW;
 	// Generate global label
@@ -871,8 +871,8 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	gencode_R(TOK_MUL, REG_RETURN, REG_BPW);
 	lval[LTYPE] = LABEL;
 	lval[LNAME] = maplbl;
-	lval[LREG] = REG_RETURN;
 	lval[LVALUE] = 0;
+	lval[LREG] = REG_RETURN;
 	gencode_M(TOK_LDW, j, lval);
 	gencode_IND(TOK_JMP, 0, 0, j);
 	freereg(j);

@@ -126,7 +126,7 @@ loadlval(register int lval[], register int reg) {
 	// Sign extend to fix being called with negative constant when copiled with "-Dint=long"
 	reg |= -(reg & (1 << SBIT));
 
-	if (lval[LTYPE] == CONSTANT) {
+	if (isConstant(lval)) {
 		// test for a predefined register
 		if (reg > 0)
 			gencode_I(TOK_LDA, reg, lval[LVALUE]);
@@ -156,7 +156,8 @@ loadlval(register int lval[], register int reg) {
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else if (lval[LTYPE] == BRANCH) {
 		int lblX;
@@ -178,7 +179,8 @@ loadlval(register int lval[], register int reg) {
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else if (lval[LEA] == EA_IND) {
 		freelval(lval);
@@ -187,7 +189,8 @@ loadlval(register int lval[], register int reg) {
 		gencode_M(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval);
 
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else if (lval[LEA] != EA_REG) {
 		freelval(lval);
@@ -196,7 +199,8 @@ loadlval(register int lval[], register int reg) {
 		gencode_M(TOK_LDA, reg, lval);
 
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else if (((reg > 0) && (lval[LREG] != reg)) ||
 		   (regresvd & (1 << lval[LREG])) ||
@@ -214,7 +218,7 @@ loadlval(register int lval[], register int reg) {
  * Free all registers assigned to a lval
  */
 freelval(register int lval[]) {
-	if ((lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
+	if (isConstant(lval) || lval[LTYPE] == BRANCH)
 		return;
 	if (!(reglock & (1 << lval[LREG])))
 		freereg(lval[LREG]);
@@ -258,7 +262,7 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 			error("Invalid function use");
 
 		// Generate code
-		if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
+		if (isConstant(lval) && isConstant(rval)) {
 			lval[LVALUE] = calc(lval[LVALUE], hier_oper[entry], rval[LVALUE]);
 		} else {
 			loadlval(lval, 0);
@@ -304,7 +308,7 @@ xplng2(register int (*hier)(), register int start, register int lval[]) {
 	}
 
 	// Generate code
-	if ((lval[LTYPE] == CONSTANT) && (rval[LTYPE] == CONSTANT)) {
+	if (isConstant(lval) && isConstant(rval)) {
 		lval[LVALUE] = calc(lval[LVALUE], hier_oper[entry], rval[LVALUE]);
 	} else {
 		loadlval(lval, -1);
@@ -426,7 +430,7 @@ step(register int pre, register int lval[], register int post) {
 	int dest[LLAST];
 	register int reg;
 
-	if ((lval[LTYPE] == EXPR) || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
+	if (lval[LTYPE] == EXPR || isConstant(lval) || lval[LTYPE] == BRANCH)
 		error("non-modifiable variable");
 
 	// Copy lval
@@ -495,7 +499,8 @@ primary(register int lval[]) {
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
 		return 1;
 	}
@@ -512,27 +517,30 @@ primary(register int lval[]) {
 			lval[LTYPE] = sym[ITYPE];
 			lval[LPTR] = sym[IPTR];
 			lval[LSIZE] = sym[ISIZE];
-			lval[LNAME] = lval[LVALUE] = lval[LREG] = 0;
+			lval[LNAME] = 0;
+			lval[LVALUE] = 0;
+			lval[LREG] = 0;
 
-			if (sym[ITYPE] == CONSTANT) {
-				// @date 2020-05-20 18:37:39
-				// todo: this list shows that constants should actually be ICLASS=CONSTANT,ITYPE=VARIABLE
-				lval[LVALUE] = sym[IVALUE];
+			if (sym[ICLASS] == CONSTANT) {
+				lval[LTYPE] = EXPR;
+				lval[LPTR] = 0;
+				lval[LSIZE] = 0;
 				lval[LEA] = EA_ADDR;
+				lval[LVALUE] = sym[IVALUE];
 			} else if (sym[ICLASS] == REGISTER) {
-				lval[LREG] = sym[IVALUE];
 				lval[LEA] = EA_REG;
+				lval[LREG] = sym[IVALUE];
 			} else if (sym[ICLASS] == AP_AUTO) {
+				lval[LEA] = EA_IND;
+				lval[LVALUE] = sym[IVALUE];
 				lval[LREG] = REG_AP;
-				lval[LVALUE] = sym[IVALUE];
-				lval[LEA] = EA_IND;
 			} else if (sym[ICLASS] == SP_AUTO) {
-				lval[LREG] = REG_SP;
+				lval[LEA] = EA_IND;
 				lval[LVALUE] = sym[IVALUE];
-				lval[LEA] = EA_IND;
+				lval[LREG] = REG_SP;
 			} else {
-				lval[LNAME] = sname;
 				lval[LEA] = EA_IND;
+				lval[LNAME] = sname;
 			}
 
 			// functions/arrays are addresses
@@ -553,7 +561,8 @@ primary(register int lval[]) {
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = allocreg();
 
 		gencode_IND(TOK_LDW, lval[LREG], BPW, REG_AP);
@@ -571,16 +580,17 @@ primary(register int lval[]) {
 	lval[LSIZE] = BPW;
 	lval[LEA] = EA_ADDR;
 	lval[LNAME] = sname;
-	lval[LREG] = lval[LVALUE] = 0;
+	lval[LVALUE] = 0;
+	lval[LREG] = 0;
 
 	// add symbol to symboltable
 	if (symidx >= SYMMAX)
 		fatal("identifier table overflow");
 	sym = &syms[symidx++ * ILAST];
 	sym[INAME] = sname;
+	sym[ICLASS] = AUTOEXT;
 	sym[ITYPE] = FUNCTION;
 	sym[IPTR] = 0;
-	sym[ICLASS] = AUTOEXT;
 	sym[IVALUE] = 0;
 	sym[ISIZE] = BPW;
 
@@ -602,7 +612,7 @@ hier14(register int lval[]) {
 		else if (!hier1(lval2))
 			error("need subscript");
 		else {
-			if (lval2[LTYPE] == CONSTANT) {
+			if (isConstant(lval2)) {
 				if (lval[LEA] == EA_IND)
 					loadlval(lval, 0); // make LVALUE available
 				// Subscript is a constant
@@ -617,6 +627,12 @@ hier14(register int lval[]) {
 				if (!lval[LREG])
 					lval[LREG] = lval2[LREG];
 				else {
+					/*
+					 * @date 2020-05-23 01:14:18
+					 * This is an important location.
+					 * having a second indirect register removes the following code.
+					 * however, a single register is a much simpler implementation.
+					 */
 					if ((1<<lval[LREG]) & reglock) {
 						// register in lval is locked and needs to be made writable
 						freelval(lval);
@@ -644,7 +660,7 @@ hier14(register int lval[]) {
 		while (ch != ')') {
 			// Get expression
 			expression(lval2, 0);
-			if (lval2[LTYPE] == CONSTANT) {
+			if (isConstant(lval2)) {
 				gencode_I(TOK_PSHA, 0, lval2[LVALUE]);
 			} else {
 				if (lval2[LTYPE] == BRANCH)
@@ -679,7 +695,8 @@ hier14(register int lval[]) {
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
 		lval[LEA] = EA_REG;
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
 	}
 	return 1;
@@ -704,7 +721,7 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if (lval[LTYPE] == CONSTANT)
+		if (isConstant(lval))
 			lval[LVALUE] = ~lval[LVALUE];
 		else {
 			loadlval(lval, 0);
@@ -715,7 +732,7 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if (lval[LTYPE] == CONSTANT)
+		if (isConstant(lval))
 			lval[LVALUE] = !lval[LVALUE];
 		else if (lval[LTYPE] == BRANCH && !lval[LTRUE]) {
 			// @date 	2020-05-19 20:21:57
@@ -734,7 +751,7 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if (lval[LTYPE] == CONSTANT)
+		if (isConstant(lval))
 			lval[LVALUE] = -lval[LVALUE];
 		else {
 			loadlval(lval, 0);
@@ -750,7 +767,7 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if (!lval[LPTR] || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
+		if (!lval[LPTR] || isConstant(lval) || lval[LTYPE] == BRANCH)
 			error("Illegal address");
 		else {
 			if (lval[LEA] == EA_IND)
@@ -763,7 +780,7 @@ hier13(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if ((lval[LEA] != EA_IND) || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
+		if (lval[LEA] != EA_IND || isConstant(lval)  || lval[LTYPE] == BRANCH)
 			error("Illegal address");
 		else {
 			lval[LTYPE] = EXPR;
@@ -895,7 +912,7 @@ hier1(register int lval[]) {
 		return 1;
 
 	// test if lval modifiable
-	if ((lval[LTYPE] == EXPR) || (lval[LTYPE] == CONSTANT) || (lval[LTYPE] == BRANCH))
+	if (lval[LTYPE] == EXPR || isConstant(lval) || lval[LTYPE] == BRANCH)
 		error("Inproper lvalue");
 
 	// Get rval
@@ -912,7 +929,8 @@ hier1(register int lval[]) {
 			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval);
 			freelval(lval);
 		}
-		lval[LNAME] = lval[LVALUE] = 0;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
 		lval[LREG] = rval[LREG];
 	} else {
 		// Copy lval
@@ -946,15 +964,29 @@ hier1(register int lval[]) {
  * Load a numerical expression seperated by comma's
  */
 expression(register int lval[], int comma) {
-	lval[LTYPE] = CONSTANT;
-	do {
-		if (lval[LTYPE] != CONSTANT)
-			freelval(lval);
+
+	if (!hier1(lval)) {
+		error("expression required");
+		junk();
+	}
+
+	while (comma && match(",")) {
+		freelval(lval);
 		if (!hier1(lval)) {
 			error("expression required");
 			junk();
 		}
-	} while (comma && match(","));
+	}
+}
+
+/*
+ * @date 2020-05-23 17:09:01
+ *
+ * Test if lval is a constant
+ */
+isConstant(register int lval[])
+{
+	return (lval[LTYPE] == EXPR && lval[LPTR] == 0 && lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LREG] == 0);
 }
 
 /* 
@@ -965,7 +997,7 @@ constexpr(register int *val) {
 
 	if (!hier1(lval))
 		return 0;
-	if (lval[LTYPE] == CONSTANT) {
+	if (isConstant(lval)) {
 		*val = lval[LVALUE];
 		return 1;
 	}
@@ -979,7 +1011,14 @@ constexpr(register int *val) {
  * Load a constant value
  */
 constant(register int lval[]) {
-	lval[LTYPE] = CONSTANT;
+	lval[LTYPE] = EXPR;
+	lval[LPTR] = 0;
+	lval[LSIZE] = 0;
+	lval[LEA] = EA_ADDR;
+	lval[LNAME] = 0;
+	lval[LVALUE] = 0;
+	lval[LREG] = 0;
+
 	if (number(&lval[LVALUE]))
 		return 1;
 	if (pstr(&lval[LVALUE]))
@@ -991,7 +1030,8 @@ constant(register int lval[]) {
 		lval[LSIZE] = 1;
 		lval[LEA] = EA_ADDR;
 		lval[LNAME] = ++nxtlabel;
-		lval[LVALUE] = lval[LREG] = 0;
+		lval[LVALUE] = 0;
+		lval[LREG] = 0;
 		// Generate data
 		toseg(DATASEG);
 		fprintf(outhdl, "_%d:", lval[LNAME]);
