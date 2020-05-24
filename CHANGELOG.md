@@ -34,6 +34,8 @@ Known issues:
   - Pointer arithmetic. Only `"&arr[ofs]"` works.
 
 ```
+2020-05-24 01:08:13 Dedicated register for zero now `r0`.
+                    This also relaxes architecture because `(r0)` is no longer conditional.  
 2020-05-24 00:42:35 Synced `gencode_*()`.
                     Optimised `gencode_ADJSP()`. 
                     Replace `gencode_IND()` with calls to `gencode_M()`.

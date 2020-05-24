@@ -9,7 +9,7 @@ __START()
 
 	asm("lda r13,2");
 	asm("lda r12,1");
-	asm("lda r11,0");
+	asm("lda r0,0");
 
 	osprint("testing oscalls\n");
 

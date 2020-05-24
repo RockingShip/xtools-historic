@@ -160,7 +160,7 @@ enum {
 	REG_AP = 14,
 	REG_BPW = 13,
 	REG_1 = 12,
-	REG_0 = 11,
+	REG_0 = 0,
 	REG_RETURN = 1,
 };
 

@@ -642,8 +642,7 @@ void run(uint16_t inisp) {
 			case _JMP:
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
+				rval += regs[image[pc++] & 0xF];
 				pc = rval & 0xffff;
 				break;
 			case _EQ:
@@ -655,8 +654,7 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
+				rval += regs[image[pc++] & 0xF];
 				/* process */
 				if (opc == _EQ) {
 					if (cc == 0) pc = rval & 0xffff;
@@ -682,8 +680,7 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
+				rval += regs[image[pc++] & 0xF];
 				/* process */
 				if (opc == _LEA) {
 					regs[lval & 0xF] = rval;
@@ -715,8 +712,7 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
+				rval += regs[image[pc++] & 0xF];
 				/* process */
 				if (opc == _PSHA) {
 					regs[15] -= BPW;
@@ -746,8 +742,7 @@ void run(uint16_t inisp) {
 				/* get EA */
 				rval = image[pc++] << 8;
 				rval += image[pc++] & 0xFF;
-				rval += (i = image[pc]) ? regs[i & 0xF] : 0;
-				++pc;
+				rval += regs[image[pc++] & 0xF];
 				/* save old PC */
 				regs[15] -= BPW;
 				cp = &image[regs[15] & 0xffff]; /* get -(SP) */

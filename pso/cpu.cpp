@@ -85,13 +85,11 @@ BOOLEAN CPU::get_ea(int *value) {
 	// get immediate value
 	if (!get_pc_word(&imm))
 		return FALSE;
-	// get left register
+	// get register
 	if (!get_pc_byte(&reg))
 		return FALSE;
-	// if lreg non-zero, then read contents
-	val = reg ? context.getreg(reg) : 0;
 	// merge everything into a result
-	*value = imm + val;
+	*value = imm + context.getreg(reg);
 	return TRUE;
 }
 
