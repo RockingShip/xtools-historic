@@ -274,56 +274,56 @@ void disp_reg(uint16_t pc, int cc) {
 
 void disp_opc(uint16_t pc) {
 	switch (image[pc]) {
-		case _ADD:
-		case _SUB:
-		case _MUL:
-		case _DIV:
-		case _MOD:
-		case _BOR:
-		case _XOR:
-		case _BAND:
-		case _LSR:
-		case _LSL:
-		case _MOVR:
-		case _CMP:
-			printf("%s R%d,R%d\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2]);
-			break;
-		case _NEG:
-		case _NOT:
-			printf("%s R%d\n", opc_name[image[pc + 0]], image[pc + 1]);
-			break;
-		case _ILLEGAL:
-		case _RSB:
-			printf("%s\n", opc_name[image[pc + 0]]);
-			break;
-		case _EQ:
-		case _NE:
-		case _LT:
-		case _LE:
-		case _GT:
-		case _GE:
-		case _JMP:
-		case _JSB:
-		case _PSHB:
-		case _PSHW:
-		case _PSHA:
-			printf("%s %02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3]);
-			break;
-		case _MOVB:
-		case _MOVW:
-		case _LEA:
-		case _STOB:
-		case _STOW:
-			printf("%s R%d,%02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3], image[pc + 4]);
-			break;
-		case _PSHR:
-		case _POPR:
-		case _SVC:
-			printf("%s %02x%02x\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2]);
-			break;
-		default:
-			printf("OPC_%d\n", image[pc + 0]);
-			break;
+	case _ADD:
+	case _SUB:
+	case _MUL:
+	case _DIV:
+	case _MOD:
+	case _BOR:
+	case _XOR:
+	case _BAND:
+	case _LSR:
+	case _LSL:
+	case _MOVR:
+	case _CMP:
+		printf("%s R%d,R%d\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2]);
+		break;
+	case _NEG:
+	case _NOT:
+		printf("%s R%d\n", opc_name[image[pc + 0]], image[pc + 1]);
+		break;
+	case _ILLEGAL:
+	case _RSB:
+		printf("%s\n", opc_name[image[pc + 0]]);
+		break;
+	case _EQ:
+	case _NE:
+	case _LT:
+	case _LE:
+	case _GT:
+	case _GE:
+	case _JMP:
+	case _JSB:
+	case _PSHB:
+	case _PSHW:
+	case _PSHA:
+		printf("%s %02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3]);
+		break;
+	case _MOVB:
+	case _MOVW:
+	case _LEA:
+	case _STOB:
+	case _STOW:
+		printf("%s R%d,%02x%02x(R%d)\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2], image[pc + 3], image[pc + 4]);
+		break;
+	case _PSHR:
+	case _POPR:
+	case _SVC:
+		printf("%s %02x%02x\n", opc_name[image[pc + 0]], image[pc + 1], image[pc + 2]);
+		break;
+	default:
+		printf("OPC_%d\n", image[pc + 0]);
+		break;
 	}
 }
 
@@ -358,180 +358,180 @@ void do_svc(uint16_t pc, int16_t id, int cc) {
 	uint16_t ctrl[10];
 
 	switch (id) {
-		case 31: { /* osprint() */
-			uint8_t *pb  = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
-			char    *str = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+	case 31: { /* osprint() */
+		uint8_t *pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
+		char *str = &image[pb[0] << 8 | pb[1]]; /* get addr string */
 
-			fputs(str, stdout);
-			break;
+		fputs(str, stdout);
+		break;
+	}
+	case 40: { /* fread() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+		ctrl[1] = pb[2] << 8 | pb[3];
+		ctrl[2] = pb[4] << 8 | pb[5];
+		ctrl[3] = pb[6] << 8 | pb[7];
+		char *addr = &image[ctrl[0]];
+
+		if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
+			regs[1] = -1;
+		else
+			regs[1] = fread(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
+		break;
+	}
+	case 41: { /* fwrite() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+		ctrl[1] = pb[2] << 8 | pb[3];
+		ctrl[2] = pb[4] << 8 | pb[5];
+		ctrl[3] = pb[6] << 8 | pb[7];
+		char *addr = &image[ctrl[0]];
+
+		if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
+			regs[1] = -1;
+		else
+			regs[1] = fwrite(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
+		break;
+	}
+	case 42: { /* fopen() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+		ctrl[1] = pb[2] << 8 | pb[3];
+		char *name = &image[ctrl[0]]; /* get addr string */
+		char *mode = &image[ctrl[1]]; /* get addr string */
+
+		int hdl;
+		for (hdl = 6; hdl < MAXFILE; hdl++) {
+			if (!handles[hdl])
+				break;
 		}
-		case 40: { /* fread() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0] = pb[0] << 8 | pb[1];
-			ctrl[1] = pb[2] << 8 | pb[3];
-			ctrl[2] = pb[4] << 8 | pb[5];
-			ctrl[3] = pb[6] << 8 | pb[7];
-			char *addr = &image[ctrl[0]];
+		if (hdl >= MAXFILE)
+			fprintf(stderr, "ERROR: Too many open files\n"), shutdown(1);
 
-			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
-				regs[1] = -1;
-			else
-				regs[1] = fread(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
-			break;
+		handles[hdl] = fopen(name, mode);
+		regs[1] = (handles[hdl] == NULL) ? 0 : hdl;
+		break;
+	}
+	case 43: { /* fclose() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+
+		if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
+			regs[1] = -1;
+		else {
+			regs[1] = fclose(handles[ctrl[0]]);
+
+			handles[ctrl[0]] = NULL; /* release */
 		}
-		case 41: { /* fwrite() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-			ctrl[1]     = pb[2] << 8 | pb[3];
-			ctrl[2]     = pb[4] << 8 | pb[5];
-			ctrl[3]     = pb[6] << 8 | pb[7];
-			char *addr = &image[ctrl[0]];
+		break;
+	}
+	case 44: { /* fseek() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+		ctrl[1] = pb[2] << 8 | pb[3];
+		ctrl[2] = pb[4] << 8 | pb[5];
 
-			if (ctrl[3] < 0 || ctrl[3] >= MAXFILE || !handles[ctrl[3]])
-				regs[1] = -1;
-			else
-				regs[1] = fwrite(addr, ctrl[1] & 0xffff, ctrl[2] & 0xffff, handles[ctrl[3]]);
-			break;
-		}
-		case 42: { /* fopen() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-			ctrl[1]     = pb[2] << 8 | pb[3];
-			char *name = &image[ctrl[0]]; /* get addr string */
-			char *mode = &image[ctrl[1]]; /* get addr string */
+		long ofs = ctrl[1];
 
-			int hdl;
-			for (hdl = 6; hdl < MAXFILE; hdl++) {
-				if (!handles[hdl])
-					break;
+		/* ofs is unsigned for SEEK_SET and signed otherwise */
+		if (ctrl[2] == SEEK_SET)
+			ofs &= 0xffff;
+		else
+			ofs |= -(ofs & (1 << 15));
+
+		if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
+			regs[1] = -1;
+		else
+			regs[1] = fseek(handles[ctrl[0]], ofs, ctrl[2]);
+		break;
+	}
+	case 45: { /* unlink() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		char *name = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+
+		regs[1] = unlink(name);
+		break;
+	}
+	case 46: { /* rename() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+		ctrl[1] = pb[2] << 8 | pb[3];
+		char *oldname = &image[ctrl[0]]; /* get addr string */
+		char *newname = &image[ctrl[1]]; /* get addr string */
+
+		regs[1] = rename(oldname, newname);
+		break;
+	}
+	case 47: { /* ftell() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+
+		if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
+			regs[1] = -1;
+		else
+			regs[1] = ftell(handles[ctrl[0]]);
+		break;
+	}
+	case 90: /* OSINFO */
+		switch (regs[0]) {
+		case 0x32: { /* Get commandline */
+			char **cpp;
+
+			uint8_t *pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
+			char *args = &image[pb[0] << 8 | pb[1]]; /* get addr string */
+
+			/* concat argv[] except for argv[0] */
+			cpp = inpargv + 1;
+			if (*cpp)
+				strcpy(args, *cpp++);
+			while (*cpp) {
+				strcat(args, " ");
+				strcpy(args, *cpp++);
 			}
-			if (hdl >= MAXFILE)
-				fprintf(stderr, "ERROR: Too many open files\n"), shutdown(1);
 
-			handles[hdl] = fopen(name, mode);
-			regs[1]      = (handles[hdl] == NULL) ? 0 : hdl;
 			break;
 		}
-		case 43: { /* fclose() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
-				regs[1] = -1;
-			else {
-				regs[1] = fclose(handles[ctrl[0]]);
-
-				handles[ctrl[0]] = NULL; /* release */
-			}
-			break;
-		}
-		case 44: { /* fseek() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-			ctrl[1]     = pb[2] << 8 | pb[3];
-			ctrl[2]     = pb[4] << 8 | pb[5];
-
-			long ofs = ctrl[1];
-
-			/* ofs is unsigned for SEEK_SET and signed otherwise */
-			if (ctrl[2] == SEEK_SET)
-				ofs &= 0xffff;
-			else
-				ofs |= -(ofs & (1 << 15));
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
-				regs[1] = -1;
-			else
-				regs[1] = fseek(handles[ctrl[0]], ofs, ctrl[2]);
-			break;
-		}
-		case 45: { /* unlink() */
-			uint8_t *pb   = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			char    *name = &image[pb[0] << 8 | pb[1]]; /* get addr string */
-
-			regs[1] = unlink(name);
-			break;
-		}
-		case 46: { /* rename() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-			ctrl[1]     = pb[2] << 8 | pb[3];
-			char *oldname = &image[ctrl[0]]; /* get addr string */
-			char *newname = &image[ctrl[1]]; /* get addr string */
-
-			regs[1] = rename(oldname, newname);
-			break;
-		}
-		case 47: { /* ftell() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0]     = pb[0] << 8 | pb[1];
-
-			if (ctrl[0] < 0 || ctrl[0] >= MAXFILE || !handles[ctrl[0]])
-				regs[1] = -1;
-			else
-				regs[1] = ftell(handles[ctrl[0]]);
-			break;
-		}
-		case 90: /* OSINFO */
-			switch (regs[0]) {
-				case 0x32: { /* Get commandline */
-					char **cpp;
-
-					uint8_t *pb = &image[regs[1] & 0xFFFF]; /* get addr parmblock */
-					char *args = &image[pb[0] << 8 | pb[1]]; /* get addr string */
-
-					/* concat argv[] except for argv[0] */
-					cpp = inpargv + 1;
-					if (*cpp)
-						strcpy(args, *cpp++);
-					while (*cpp) {
-						strcat(args, " ");
-						strcpy(args, *cpp++);
-					}
-
-					break;
-				}
-				default:
-					printf("unimplemented OSINFO call\n");
-					disp_opc(pc);
-					disp_dump(pc, cc);
-					shutdown(ctrl[0]);
-					break;
-			}
-			break;
-		case 99: { /* exit() */
-			uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
-			ctrl[0] = pb[0] << 8 | pb[1];
-
+		default:
+			printf("unimplemented OSINFO call\n");
+			disp_opc(pc);
+			disp_dump(pc, cc);
 			shutdown(ctrl[0]);
 			break;
 		}
-		case 100: /* MONITOR ON */
-			monitor = 1;
-			break;
-		case 101: /* MONITOR OFF */
-			monitor = 0;
-			break;
-		default:
-			printf("unimplemented SVC call\n");
-			disp_opc(pc);
-			disp_dump(pc, cc);
-			shutdown(1);
+		break;
+	case 99: { /* exit() */
+		uint8_t *pb = &image[regs[1] & 0xffff]; /* get addr parmblock */
+		ctrl[0] = pb[0] << 8 | pb[1];
+
+		shutdown(ctrl[0]);
+		break;
+	}
+	case 100: /* MONITOR ON */
+		monitor = 1;
+		break;
+	case 101: /* MONITOR OFF */
+		monitor = 0;
+		break;
+	default:
+		printf("unimplemented SVC call\n");
+		disp_opc(pc);
+		disp_dump(pc, cc);
+		shutdown(1);
 	}
 }
 
 void run(uint16_t inisp) {
 
 	uint16_t pc;
-	int16_t  lval;
-	int16_t  rval;
+	int16_t lval;
+	int16_t rval;
 	uint16_t opc;
-	char     *cp;
-	int      cc, i;
+	char *cp;
+	int cc, i;
 
 	/* initialize */
-	pc     = 0;
-	cc     = 0;
+	pc = 0;
+	cc = 0;
 	for (i = 0; i < 16; i++)
 		regs[i] = 0;
 	regs[15] = inisp;
@@ -540,7 +540,7 @@ void run(uint16_t inisp) {
 			disp_reg(pc, cc);
 			disp_opc(pc);
 		}
-		if (!lowestSP || (regs[15]&0xffff) < lowestSP) {
+		if (!lowestSP || (regs[15] & 0xffff) < lowestSP) {
 			lowestSP = regs[15];
 			if (monitor)
 				printf("lowestSP=%04x\n", lowestSP);
@@ -548,258 +548,258 @@ void run(uint16_t inisp) {
 
 		opc = image[pc++];
 		switch (opc) {
+		case _ADD:
+		case _SUB:
+		case _MUL:
+		case _DIV:
+		case _MOD:
+		case _BOR:
+		case _XOR:
+		case _BAND:
+		case _LSR:
+		case _LSL:
+		case _MOVR:
+		case _CMP:
+			/* load operands */
+			lval = regs[image[pc++] & 0xF];
+			rval = regs[image[pc++] & 0xF];
+			/* modify operands */
+			switch (opc) {
 			case _ADD:
+				lval += rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _SUB:
+				lval -= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _MUL:
+				lval *= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _DIV:
+				lval /= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _MOD:
+				lval %= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _BOR:
+				lval |= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _XOR:
+				lval ^= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _BAND:
+				lval &= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _LSR:
+				lval >>= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _LSL:
+				lval <<= rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _MOVR:
+				lval = rval;
+				regs[image[pc - 2] & 0xF] = lval;
+				break;
 			case _CMP:
-				/* load operands */
-				lval = regs[image[pc++] & 0xF];
-				rval = regs[image[pc++] & 0xF];
-				/* modify operands */
-				switch (opc) {
-					case _ADD:
-						lval += rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _SUB:
-						lval -= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _MUL:
-						lval *= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _DIV:
-						lval /= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _MOD:
-						lval %= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _BOR:
-						lval |= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _XOR:
-						lval ^= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _BAND:
-						lval &= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _LSR:
-						lval >>= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _LSL:
-						lval <<= rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _MOVR:
-						lval = rval;
-						regs[image[pc - 2] & 0xF] = lval;
-						break;
-					case _CMP:
-						lval = lval - rval;
-						break;
-				}
+				lval = lval - rval;
+				break;
+			}
 
-				if (lval == 0)
-					cc = 0;
-				else if (lval & (1 << SBIT))
-					cc = 1;
-				else
-					cc = 2;
-				break;
-			case _NEG:
-			case _NOT:
-				/* load operands */
-				lval         = regs[image[pc++] & 0xF];
-				/* modify operands */
-				if (opc == _NEG)
-					lval = -regs[image[pc - 1] & 0xF];
-				else if (opc == _NOT)
-					lval = ~regs[image[pc - 1] & 0xF];
-				regs[image[pc - 1] & 0xF] = lval;
+			if (lval == 0)
+				cc = 0;
+			else if (lval & (1 << SBIT))
+				cc = 1;
+			else
+				cc = 2;
+			break;
+		case _NEG:
+		case _NOT:
+			/* load operands */
+			lval = regs[image[pc++] & 0xF];
+			/* modify operands */
+			if (opc == _NEG)
+				lval = -regs[image[pc - 1] & 0xF];
+			else if (opc == _NOT)
+				lval = ~regs[image[pc - 1] & 0xF];
+			regs[image[pc - 1] & 0xF] = lval;
 
-				if (lval == 0)
-					cc = 0;
-				else if (lval & (1 << SBIT))
-					cc = 1;
-				else
-					cc = 2;
-				break;
-			case _JMP:
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				rval += regs[image[pc++] & 0xF];
-				pc = rval & 0xffff;
-				break;
-			case _EQ:
-			case _NE:
-			case _GT:
-			case _GE:
-			case _LT:
-			case _LE:
-				/* get EA */
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				rval += regs[image[pc++] & 0xF];
-				/* process */
-				if (opc == _EQ) {
-					if (cc == 0) pc = rval & 0xffff;
-				} else if (opc == _NE) {
-					if (cc != 0) pc = rval & 0xffff;
-				} else if (opc == _GT) {
-					if (cc == 2) pc = rval & 0xffff;
-				} else if (opc == _GE) {
-					if (cc != 1) pc = rval & 0xffff;
-				} else if (opc == _LT) {
-					if (cc == 1) pc = rval & 0xffff;
-				} else if (opc == _LE) {
-					if (cc != 2) pc = rval & 0xffff;
-				}
-				break;
-			case _LEA:
-			case _MOVB:
-			case _MOVW:
-			case _STOB:
-			case _STOW:
-				/* get lreg */
-				lval = image[pc++] & 0xF;
-				/* get EA */
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				rval += regs[image[pc++] & 0xF];
-				/* process */
-				if (opc == _LEA) {
-					regs[lval & 0xF] = rval;
-				} else if (opc == _MOVB) {
-					cp   = &image[rval & 0xffff];
-					rval = cp[0];
-					regs[lval & 0xF] = rval;
-				} else if (opc == _MOVW) {
-					cp   = &image[rval & 0xffff];
-					rval = (cp[0] << 8) + (cp[1] & 0xFF);
-					regs[lval & 0xF] = rval;
-				} else if (opc == _STOB) {
-					cp   = &image[rval & 0xffff];
-					rval = regs[lval & 0xF];
-					cp[0] = rval;
-				} else if (opc == _STOW) {
-					cp   = &image[rval & 0xffff];
-					rval = regs[lval & 0xF];
-					cp[0] = rval >> 8;
-					cp[1] = rval;
-				}
+			if (lval == 0)
+				cc = 0;
+			else if (lval & (1 << SBIT))
+				cc = 1;
+			else
+				cc = 2;
+			break;
+		case _JMP:
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			rval += regs[image[pc++] & 0xF];
+			pc = rval & 0xffff;
+			break;
+		case _EQ:
+		case _NE:
+		case _GT:
+		case _GE:
+		case _LT:
+		case _LE:
+			/* get EA */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			rval += regs[image[pc++] & 0xF];
+			/* process */
+			if (opc == _EQ) {
+				if (cc == 0) pc = rval & 0xffff;
+			} else if (opc == _NE) {
+				if (cc != 0) pc = rval & 0xffff;
+			} else if (opc == _GT) {
+				if (cc == 2) pc = rval & 0xffff;
+			} else if (opc == _GE) {
+				if (cc != 1) pc = rval & 0xffff;
+			} else if (opc == _LT) {
+				if (cc == 1) pc = rval & 0xffff;
+			} else if (opc == _LE) {
+				if (cc != 2) pc = rval & 0xffff;
+			}
+			break;
+		case _LEA:
+		case _MOVB:
+		case _MOVW:
+		case _STOB:
+		case _STOW:
+			/* get lreg */
+			lval = image[pc++] & 0xF;
+			/* get EA */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			rval += regs[image[pc++] & 0xF];
+			/* process */
+			if (opc == _LEA) {
+				regs[lval & 0xF] = rval;
+			} else if (opc == _MOVB) {
+				cp = &image[rval & 0xffff];
+				rval = cp[0];
+				regs[lval & 0xF] = rval;
+			} else if (opc == _MOVW) {
+				cp = &image[rval & 0xffff];
+				rval = (cp[0] << 8) + (cp[1] & 0xFF);
+				regs[lval & 0xF] = rval;
+			} else if (opc == _STOB) {
+				cp = &image[rval & 0xffff];
+				rval = regs[lval & 0xF];
+				cp[0] = rval;
+			} else if (opc == _STOW) {
+				cp = &image[rval & 0xffff];
+				rval = regs[lval & 0xF];
+				cp[0] = rval >> 8;
+				cp[1] = rval;
+			}
 
-				/* update CC */
-				if (rval > 0) cc = 2; else if (rval < 0) cc = 1; else cc = 0;
-				break;
-			case _PSHA:
-			case _PSHB:
-			case _PSHW:
-				/* get EA */
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				rval += regs[image[pc++] & 0xF];
-				/* process */
-				if (opc == _PSHA) {
-					regs[15] -= BPW;
-					cp = &image[regs[15] & 0xffff]; /* get -(SP) */
-					cp[0] = rval >> 8;
-					cp[1] = rval;
-				} else if (opc == _PSHB) {
-					cp   = &image[rval & 0xffff];
-					rval = cp[0];
-					regs[15] -= BPW;
-					cp = &image[regs[15] & 0xffff]; /* get -(SP) */
-					cp[0] = rval >> 8;
-					cp[1] = rval;
-				} else if (opc == _PSHW) {
-					cp   = &image[rval & 0xffff];
-					rval = (cp[0] << 8) + (cp[1] & 0xFF);
-					regs[15] -= BPW;
-					cp = &image[regs[15] & 0xffff]; /* get -(SP) */
-					cp[0] = rval >> 8;
-					cp[1] = rval;
-				}
-
-				/* update CC */
-				if (rval > 0) cc = 2; else if (rval < 0) cc = 1; else cc = 0;
-				break;
-			case _JSB:
-				/* get EA */
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				rval += regs[image[pc++] & 0xF];
-				/* save old PC */
+			/* update CC */
+			if (rval > 0) cc = 2; else if (rval < 0) cc = 1; else cc = 0;
+			break;
+		case _PSHA:
+		case _PSHB:
+		case _PSHW:
+			/* get EA */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			rval += regs[image[pc++] & 0xF];
+			/* process */
+			if (opc == _PSHA) {
 				regs[15] -= BPW;
 				cp = &image[regs[15] & 0xffff]; /* get -(SP) */
-				cp[0] = pc >> 8;
-				cp[1] = pc;
-				/* update PC */
-				pc = rval & 0xffff;
-				break;
-			case _RSB:
-				cp = &image[regs[15] & 0xffff]; /* get (SP)+ */
-				regs[15] += BPW;
-				pc = ((cp[0] << 8) + (cp[1] & 0xFF)) & 0xffff;
-				break;
-			case _PSHR:
-				/* get IMM */
-				rval   = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				/* push regs */
-				for (i = 0; i < 16; i++) {
-					if (rval & 0x0001) {
-						regs[15] -= BPW;
-						cp   = &image[regs[15] & 0xffff]; /* get -(SP) */
-						lval = regs[i];
-						cp[0] = lval >> 8;
-						cp[1] = lval;
-					}
-					rval >>= 1;
+				cp[0] = rval >> 8;
+				cp[1] = rval;
+			} else if (opc == _PSHB) {
+				cp = &image[rval & 0xffff];
+				rval = cp[0];
+				regs[15] -= BPW;
+				cp = &image[regs[15] & 0xffff]; /* get -(SP) */
+				cp[0] = rval >> 8;
+				cp[1] = rval;
+			} else if (opc == _PSHW) {
+				cp = &image[rval & 0xffff];
+				rval = (cp[0] << 8) + (cp[1] & 0xFF);
+				regs[15] -= BPW;
+				cp = &image[regs[15] & 0xffff]; /* get -(SP) */
+				cp[0] = rval >> 8;
+				cp[1] = rval;
+			}
+
+			/* update CC */
+			if (rval > 0) cc = 2; else if (rval < 0) cc = 1; else cc = 0;
+			break;
+		case _JSB:
+			/* get EA */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			rval += regs[image[pc++] & 0xF];
+			/* save old PC */
+			regs[15] -= BPW;
+			cp = &image[regs[15] & 0xffff]; /* get -(SP) */
+			cp[0] = pc >> 8;
+			cp[1] = pc;
+			/* update PC */
+			pc = rval & 0xffff;
+			break;
+		case _RSB:
+			cp = &image[regs[15] & 0xffff]; /* get (SP)+ */
+			regs[15] += BPW;
+			pc = ((cp[0] << 8) + (cp[1] & 0xFF)) & 0xffff;
+			break;
+		case _PSHR:
+			/* get IMM */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			/* push regs */
+			for (i = 0; i < 16; i++) {
+				if (rval & 0x0001) {
+					regs[15] -= BPW;
+					cp = &image[regs[15] & 0xffff]; /* get -(SP) */
+					lval = regs[i];
+					cp[0] = lval >> 8;
+					cp[1] = lval;
 				}
-				break;
-			case _POPR:
-				/* get IMM */
-				rval   = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				/* push regs */
-				for (i = 15; i >= 0; i--) {
-					if (rval & 0x8000) {
-						cp      = &image[regs[15] & 0xffff]; /* get (SP)+ */
-						regs[15] += BPW;
-						regs[i] = (cp[0] << 8) + (cp[1] & 0xFF);
-					}
-					rval <<= 1;
+				rval >>= 1;
+			}
+			break;
+		case _POPR:
+			/* get IMM */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			/* push regs */
+			for (i = 15; i >= 0; i--) {
+				if (rval & 0x8000) {
+					cp = &image[regs[15] & 0xffff]; /* get (SP)+ */
+					regs[15] += BPW;
+					regs[i] = (cp[0] << 8) + (cp[1] & 0xFF);
 				}
-				break;
-			case _SVC:
-				/* get IMM */
-				rval = image[pc++] << 8;
-				rval += image[pc++] & 0xFF;
-				/* process */
-				do_svc(pc - 2, rval, cc);
-				break;
-			default:
-				printf("encountered unimplemented opcode\n");
-				disp_opc(pc - 1);
-				disp_dump(pc - 1, cc);
-				if (verbose)
-					printf("lowestSP=%04x\n", lowestSP);
-				shutdown(1);
+				rval <<= 1;
+			}
+			break;
+		case _SVC:
+			/* get IMM */
+			rval = image[pc++] << 8;
+			rval += image[pc++] & 0xFF;
+			/* process */
+			do_svc(pc - 2, rval, cc);
+			break;
+		default:
+			printf("encountered unimplemented opcode\n");
+			disp_opc(pc - 1);
+			disp_dump(pc - 1, cc);
+			if (verbose)
+				printf("lowestSP=%04x\n", lowestSP);
+			shutdown(1);
 		}
 	}
 }
