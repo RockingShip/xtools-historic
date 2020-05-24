@@ -186,7 +186,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval);
+		gencode_M(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = 0;
@@ -196,7 +196,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(TOK_LDA, reg, lval);
+		gencode_M(TOK_LDA, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
 
 		lval[LEA] = EA_REG;
 		lval[LNAME] = 0;
@@ -455,7 +455,7 @@ step(register int pre, register int lval[], register int post) {
 		reg = allocreg();
 		loadlval(lval, reg);
 		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
-		gencode_M(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
+		gencode_M(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest[LNAME], dest[LVALUE], dest[LREG]);
 		if (post) {
 			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
 			lval[LREG] = reg;
@@ -565,7 +565,7 @@ primary(register int lval[]) {
 		lval[LVALUE] = 0;
 		lval[LREG] = allocreg();
 
-		gencode_IND(TOK_LDW, lval[LREG], BPW, REG_AP);
+		gencode_M(TOK_LDW, lval[LREG], 0, BPW, REG_AP);
 		gencode_R(TOK_SUB, lval[LREG], REG_BPW);
 		gencode_R(TOK_DIV, lval[LREG], REG_BPW);
 		return 1;
@@ -650,16 +650,16 @@ hier14(register int lval[]) {
 			// Get expression
 			expression(lval2, 0);
 			if (isConstant(lval2)) {
-				gencode_I(TOK_PSHA, 0, lval2[LVALUE]);
+				gencode_I(TOK_PSHA, -1, lval2[LVALUE]);
 			} else {
 				if (lval2[LTYPE] == BRANCH)
 					loadlval(lval2, 0);
 				freelval(lval2);
 				// Push onto stack
 				if (lval2[LEA] != EA_IND)
-					gencode_M(TOK_PSHA, 0, lval2);
+					gencode_M(TOK_PSHA, -1, lval2[LNAME], lval2[LVALUE], lval2[LREG]);
 				else
-					gencode_M(lval2_ISBPW ? TOK_PSHW : TOK_PSHB, 0, lval2);
+					gencode_M(lval2_ISBPW ? TOK_PSHW : TOK_PSHB, -1, lval2[LNAME], lval2[LVALUE], lval2[LREG]);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -670,13 +670,15 @@ hier14(register int lval[]) {
 		}
 		needtoken(")");
 		// Push ARGC
-		gencode_I(TOK_PSHA, 0, argc);
+		gencode_I(TOK_PSHA, -1, argc);
 
 		// call
-		gencode_M(TOK_JSB, 0, lval);
+		gencode_M(TOK_JSB, -1, lval[LNAME], lval[LVALUE], lval[LREG]);
 		freelval(lval);
+
 		// Pop args
-		gencode_IND(TOK_LDA, REG_SP, argc, REG_SP);
+		csp = 0; // `gencode_M` will subtract csp from sp.
+		gencode_M(TOK_LDA, REG_SP, 0, argc, REG_SP);
 
 		csp = sav_csp;
 
@@ -714,7 +716,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = ~lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(TOK_NOT, 0, lval[LREG]);
+			gencode_R(TOK_NOT, -1, lval[LREG]);
 		}
 	} else if (match("!")) {
 		if (!hier13(lval)) {
@@ -744,7 +746,7 @@ hier13(register int lval[]) {
 			lval[LVALUE] = -lval[LVALUE];
 		else {
 			loadlval(lval, 0);
-			gencode_R(TOK_NEG, 0, lval[LREG]);
+			gencode_R(TOK_NEG, -1, lval[LREG]);
 		}
 	} else if (match("+")) {
 		if (!hier13(lval)) {
@@ -915,7 +917,7 @@ hier1(register int lval[]) {
 		if (lval[LEA] == EA_REG)
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else {
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval);
+			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval[LNAME], lval[LVALUE], lval[LREG]);
 			freelval(lval);
 		}
 		lval[LNAME] = 0;
@@ -938,7 +940,7 @@ hier1(register int lval[]) {
 		if (dest[LEA] == EA_REG)
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
+			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest[LNAME], dest[LVALUE], dest[LREG]);
 	}
 
 	// resulting type is undefined, so modify LTYPE
@@ -1014,16 +1016,16 @@ constant(register int lval[]) {
 		return 1;
 	if (qstr()) {
 		// Convert to char pointer
-		lval[LTYPE] = LABEL;
+		lval[LTYPE] = ARRAY;
 		lval[LPTR] = 1;
 		lval[LSIZE] = 1;
 		lval[LEA] = EA_ADDR;
-		lval[LNAME] = ++nxtlabel;
+		lval[LNAME] = - ++nxtlabel;
 		lval[LVALUE] = 0;
 		lval[LREG] = 0;
 		// Generate data
 		toseg(DATASEG);
-		fprintf(outhdl, "_%d:", lval[LNAME]);
+		fprintf(outhdl, "_%d:", - lval[LNAME]);
 		dumplits(1);
 		toseg(prevseg);
 		return 1;

@@ -474,10 +474,10 @@ declfunc() {
 	fprintf(outhdl, "_");
 	symname(sname);
 	fprintf(outhdl, "::");
-	gencode_R(TOK_LDR, 1, REG_SP);
+	gencode_R(TOK_LDR, REG_RETURN, REG_SP);
 	lbl1 = ++nxtlabel;
 	fprintf(outhdl, "_%d:", lbl1);
-	gencode_I(TOK_PSHR, 0, 0);
+	gencode_I(TOK_PSHR, -1, 0);
 	gencode_R(TOK_LDR, REG_AP, 1);
 
 	// get arguments
@@ -510,7 +510,7 @@ declfunc() {
 			int reg;
 			reg = allocreg();
 			reglock |= (1 << reg);
-			gencode_IND(((sym[LSIZE] == BPW) || sym[LPTR]) ? TOK_LDW : TOK_LDB, reg, sym[IVALUE], REG_AP);
+			gencode_M(((sym[LSIZE] == BPW) || sym[LPTR]) ? TOK_LDW : TOK_LDB, reg, 0, sym[IVALUE], REG_AP);
 			sym[IVALUE] = reg;
 		}
 	}
@@ -526,10 +526,10 @@ declfunc() {
 	// trailing statements
 	lbl2 = ++nxtlabel;
 	fprintf(outhdl, "_%d:\t.ORG\t_%d\n", lbl2, lbl1);
-	gencode_I(TOK_PSHR, 0, regsum);
+	gencode_I(TOK_PSHR, -1, regsum);
 	fprintf(outhdl, "\t.ORG\t_%d\n", lbl2);
 	fprintf(outhdl, "_%d:", returnlbl);
-	gencode_I(TOK_POPR, 0, regsum);
+	gencode_I(TOK_POPR, -1, regsum);
 	gencode(TOK_RSB);
 
 	symidx = scope;
@@ -807,7 +807,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
  */
 dumpsw(int swbase, int codlbl, int endlbl) {
 	register int lo, hi, i, j, cnt, *ptr;
-	int maplbl, deflbl, lbl, lval[LLAST];
+	int maplbl, deflbl, lbl;
 
 	if (swbase + 1 == swinx) {
 		// no cases specified
@@ -869,12 +869,8 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	gencode_R(TOK_CMP, REG_RETURN, j);
 	gencode_L(TOK_BGT, deflbl);
 	gencode_R(TOK_MUL, REG_RETURN, REG_BPW);
-	lval[LTYPE] = LABEL;
-	lval[LNAME] = maplbl;
-	lval[LVALUE] = 0;
-	lval[LREG] = REG_RETURN;
-	gencode_M(TOK_LDW, j, lval);
-	gencode_IND(TOK_JMP, 0, 0, j);
+	gencode_M(TOK_LDW, j, -maplbl, 0, REG_RETURN);
+	gencode_M(TOK_JMP, -1, 0, 0, j);
 	freereg(j);
 }
 

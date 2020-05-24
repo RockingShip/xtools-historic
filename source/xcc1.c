@@ -820,22 +820,26 @@ gencode_L(int opc, int lbl) {
 	fprintf(outhdl, "_%d\n", lbl);
 }
 
-gencode_R(int opc, int reg1, int reg2) {
+gencode_R(int opc, int lreg, int rreg) {
+	// sign extend
+	lreg |= -(lreg & (1 << SBIT));
+
 	genopc(opc);
 
-	if (reg1)
-		fprintf(outhdl, "R%d,", reg1);
-	fprintf(outhdl, "R%d\n", reg2);
+	if (lreg >= 0)
+		fprintf(outhdl, "R%d,", lreg);
+	fprintf(outhdl, "R%d\n", rreg);
 }
 
-gencode_I(int opc, int reg, int imm) {
+gencode_I(int opc, int lreg, int imm) {
 	// sign extend
+	lreg |= -(lreg & (1 << SBIT));
 	imm |= -(imm & (1 << SBIT));
 
 	genopc(opc);
 
-	if (reg)
-		fprintf(outhdl, "R%d,", reg);
+	if (lreg >= 0)
+		fprintf(outhdl, "R%d,", lreg);
 	fprintf(outhdl, "%d\n", imm);
 }
 
@@ -847,60 +851,39 @@ gencode_ADJSP(int imm) {
 		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, REG_BPW);
 	else if (imm == -BPW)
 		fprintf(outhdl, "\tSUB\tR%d,R%d\n", REG_SP, REG_BPW);
-	else {
-		int reg;
-		reg = allocreg();
-		fprintf(outhdl, "\tLDA\tR%d,%d\n", reg, imm);
-		fprintf(outhdl, "\tADD\tR%d,R%d\n", REG_SP, reg);
-		freereg(reg);
-	}
+	else
+		fprintf(outhdl, "\tLDA\tR%d,%d(R%d)\n", REG_SP, imm, REG_SP);
 }
 
-gencode_IND(int opc, int reg, int ofs, int ind) {
+gencode_M(int opc, int lreg, int name, int ofs, int rreg) {
 	// sign extend
+	lreg |= -(lreg & (1 << SBIT));
+	name |= -(name & (1 << SBIT));
 	ofs |= -(ofs & (1 << SBIT));
 
 	genopc(opc);
 
-	if (reg)
-		fprintf(outhdl, "R%d,", reg);
-	if (ofs)
-		fprintf(outhdl, "%d", ofs);
-	fprintf(outhdl, "(R%d)\n", ind);
-}
-
-gencode_M(int opc, int reg, register int lval[]) {
-
-	// sign extend
-	int ofs;
-	ofs = lval[LVALUE];
-	ofs |= -(ofs & (1 << SBIT));
-
-	genopc(opc);
-
-	if (reg)
-		fprintf(outhdl, "R%d,", reg);
+	if (lreg >= 0)
+		fprintf(outhdl, "R%d,", lreg);
 
 	// apply any stack ajustments
-	if (lval[LREG] == REG_SP)
+	if (rreg == REG_SP)
 		ofs = ofs - csp;
 
-	if (lval[LNAME]) {
-		if (lval[LTYPE] == LABEL)
-			fprintf(outhdl, "_%d", lval[LNAME]);
-		else if (lval[LNAME] > 0){
+	if (name) {
+		if (name > 0){
 			fprintf(outhdl, "_");
-			symname(lval[LNAME]);
+			symname(name);
 		} else
-			fprintf(outhdl, "_%d", -lval[LNAME]);
+			fprintf(outhdl, "_%d", -name);
 	}
 
 	if (ofs > 0)
 		fprintf(outhdl, "+%d", ofs);
 	else if (ofs < 0)
 		fprintf(outhdl, "%d", ofs);
-	if (lval[LREG])
-		fprintf(outhdl, "(R%d)", lval[LREG]);
+	if (rreg)
+		fprintf(outhdl, "(R%d)", rreg);
 
 	fprintf(outhdl, "\n");
 }

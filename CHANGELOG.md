@@ -34,6 +34,11 @@ Known issues:
   - Pointer arithmetic. Only `"&arr[ofs]"` works.
 
 ```
+2020-05-24 00:42:35 Synced `gencode_*()`.
+                    Optimised `gencode_ADJSP()`. 
+                    Replace `gencode_IND()` with calls to `gencode_M()`.
+                    Expand paramater `lval` of `gencode_M`.
+                    `lreg=-1` to disable `lreg`.
 2020-05-24 00:17:57 Sync names/labels.
                     `[LNAME]` for both names (>0) and labels (<0).
 2020-05-23 18:03:59 Drop `CLASS=AUTOEXT`.
