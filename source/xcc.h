@@ -97,7 +97,6 @@ enum {
 enum {
 	EA_ADDR = 1,
 	EA_IND,
-	EA_REG,
 };
 
 /*

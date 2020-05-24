@@ -34,6 +34,8 @@ Known issues:
   - Pointer arithmetic. Only `"&arr[ofs]"` works.
 
 ```
+2020-05-24 12:01:58 Drop `LEA=EA_REG` by replacing with `LEA=EA_ADDR`.
+                    The "EA_ADDR" and "indirect register" compensate each other with effectively the same result.
 2020-05-24 01:08:13 Dedicated register for zero now `r0`.
                     This also relaxes architecture because `(r0)` is no longer conditional.  
 2020-05-24 00:42:35 Synced `gencode_*()`.

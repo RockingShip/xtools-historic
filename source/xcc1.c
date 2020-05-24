@@ -712,8 +712,7 @@ ns() {
 	if (!match(";")) {
 		error("no semicolon");
 		junk();
-	} else
-		errflag = 0;
+	}
 }
 
 //*

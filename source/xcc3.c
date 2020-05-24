@@ -155,7 +155,7 @@ loadlval(register int lval[], register int reg) {
 		// Modify lval
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -178,7 +178,7 @@ loadlval(register int lval[], register int reg) {
 
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -188,17 +188,19 @@ loadlval(register int lval[], register int reg) {
 			reg = allocreg();
 		gencode_M(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
 
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
+		// NOTE: lval[LPTR] can be non-zero
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
-	} else if (lval[LEA] != EA_REG) {
+	} else if (!isRegister(lval)) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
 		gencode_M(TOK_LDA, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
 
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
+		lval[LPTR] = 0;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -275,7 +277,7 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 			// Modify lval
 			lval[LTYPE] = EXPR;
 			lval[LPTR] = 0;
-			lval[LEA] = EA_REG;
+			lval[LEA] = EA_ADDR;
 		}
 	}
 }
@@ -442,7 +444,7 @@ step(register int pre, register int lval[], register int post) {
 	dest[LVALUE] = lval[LVALUE];
 	dest[LREG] = lval[LREG];
 
-	if (lval[LEA] == EA_REG) {
+	if (isRegister(lval)) {
 		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
 		if (post) {
 			reg = allocreg();
@@ -498,7 +500,7 @@ primary(register int lval[]) {
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
@@ -528,7 +530,7 @@ primary(register int lval[]) {
 				lval[LEA] = EA_ADDR;
 				lval[LVALUE] = sym[IVALUE];
 			} else if (sym[ICLASS] == REGISTER) {
-				lval[LEA] = EA_REG;
+				lval[LEA] = EA_ADDR;
 				lval[LREG] = sym[IVALUE];
 			} else if (sym[ICLASS] == AP_AUTO) {
 				lval[LEA] = EA_IND;
@@ -560,7 +562,7 @@ primary(register int lval[]) {
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = allocreg();
@@ -685,7 +687,7 @@ hier14(register int lval[]) {
 		lval[LTYPE] = EXPR;
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
-		lval[LEA] = EA_REG;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
@@ -875,7 +877,7 @@ hier2(register int lval[]) {
 	// resulting type is undefined, so modify LTYPE
 	lval[LTYPE] = EXPR;
 	lval[LPTR] = 0;
-	lval[LEA] = EA_REG;
+	lval[LEA] = EA_ADDR;
 
 	return 1;
 }
@@ -914,7 +916,7 @@ hier1(register int lval[]) {
 	loadlval(rval, -1);
 
 	if (oper == -1) {
-		if (lval[LEA] == EA_REG)
+		if (isRegister(lval))
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else {
 			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval[LNAME], lval[LVALUE], lval[LREG]);
@@ -937,7 +939,7 @@ hier1(register int lval[]) {
 		loadlval(lval, allocreg()); // don't reuse regs for dest
 		gencode_R(oper, lval[LREG], rval[LREG]);
 		freelval(rval);
-		if (dest[LEA] == EA_REG)
+		if (isRegister(dest))
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
 			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest[LNAME], dest[LVALUE], dest[LREG]);
@@ -946,7 +948,7 @@ hier1(register int lval[]) {
 	// resulting type is undefined, so modify LTYPE
 	lval[LTYPE] = EXPR;
 	lval[LPTR] = 0;
-	lval[LEA] = EA_REG;
+	lval[LEA] = EA_ADDR;
 
 	return 1;
 }
@@ -973,17 +975,31 @@ expression(register int lval[], int comma) {
 /*
  * @date 2020-05-23 17:09:01
  *
- * Test if lval is a constant
+ * Test if lval is a constant stored in `lval[LVALUE]`
  */
 isConstant(register int lval[])
 {
 	return (lval[LTYPE] == EXPR && lval[LPTR] == 0 && lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LREG] == 0);
 }
 
-/* 
+/*
+ * @date 2020-05-24 14:02:47
+ *
+ * Test if lval is a register stored in `lval[LREG]`
+ */
+isRegister(register int lval[])
+{
+	if (lval[LTYPE] == VARIABLE || lval[LTYPE] == ARRAY || lval[LTYPE] == EXPR) {
+		if (lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LVALUE] == 0)
+			return 1;
+	}
+	return 0;
+}
+
+/*
  * Load a constant expression
  */
-constexpr(register int *val) {
+constexpr(register int val[]) {
 	int lval[LLAST];
 
 	if (!hier1(lval))
