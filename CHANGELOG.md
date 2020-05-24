@@ -34,6 +34,8 @@ Known issues:
   - Pointer arithmetic. Only `"&arr[ofs]"` works.
 
 ```
+2020-05-24 00:17:57 Sync names/labels.
+                    `[LNAME]` for both names (>0) and labels (<0).
 2020-05-23 18:03:59 Drop `CLASS=AUTOEXT`.
                     Treat undeclared identifiers as external functions when used as calling arguments. 
 2020-05-21 19:41:07 Support for global registers.

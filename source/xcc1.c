@@ -870,6 +870,12 @@ gencode_IND(int opc, int reg, int ofs, int ind) {
 }
 
 gencode_M(int opc, int reg, register int lval[]) {
+
+	// sign extend
+	int ofs;
+	ofs = lval[LVALUE];
+	ofs |= -(ofs & (1 << SBIT));
+
 	genopc(opc);
 
 	if (reg)
@@ -877,28 +883,24 @@ gencode_M(int opc, int reg, register int lval[]) {
 
 	// apply any stack ajustments
 	if (lval[LREG] == REG_SP)
-		lval[LVALUE] = lval[LVALUE] - csp;
+		ofs = ofs - csp;
 
 	if (lval[LNAME]) {
 		if (lval[LTYPE] == LABEL)
 			fprintf(outhdl, "_%d", lval[LNAME]);
-		else {
+		else if (lval[LNAME] > 0){
 			fprintf(outhdl, "_");
 			symname(lval[LNAME]);
-		}
+		} else
+			fprintf(outhdl, "_%d", -lval[LNAME]);
 	}
 
-	// sign extend
-	int ofs;
-	ofs = lval[LVALUE] | -(lval[LVALUE] & (1 << SBIT));
-
-	if (lval[LVALUE] > 0)
+	if (ofs > 0)
 		fprintf(outhdl, "+%d", ofs);
-	else if (lval[LVALUE] < 0)
+	else if (ofs < 0)
 		fprintf(outhdl, "%d", ofs);
-	if (lval[LREG]) {
+	if (lval[LREG])
 		fprintf(outhdl, "(R%d)", lval[LREG]);
-	}
 
 	fprintf(outhdl, "\n");
 }
