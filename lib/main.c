@@ -1,6 +1,6 @@
 __START(int argc, int *argv)
 {
- 	/* Load the special purpose registers */
+	/* Load the special purpose registers */
 	/* r15 REG_SP  initial sp */
 	/* r14 REG_AP  frame pointer*/
 	/* r13 REG_BPW constant BPW */

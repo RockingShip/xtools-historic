@@ -226,7 +226,6 @@ freelval(register int lval[]) {
 		freereg(lval[LREG]);
 }
 
-
 /*
  * generic processing for <lval> { <operation> <rval> }
  */
@@ -466,6 +465,36 @@ step(register int pre, register int lval[], register int post) {
 }
 
 /*
+ * Inject assembler into output and catch return value
+ */
+doasm(register int lval[]) {
+	needtoken("(");
+
+	if (!qstr()) {
+		error("string expected");
+	} else {
+		register int i;
+
+		fputc('\t', outhdl);
+		for (i = 0; i < litinx - 1; i++) // one less for trailing zero
+			fputc(litq[i], outhdl);
+		fputc('\n', outhdl);
+	}
+
+	blanks();
+	needtoken(")");
+
+	// make R1 available
+	lval[LTYPE] = EXPR;
+	lval[LPTR] = 0;
+	lval[LSIZE] = BPW;
+	lval[LEA] = EA_ADDR;
+	lval[LNAME] = 0;
+	lval[LVALUE] = 0;
+	lval[LREG] = REG_RETURN;
+}
+
+/*
  * Load primary expression
  */
 primary(register int lval[]) {
@@ -480,30 +509,7 @@ primary(register int lval[]) {
 
 	// test for "asm()"
 	if (amatch("asm")) {
-		needtoken("(");
-
-		if (!qstr()) {
-			error("string expected");
-		} else {
-			register int i;
-
-			fputc('\t', outhdl);
-			for (i = 0; i < litinx - 1; i++) // one less for trailing zero
-				fputc(litq[i], outhdl);
-			fputc('\n', outhdl);
-		}
-
-		blanks();
-		needtoken(")");
-
-		// make R1 available
-		lval[LTYPE] = EXPR;
-		lval[LPTR] = 0;
-		lval[LSIZE] = BPW;
-		lval[LEA] = EA_ADDR;
-		lval[LNAME] = 0;
-		lval[LVALUE] = 0;
-		lval[LREG] = REG_RETURN;
+		doasm(lval);
 		return 1;
 	}
 

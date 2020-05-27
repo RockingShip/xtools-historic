@@ -246,7 +246,6 @@ EXTERN int
 	inclnr,			// Linenumber of .H file
 	inphdl,			// handle for .C file
 	inplnr,			// Linenumber of .C file
-	lastlbl,		// Label of the next constructor block.
 	lishdl,			// handle for .LIS file
 	litinx,			// Index to next entry
 	litq[LITMAX],

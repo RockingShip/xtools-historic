@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-27 23:09:47 Rollback "asm()" and global constructors.
+                    Keep things simple.
 2020-05-23 17:51:37 Constants are now `ICLASS=EXPR,LTYPE=EXPR,LPTR=0,LEA=EA_IMM`.
                     Added `isConstant()` to tets if `lval[]` contains a constant.
                     `CONSTANT` no longer expression `LTYPE` but storage `ICLASS`.

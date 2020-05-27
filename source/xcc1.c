@@ -53,7 +53,6 @@ initialize() {
 	inpfn[0] = 0;
 	macinx = macqinx = 0;
 	inclnr = inplnr = 0;
-	lastlbl = ++nxtlabel; // first label MUST be "1"
 	regresvd = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_1) | (1 << REG_0) | (1 << REG_RETURN) | (1 << 0));
 
 	// character properties
@@ -734,12 +733,9 @@ main(int argc, int *argv) {
 	preprocess();        // fetch first line
 	toseg(CODESEG);      // setup initial segment //
 
-	gencode_L(TOK_JMP, lastlbl); // forward reference to constructor chain
-
 	parse();             // GO !!!
 	if (iflevel)
 		error("no closing #endif");
-	fprintf(outhdl, "_%d:", lastlbl); // end of constructor list
 	fprintf(outhdl, "\t.END\n");
 
 	j = 0;

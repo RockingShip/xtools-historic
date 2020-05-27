@@ -459,7 +459,6 @@ declfunc() {
 		multidef();
 	if (symidx >= SYMMAX)
 		fatal("identifier table overflow");
-
 	if (i >= symidx)
 		sym = &syms[symidx++ * ILAST];
 
@@ -884,34 +883,7 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 parse() {
 	blanks();
 	while (inphdl) {
-		if (ch == '{') {
-			toseg(CODESEG);
-			fprintf(outhdl, "_%d:", lastlbl); // constructor chain
-
-			// initialise reserved registers on first call
-			if (lastlbl == 1) {
-				gencode_I(TOK_LDA, REG_BPW, BPW);
-				gencode_I(TOK_LDA, REG_1, 1);
-				gencode_I(TOK_LDA, REG_0, 0);
-			}
-
-			int returnlbl;
-
-			returnlbl = ++nxtlabel;
-			reguse = regsum = reglock = regresvd; // reset all registers
-			csp = -1; // reset stack
-			swinx = 1;
-
-			// get statement
-			statement(swinx, returnlbl, 0, 0, csp, csp);
-			if (csp != -1)
-				error("internal error. stack not released");
-
-			fprintf(outhdl, "_%d:", returnlbl);
-			lastlbl = ++nxtlabel;
-			gencode_L(TOK_JMP, lastlbl); // forward reference to constructor chain
-
-		} else if (amatch("enum"))
+		if (amatch("enum"))
 			declenum();
 		else if (amatch("extern"))
 			declvar(0, EXTERNAL);
@@ -921,9 +893,9 @@ parse() {
 			reglock = 0;
 			if (declvar(0, REGISTER))
 				regresvd |= reglock;
-		} else if (declvar(0, GLOBAL))
+		} else if (declvar(0, GLOBAL)) {
 			;
-		else if (amatch("#include"))
+		} else if (amatch("#include"))
 			doinclude();
 		else if (amatch("#define"))
 			declmac();
