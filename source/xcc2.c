@@ -194,78 +194,7 @@ declvar(int scope, register int class) {
 		sym[IVALUE] = 0;
 
 		// Now generate code
-		if (match("=")) {
-			int lval[LLAST];
-
-			toseg(DATASEG);
-			fprintf(outhdl, "_");
-			symname(sname);
-			fprintf(outhdl, ":");
-			if (class != STATIC)
-				fprintf(outhdl, ":");
-
-			// assign value to variable
-			litinx = 0;
-			if (!match("{")) {
-				// single value
-				if (!hier1(lval))
-					error("constant expected");
-				if (isConstant(lval)) {
-					if (ptr || (type == ARRAY))
-						error("cannot assign constant to pointer or array");
-					addlits(lval[LVALUE], size);
-				} else if (lval[LTYPE] == LABEL) {
-					if ((size != 1) || (!ptr && (type != ARRAY)))
-						error("must assign to char pointers or arrays");
-					// at this point, literal queue has been filled with string
-				} else {
-					error("constant expected");
-					litinx = 2;
-				}
-			} else {
-				// multiple values
-				if (!ptr && (type != ARRAY))
-					error("must assign to pointers or arrays");
-
-				// get values
-				while (1) {
-					--cnt;
-					if (!hier1(lval))
-						error("constant expected");
-					if (isConstant(lval)) {
-						addlits(lval[LVALUE], size);
-					} else if (lval[LTYPE] == LABEL) {
-						error("multiple strings not allowed");
-						litinx = 2;
-					} else {
-						error("constant expected");
-					}
-
-					// test for reloop
-					if (match(","))
-						continue;
-					else if (match("}"))
-						break;
-					else
-						error("constant expected");
-				}
-			}
-
-			// dump literal pool
-			if (ptr) {
-				fprintf(outhdl, "\t.DCW\t_%d", ++nxtlabel);
-				fprintf(outhdl, "_%d:", nxtlabel);
-			}
-			dumplits(size);
-
-			// if array and not all elements have been supplied, then pad
-			if (!ptr && (cnt > 0))
-				if (size == 1)
-					fprintf(outhdl, "\t.DSB\t%d\n", cnt);
-				else
-					fprintf(outhdl, "\t.DSW\t%d\n", cnt);
-
-		} else if (sym[ICLASS] == REGISTER) {
+		if (sym[ICLASS] == REGISTER) {
 			sym[IVALUE] = allocreg();
 			reglock |= (1 << sym[IVALUE]);
 

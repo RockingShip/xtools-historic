@@ -5,7 +5,7 @@ EXTRA_DIST = $(MODULES)
 # Which emulator to use. "xemu" or "pso/pso"
 XEMU=xemu
 
-CLEANFILES = *.xs *.xo *.xs3 *.xo3 stamp-stage2 stamp-stage3 stage3-xlib.xa
+CLEANFILES = *.xs *.xo *.xa *.xs3 *.xo3 stamp-stage2 stamp-stage3
 
 MODULES = \
 	fgets.c \
@@ -23,7 +23,6 @@ MODULES = \
 	isupper.c \
 	isxdigit.c \
 	main.c \
-	oscall.c \
 	printf.c \
 	puts.c \
 	scanf.c \

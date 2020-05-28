@@ -20,8 +20,8 @@ xlnk_SOURCES = xlnk1.c xlnk2.c xlnk.h getversion.c
 
 xar_SOURCES = xar1.c xar2.c xar.h getversion.c
 
-ostest.img : ostest.xo ../lib/oscall.xo xlnk
-	./xlnk -m ostest.map -o $@ ostest.xo ../lib/oscall.xo
+ostest.img : ostest.xo ../lib/main.xo xlnk
+	./xlnk -m ostest.map -o $@ ostest.xo ../lib/main.xo
 
 test-ostest : ostest.img
 	../xemu ostest.img

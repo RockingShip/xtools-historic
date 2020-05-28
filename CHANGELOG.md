@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-27 23:19:30 Dropped variable initialisers.
+                    This is a convienence structure and was headache inducing supportingthe  current `lval[]` implementation.
+                    Requires merging of `lib/main.c` and `lib/oscall.c`
 2020-05-27 23:09:47 Rollback "asm()" and global constructors.
                     Keep things simple.
 2020-05-23 17:51:37 Constants are now `ICLASS=EXPR,LTYPE=EXPR,LPTR=0,LEA=EA_IMM`.
