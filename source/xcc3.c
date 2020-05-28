@@ -518,7 +518,7 @@ primary(register int lval[]) {
 		return constant(lval);
 	bump(len); // Skip identifier
 
-	// identifier
+	// identifier. Scan in reverse order of creation.
 	for (i = symidx - 1; i >= 0; i--) {
 		sym = &syms[i * ILAST];
 		if (sym[INAME] == sname) {
@@ -581,6 +581,9 @@ primary(register int lval[]) {
 		exprerr();
 		return 0;
 	}
+
+	// todo: too soon, drop pre-processor first
+	// warning("undefined identifier");
 
 	// could be external function names
 	lval[LTYPE] = FUNCTION;

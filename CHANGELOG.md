@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-28 00:13:03 Mandatory function prototyping.
+                    No guessing in `primary()` what undefined may be.
+                    Allow scoped enums(). 
 2020-05-27 23:19:30 Dropped variable initialisers.
                     This is a convienence structure and was headache inducing supportingthe  current `lval[]` implementation.
                     Requires merging of `lib/main.c` and `lib/oscall.c`

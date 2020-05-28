@@ -234,7 +234,7 @@ declvar(int scope, register int class) {
 //
 // General global definitions
 //
-declenum() {
+declenum(int scope) {
 	int *sym;
 	int seqnr;
 	register int i;
@@ -259,17 +259,17 @@ declenum() {
 		bump(len);
 
 		// add symbol to symboltable
-		for (i = symidx - 1; i >= 0; i--) {
+		for (i = scope; i < symidx; i++) {
 			sym = &syms[i * ILAST];
-			if (sym[INAME] == sname)
+			if (sym[INAME] == sname) {
+				multidef();
 				break;
+			}
 		}
-		if (i >= 0)
-			multidef();
-		else if (symidx >= SYMMAX)
+
+		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
-
 		sym[INAME] = sname;
 		sym[ICLASS] = CONSTANT;
 		sym[ITYPE] = EXPR;
@@ -357,13 +357,13 @@ declmac() {
 /*
  *
  */
-declfunc() {
+declfunc(int class) {
 	int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc, scope;
 	register int *sym, i, numarg;
 
 	returnlbl = ++nxtlabel;
 	reguse = regsum = reglock = 1 << REG_AP; // reset all registers
-	csp = -1; // reset stack
+	csp = 0; // reset stack
 	swinx = 1;
 	toseg(CODESEG);
 	if (verbose)
@@ -384,16 +384,15 @@ declfunc() {
 		if (sym[INAME] == sname)
 			break;
 	}
-	if (i < symidx)
-		multidef();
+
 	if (symidx >= SYMMAX)
 		fatal("identifier table overflow");
 	if (i >= symidx)
 		sym = &syms[symidx++ * ILAST];
 
-	// (re)define procedure
+	// (re)define function
 	sym[INAME] = sname;
-	sym[ICLASS] = GLOBAL;
+	sym[ICLASS] = EXTERNAL;
 	sym[ITYPE] = FUNCTION;
 	sym[IPTR] = 0;
 	sym[IVALUE] = 0;
@@ -408,7 +407,7 @@ declfunc() {
 	gencode_I(TOK_PSHR, -1, 0);
 	gencode_R(TOK_LDR, REG_AP, 1);
 
-	// get arguments
+	// get parameters
 	if (!match("("))
 		error("no open parent");
 	blanks();
@@ -426,8 +425,18 @@ declfunc() {
 	}
 	needtoken(")");
 
-	// post-process arguments
-	for (i = scope; i < symidx; i++) {
+	if (match(";")) {
+		// declaration only
+		symidx = scope;
+		return;
+	}
+
+	if (sym[ICLASS] != EXTERNAL)
+		multidef();
+	sym[ICLASS] = class;
+
+	// post-process parameters. syms[scope] is function name
+	for (i = scope + 1; i < symidx; i++) {
 		sym = &syms[i * ILAST];
 
 		// tweak ap offsets
@@ -446,7 +455,7 @@ declfunc() {
 	// get statement
 	inireg = reglock;
 	statement(swinx, returnlbl, 0, 0, csp, csp);
-	if (csp != -1)
+	if (csp != 0)
 		error("internal error. stack not released");
 	if (inireg != reglock)
 		error("internal error. registers not unlocked");
@@ -481,6 +490,8 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			if (!ch) {
 				error("no closing }"); // EOF
 				return;
+			} else if (amatch("enum")) {
+				declenum(scope);
 			} else if (amatch("register")) {
 				declvar(scope, REGISTER);
 			} else if (declvar(scope, SP_AUTO)) {
@@ -702,8 +713,8 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			expression(lval, 1);
 			loadlval(lval, REG_RETURN);
 		}
-		if (csp != -1)
-			gencode_ADJSP(-1 - csp);
+		if (csp != 0)
+			gencode_ADJSP(- csp);
 		gencode_L(TOK_JMP, returnlbl);
 		ns();
 	} else if (amatch("break")) {
@@ -813,23 +824,30 @@ parse() {
 	blanks();
 	while (inphdl) {
 		if (amatch("enum"))
-			declenum();
-		else if (amatch("extern"))
-			declvar(0, EXTERNAL);
-		else if (amatch("static"))
-			declvar(0, STATIC);
-		else if (amatch("register")) {
-			reglock = 0;
-			if (declvar(0, REGISTER))
-				regresvd |= reglock;
-		} else if (declvar(0, GLOBAL)) {
-			;
-		} else if (amatch("#include"))
+			declenum(0);
+		else if (amatch("#include"))
 			doinclude();
 		else if (amatch("#define"))
 			declmac();
-		else
-			declfunc();
+		else {
+			int class;
+			if (amatch("extern"))
+				class = EXTERNAL;
+			else if (amatch("static"))
+				class = STATIC;
+			else
+				class = GLOBAL;
+
+			if (amatch("register")) {
+				reglock = 0;
+				if (declvar(0, REGISTER))
+					regresvd |= reglock;
+			} else if (declvar(0, class)) {
+				;
+			} else {
+				declfunc(class);
+			}
+		}
 		blanks();
 	}
 }
