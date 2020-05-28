@@ -521,34 +521,18 @@ primary(register int lval[]) {
 	// identifier. Scan in reverse order of creation.
 	for (i = symidx - 1; i >= 0; i--) {
 		sym = &syms[i * ILAST];
-		if (sym[INAME] == sname) {
+		if (sym[ISYM] == sname) {
 			lval[LTYPE] = sym[ITYPE];
 			lval[LPTR] = sym[IPTR];
 			lval[LSIZE] = sym[ISIZE];
-			lval[LNAME] = 0;
-			lval[LVALUE] = 0;
-			lval[LREG] = 0;
+			lval[LNAME] = sym[INAME];
+			lval[LVALUE] = sym[IVALUE];
+			lval[LREG] = sym[IREG];
 
-			if (sym[ICLASS] == CONSTANT) {
-				lval[LTYPE] = EXPR;
-				lval[LPTR] = 0;
-				lval[LSIZE] = 0;
+			if (sym[ICLASS] == CONSTANT || sym[ICLASS] == REGISTER) {
 				lval[LEA] = EA_ADDR;
-				lval[LVALUE] = sym[IVALUE];
-			} else if (sym[ICLASS] == REGISTER) {
-				lval[LEA] = EA_ADDR;
-				lval[LREG] = sym[IVALUE];
-			} else if (sym[ICLASS] == AP_AUTO) {
-				lval[LEA] = EA_IND;
-				lval[LVALUE] = sym[IVALUE];
-				lval[LREG] = REG_AP;
-			} else if (sym[ICLASS] == SP_AUTO) {
-				lval[LEA] = EA_IND;
-				lval[LVALUE] = sym[IVALUE];
-				lval[LREG] = REG_SP;
 			} else {
 				lval[LEA] = EA_IND;
-				lval[LNAME] = sname;
 			}
 
 			// functions/arrays are addresses

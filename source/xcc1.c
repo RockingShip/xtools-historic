@@ -54,6 +54,7 @@ initialize() {
 	macinx = macqinx = 0;
 	inclnr = inplnr = 0;
 	regresvd = ((1 << REG_SP) | (1 << REG_AP) | (1 << REG_BPW) | (1 << REG_1) | (1 << REG_0) | (1 << REG_RETURN) | (1 << 0));
+	debug = 0;
 
 	// character properties
 	for (i = '0'; i <= '9'; i++)
@@ -78,7 +79,7 @@ initialize() {
 	for (i = 0; i < NAMEMAX; i++)
 		namech[i] = nametab[i] = 0;
 	for (i = 0; i < SYMMAX; i++)
-		syms[i * ILAST + INAME] = 0;
+		syms[i * ILAST + ISYM] = 0;
 	for (i = 0; i < SWMAX; i++)
 		sw[i * SLAST + SLABEL] = 0;
 
@@ -183,6 +184,9 @@ startup(register int *argv) {
 				else
 					fext(outfn, arg, ".xs", 0);
 				break;
+			case 'd':
+				debug = 1;
+				break;
 			case 'h':
 				maklis = 1;
 				break;
@@ -258,6 +262,37 @@ bump(register int n) {
 //*
 //*
 
+static int classnames[8];
+static int typenames[7];
+
+dump_ident(int ident[]) {
+	if (!debug)
+		return;
+
+	if (!classnames[0]) {
+		classnames[0] = "0";
+		classnames[1] = "CONSTANT";
+		classnames[2] = "STATIC";
+		classnames[3] = "SP_AUTO";
+		classnames[4] = "AP_AUTO";
+		classnames[5] = "EXTERNAL";
+		classnames[6] = "GLOBAL";
+		classnames[7] = "REGISTER";
+		typenames[0] = "0";
+		typenames[1] = "VARIABLE";
+		typenames[2] = "ARRAY";
+		typenames[3] = "LABEL";
+		typenames[4] = "FUNCTION";
+		typenames[5] = "EXPR";
+		typenames[6] = "BRANCH";
+	}
+
+	fprintf(outhdl, "; IDENT=");
+	symname(ident[ISYM]);
+	fprintf(outhdl, " CLASS=%s TYPE=%s PTR=%d SIZE=%d NAME=", classnames[ident[ICLASS]], typenames[ident[ITYPE]], ident[IPTR], ident[ISIZE]);
+	symname(ident[INAME]);
+	fprintf(outhdl, " VALUE=%d REG=%d\n", ident[IVALUE], ident[IREG]);
+}
 /*
  * reconstruct the symbol name
  */
@@ -741,7 +776,7 @@ main(int argc, int *argv) {
 	j = 0;
 	for (i = 0; i < NAMEMAX; i++) if (namech[i]) j++;
 	fprintf(outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
-	for (i = 0; i < SYMMAX && syms[i * ILAST + INAME]; i++);
+	for (i = 0; i < SYMMAX && syms[i * ILAST + ISYM]; i++);
 	fprintf(outhdl, "; Identifiers  : %5d/%5d\n", i, SYMMAX);
 	fprintf(outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
 	fprintf(outhdl, "; Local labels : %5d\n", nxtlabel);

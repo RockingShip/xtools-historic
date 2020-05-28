@@ -67,7 +67,7 @@ declarg(int scope, register int class, register int argnr) {
 
 		for (i = scope; i < symidx; i++) {
 			sym = &syms[i * ILAST];
-			if (sym[INAME] == sname) {
+			if (sym[ISYM] == sname) {
 				multidef();
 				break;
 			}
@@ -107,16 +107,20 @@ declarg(int scope, register int class, register int argnr) {
 		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
-		sym[INAME] = sname;
+		sym[ISYM] = sname;
 		sym[ICLASS] = class;
 		sym[ITYPE] = type;
 		sym[IPTR] = ptr;
 		sym[ISIZE] = size;
+		sym[INAME] = 0;
 		sym[IVALUE] = (-argnr + 1) * BPW;
+		sym[IREG] = REG_AP;
 
 		// modify location if chars. Chars are pushed as words, adjust to point to lo-byte
 		if (size == 1 && !ptr)
 			sym[IVALUE] += BPW - 1;
+
+		dump_ident(sym);
 
 		// only one
 		break;
@@ -149,11 +153,11 @@ declvar(int scope, register int class) {
 			bump(len);
 
 		for (i = scope; i < symidx; i++) {
-			if (syms[i * ILAST + INAME] == sname)
+			if (syms[i * ILAST + ISYM] == sname) {
+				multidef();
 				break;
+			}
 		}
-		if (i < symidx)
-			multidef();
 
 		match(")");
 		type = VARIABLE;
@@ -186,31 +190,37 @@ declvar(int scope, register int class) {
 		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
-		sym[INAME] = sname;
+		sym[ISYM] = sname;
 		sym[ICLASS] = class;
 		sym[ITYPE] = type;
 		sym[IPTR] = ptr;
 		sym[ISIZE] = size;
+		sym[INAME] = sname;
 		sym[IVALUE] = 0;
+		sym[IREG] = 0;
 
 		// Now generate code
 		if (sym[ICLASS] == REGISTER) {
-			sym[IVALUE] = allocreg();
-			reglock |= (1 << sym[IVALUE]);
-
+			sym[INAME] = 0;
+			sym[IVALUE] = 0;
+			sym[IREG] = allocreg();
+			reglock |= (1 << sym[IREG]);
 		} else if (sym[ICLASS] == SP_AUTO) {
 			if (ptr)
-				sym[IVALUE] = (csp -= BPW);
+				csp -= BPW;
 			else if (size == 1)
-				sym[IVALUE] = (csp -= cnt);
+				csp -= cnt;
 			else
-				sym[IVALUE] = (csp -= cnt * BPW);
-
+				csp -= cnt * BPW;
+			sym[INAME] = 0;
+			sym[IVALUE] = csp;
+			sym[IREG] = REG_SP;
 		} else if (sym[ICLASS] != EXTERNAL) {
 			toseg(UDEFSEG);
 			fprintf(outhdl, "_");
 			symname(sname);
 			fprintf(outhdl, ":");
+
 			if (class != STATIC)
 				fprintf(outhdl, ":");
 			if (ptr)
@@ -220,6 +230,7 @@ declvar(int scope, register int class) {
 			else
 				fprintf(outhdl, "\t.DSW\t%d\n", cnt);
 		}
+		dump_ident(sym);
 
 		// test for more
 		if (!match(","))
@@ -261,7 +272,7 @@ declenum(int scope) {
 		// add symbol to symboltable
 		for (i = scope; i < symidx; i++) {
 			sym = &syms[i * ILAST];
-			if (sym[INAME] == sname) {
+			if (sym[ISYM] == sname) {
 				multidef();
 				break;
 			}
@@ -270,12 +281,14 @@ declenum(int scope) {
 		if (symidx >= SYMMAX)
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
-		sym[INAME] = sname;
+		sym[ISYM] = sname;
 		sym[ICLASS] = CONSTANT;
 		sym[ITYPE] = EXPR;
 		sym[IPTR] = 0;
-		sym[IVALUE] = 0;
 		sym[ISIZE] = 0;
+		sym[INAME] = 0;
+		sym[IVALUE] = 0;
+		sym[IREG] = 0;
 
 		if (match("=")) {
 			expression(lval, 0);
@@ -287,6 +300,7 @@ declenum(int scope) {
 		}
 
 		sym[IVALUE] = seqnr++;
+		dump_ident(sym);
 
 		if (!match(","))
 			break;
@@ -381,7 +395,7 @@ declfunc(int class) {
 
 	for (i = 0; i < symidx; i++) {
 		sym = &syms[i * ILAST];
-		if (sym[INAME] == sname)
+		if (sym[ISYM] == sname)
 			break;
 	}
 
@@ -391,12 +405,16 @@ declfunc(int class) {
 		sym = &syms[symidx++ * ILAST];
 
 	// (re)define function
-	sym[INAME] = sname;
+	sym[ISYM] = sname;
 	sym[ICLASS] = EXTERNAL;
 	sym[ITYPE] = FUNCTION;
 	sym[IPTR] = 0;
+	sym[ISIZE] = 0;
+	sym[INAME] = sname;
 	sym[IVALUE] = 0;
-	sym[ISIZE] = BPW;
+	sym[IREG] = 0;
+	dump_ident(sym);
+
 	// Generate global label
 	fprintf(outhdl, "_");
 	symname(sname);
@@ -447,8 +465,11 @@ declfunc(int class) {
 			int reg;
 			reg = allocreg();
 			reglock |= (1 << reg);
-			gencode_M(((sym[LSIZE] == BPW) || sym[LPTR]) ? TOK_LDW : TOK_LDB, reg, 0, sym[IVALUE], REG_AP);
-			sym[IVALUE] = reg;
+			gencode_M(((sym[LSIZE] == BPW) || sym[LPTR]) ? TOK_LDW : TOK_LDB, reg, sym[INAME], sym[IVALUE], sym[IREG]);
+			sym[INAME] = 0;
+			sym[IVALUE] = 0;
+			sym[IREG] = reg;
+			dump_ident(sym);
 		}
 	}
 
@@ -513,7 +534,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		for (i = scope; i < symidx; i++) {
 			sym = &syms[i * ILAST];
 			if (sym[ICLASS] == REGISTER)
-				freereg(sym[IVALUE]);
+				freereg(sym[IREG]);
 		}
 		symidx = scope;
 		return;

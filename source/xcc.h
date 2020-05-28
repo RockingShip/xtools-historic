@@ -103,6 +103,7 @@ enum {
  * Definitions for lval  (Code generated node)
  */
 
+//#define assert(N) ({ __assert_fail ("0", __FILE__, __LINE__, __PRETTY_FUNCTION__); })
 enum {
 	LTYPE = 0,
 	LPTR,
@@ -121,12 +122,14 @@ enum {
  */
 
 enum {
-	INAME = 0,
-	ITYPE,
-	IPTR,
-	ICLASS,
-	IVALUE,
-	ISIZE,
+	ISYM = 0,		// identifier/symbol name
+	ICLASS,			// storage class
+	ITYPE,			// peephole data type
+	IPTR,			// part of ISIZE. 1="*name" 2="(*name)"
+	ISIZE,			// size in bytes.
+	INAME,			// EA name
+	IVALUE,			// EA value/offset
+	IREG,			// EA register indirect
 	ILAST,
 };
 
@@ -238,6 +241,7 @@ EXTERN int
 	argvid,			// hash value of reserved word
 	csp,			// stackpointer seen from scope coding
 	currseg,		// Current output segment
+	debug,			// Add debug info to output
 	errflag,		// True if an error has occurred
 	hier_oper[30],		// Internal translation of the above
 	hier_str[30],		// Array containing hierarchical operators

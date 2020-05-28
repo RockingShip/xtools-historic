@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-28 16:24:48 Upgraded `syms[]` to offload conversions in `primary()`.
+                    More simple and logical design.
+                    Added extra code for debugging.
 2020-05-28 00:13:03 Mandatory function prototyping.
                     No guessing in `primary()` what undefined may be.
                     Allow scoped enums(). 
