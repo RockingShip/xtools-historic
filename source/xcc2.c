@@ -59,6 +59,7 @@ declarg(int scope, register int class, register int argnr) {
 			needtoken("*");
 		} else
 			ptr = 0;
+		blanks();
 
 		if (!(len = dohash(lptr, &sname)))
 			illname();
@@ -146,7 +147,15 @@ declvar(int scope, register int class) {
 	while (1) {
 		blanks();
 
-		ptr = (match("(*") || match("*"));
+		if (match("*"))
+			ptr = 1;
+		else if (match("(")) {
+			ptr = 2;
+			needtoken("*");
+		} else
+			ptr = 0;
+		blanks();
+
 		if (!(len = dohash(lptr, &sname)))
 			illname();
 		if (len)
@@ -159,10 +168,17 @@ declvar(int scope, register int class) {
 			}
 		}
 
-		match(")");
 		type = VARIABLE;
-		if (match("()"))
-			type = FUNCTION;
+
+		if (ptr == 2) {
+			match(")");
+			if (match("(")) {
+				if (match(")"))
+					type = FUNCTION;
+				else
+					error("bad (*)()");
+			}
+		}
 
 		cnt = 1; // Number of elements
 		if (match("[")) {

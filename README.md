@@ -1,7 +1,11 @@
-# XTools
+# XTools-historic
 
 X-C-Compiler/Assembler/Linker/Archiver. 
 A remastered 1991 school project intended for supporting the [untangle](/RockingShip/untangle) fractal engine.
+
+Project is MIT licensed and will continue as `xtools-2.0` which will be GPLv3 licensed.
+
+Known issue is pointer arithmetic. The only working variant is "&arr[ofs]"`.
 
 ## About the project
 

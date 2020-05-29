@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Release [1.3.0] 2020-05-29 10:27:58
+
+Re-mastered school project under the MIT license which will be renamed into `xtools-historic`.
+
+Project will continue as `xtools-2.0`, grow closer to `untangle` and will be GPLv3 licensed.
+
+Known issues:
+ - Pointer arithmetic. Partly broken, only working variant is "&arr[ofs]"`.
+ - Variable initialisers. Broken from the start and removed.
+
 ```
 2020-05-28 21:48:47 Support for and convert to ".TEXT" segment for strings.
                     Finally making string array initialisers possible.
@@ -182,6 +192,7 @@ Original 1991 submitted school assignment.
 2020-05-09 11:26:17 Changed license and '\n' line separators. 
 ```
 
-[Unreleased]: /RockingShip/xtools/compare/v1.2.0...HEAD
-[1.2.0]: /RockingShip/xtools/compare/v1.1.0...v1.2.0
-[1.1.0]: /RockingShip/xtools/compare/v1.0.0...v1.1.0
+[Unreleased]: /RockingShip/xtools-historic/compare/v1.3.0...HEAD
+[1.3.0]: /RockingShip/xtools-historic/compare/v1.2.0...v1.3.0
+[1.2.0]: /RockingShip/xtools-historic/compare/v1.1.0...v1.2.0
+[1.1.0]: /RockingShip/xtools-historic/compare/v1.0.0...v1.1.0
