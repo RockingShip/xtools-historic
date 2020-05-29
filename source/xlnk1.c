@@ -80,6 +80,8 @@ initialize() {
 	add_res("___CODELEN", ABS);
 	add_res("___DATABASE", ABS);
 	add_res("___DATALEN", ABS);
+	add_res("___TEXTBASE", ABS);
+	add_res("___TEXTLEN", ABS);
 	add_res("___UDEFBASE", ABS);
 	add_res("___UDEFLEN", ABS);
 }
@@ -143,9 +145,10 @@ startup(register int *argv) {
 			dohash(inpfn, &hash);
 			p[FFILE] = hash;
 			p[FLIB] = -1;
-			p[FCODEBASE] = p[FCODELEN] = p[FCODEPOS] = 0;
-			p[FDATABASE] = p[FUDEFLEN] = p[FDATAPOS] = 0;
-			p[FUDEFBASE] = p[FDATALEN] = p[FUDEFPOS] = 0;
+			p[FCODEBASE] = p[FCODEPOS] = p[FCODELEN] = 0;
+			p[FDATABASE] = p[FDATAPOS] = p[FDATALEN] = 0;
+			p[FTEXTBASE] = p[FTEXTPOS] = p[FTEXTLEN] = 0;
+			p[FUDEFBASE] = p[FUDEFPOS] = p[FUDEFLEN] = 0;
 		} else {
 			// Process option
 			arg++;
@@ -437,9 +440,9 @@ main(int argc, int *argv) {
 objmap() {
 	register int i, *p, len;
 
-	fprintf(lishdl, "                                                CODE       DATA       UDEF   \n");
-	fprintf(lishdl, "id         module             library         BASE LEN   BASE LEN   BASE LEN \n");
-	fprintf(lishdl, "-- -------------------- --------------------  ---- ----  ---- ----  ---- ----\n");
+	fprintf(lishdl, "                                                CODE       DATA       TEXT       UDEF   \n");
+	fprintf(lishdl, "id         module             library         BASE LEN   BASE LEN   BASE LEN   BASE LEN \n");
+	fprintf(lishdl, "-- -------------------- --------------------  ---- ----  ---- ----  ---- ----  ---- ----\n");
 
 	for (i = 0; i < file2inx; i++) {
 		p = &file2[i * FLAST];
@@ -454,9 +457,10 @@ objmap() {
 			while (len++ <= 20)
 				fprintf(lishdl, " ");
 		}
-		fprintf(lishdl, " %04x %04x  %04x %04x  %04x %04x\n",
+		fprintf(lishdl, " %04x %04x  %04x %04x  %04x %04x  %04x %04x\n",
 			p[FCODEBASE], p[FCODELEN],
 			p[FDATABASE], p[FDATALEN],
+			p[FTEXTBASE], p[FTEXTLEN],
 			p[FUDEFBASE], p[FUDEFLEN]);
 	}
 }
@@ -480,6 +484,8 @@ symmap(register int start) {
 						fprintf(lishdl, "CODE ");
 					else if (p[NTYPE] == DATA)
 						fprintf(lishdl, "DATA ");
+					else if (p[NTYPE] == TEXT)
+						fprintf(lishdl, "TEXT ");
 					else if (p[NTYPE] == UDEF)
 						fprintf(lishdl, "UDEF ");
 					else

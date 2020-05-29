@@ -56,8 +56,10 @@ enum {
 
 enum {
 	CODESEG = 1,
-	DATASEG = 2,
-	UDEFSEG = 3,
+	DATASEG,
+	TEXTSEG,
+	UDEFSEG,
+	LASTSEG,
 };
 
 /*
@@ -85,11 +87,14 @@ enum {
 	FCODELEN,
 	FCODEPOS,
 	FDATABASE,
-	FDATALEN,
 	FDATAPOS,
+	FDATALEN,
+	FTEXTBASE,
+	FTEXTPOS,
+	FTEXTLEN,
 	FUDEFBASE,
-	FUDEFLEN,
 	FUDEFPOS,
+	FUDEFLEN,
 	FLAST,
 };
 
@@ -133,6 +138,7 @@ enum {
 enum {
 	CODE = 1,
 	DATA,
+	TEXT,
 	UDEF,
 	ABS,
 	UNDEF,
@@ -143,40 +149,45 @@ enum {
  */
 
 enum {
-	REL_ADD = 1,
-	REL_SUB = 2,
-	REL_MUL = 3,
-	REL_DIV = 4,
-	REL_MOD = 5,
-	REL_LSR = 6,
-	REL_LSL = 7,
-	REL_XOR = 8,
-	REL_AND = 9,
-	REL_OR = 10,
-	REL_NOT = 11,
-	REL_NEG = 12,
-	REL_SWAP = 13,
+	REL_END = 1,
 
-	REL_END = 32,
-	REL_SYMBOL = 33,
-	REL_PUSHB = 34,
-	REL_PUSHW = 35,
-	REL_POPW = 36,
-	REL_POPB = 37,
-	REL_DSB = 38,
+	REL_ADD = 2,
+	REL_SUB = 3,
+	REL_MUL = 4,
+	REL_DIV = 5,
+	REL_MOD = 6,
+	REL_LSR = 7,
+	REL_LSL = 8,
+	REL_XOR = 9,
+	REL_AND = 10,
+	REL_OR = 11,
+	REL_NOT = 12,
+	REL_NEG = 13,
+	REL_SWAP = 14,
 
-	REL_CODEB = 64,
-	REL_CODEW = 65,
-	REL_CODEDEF = 66,
-	REL_CODEORG = 67,
-	REL_DATAB = 72,
-	REL_DATAW = 73,
-	REL_DATADEF = 74,
-	REL_DATAORG = 75,
-	REL_UDEFB = 80,
-	REL_UDEFW = 81,
-	REL_UDEFDEF = 82,
-	REL_UDEFORG = 83,
+	REL_CODEB = 16,
+	REL_CODEW = 17,
+	REL_CODEDEF = 18,
+	REL_CODEORG = 19,
+	REL_DATAB = 20,
+	REL_DATAW = 21,
+	REL_DATADEF = 22,
+	REL_DATAORG = 23,
+	REL_TEXTB = 24,
+	REL_TEXTW = 25,
+	REL_TEXTDEF = 26,
+	REL_TEXTORG = 27,
+	REL_UDEFB = 28,
+	REL_UDEFW = 29,
+	REL_UDEFDEF = 30,
+	REL_UDEFORG = 31,
+
+	REL_SYMBOL = 32,
+	REL_PUSHB = 33,
+	REL_PUSHW = 34,
+	REL_POPW = 35,
+	REL_POPB = 36,
+	REL_DSB = 37,
 };
 
 /*
@@ -185,7 +196,7 @@ enum {
 
 EXTERN int
 	curobj,			// index of current .OLB file
-	curpos[4],		// Position in segment
+	curpos[LASTSEG],	// Position in segment
 	curseg,			// Current segment
 	datlen,			// length of data in datbuf
 	debug,			// Debug   -d specified
@@ -199,7 +210,7 @@ EXTERN int
 	lbhdr[LBHLAST],		// .OLB header
 	lbname[NAMEMAX*LBNLAST],// Library name table
 	lishdl, 		// handle for .MAP file
-	maxpos[4],		// Size of segment
+	maxpos[LASTSEG],	// Size of segment
 	name[NAMEMAX*NLAST],	// Name table
 	outhdl,			// handle for .IMG file
 	pass,			// Pass number

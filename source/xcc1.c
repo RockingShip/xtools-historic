@@ -920,7 +920,6 @@ gencode_M(int opc, int lreg, int name, int ofs, int rreg) {
 
 /*
  * change to a new segment
- * may be called with NULL, CODESEG, or DATASEG
  */
 toseg(register int newseg) {
 	prevseg = currseg;
@@ -930,6 +929,8 @@ toseg(register int newseg) {
 		fprintf(outhdl, "\t.CODE\n");
 	else if (newseg == DATASEG)
 		fprintf(outhdl, "\t.DATA\n");
+	else if (newseg == TEXTSEG)
+		fprintf(outhdl, "\t.TEXT\n");
 	else if (newseg == UDEFSEG)
 		fprintf(outhdl, "\t.UDEF\n");
 	currseg = newseg;

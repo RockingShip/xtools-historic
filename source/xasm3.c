@@ -70,6 +70,9 @@ loadlval(register int lval[]) {
 		case DATA:
 			sto_cmd(REL_DATAW, p[NVALUE]);
 			break;
+		case TEXT:
+			sto_cmd(REL_TEXTW, p[NVALUE]);
+			break;
 		case UDEF:
 			sto_cmd(REL_UDEFW, p[NVALUE]);
 			break;
@@ -160,6 +163,7 @@ primary(register int lval[]) {
 		case ABS:
 		case CODE:
 		case DATA:
+		case TEXT:
 		case UDEF:
 			lval[LTYPE] = SYMBOL;
 			lval[LVALUE] = hash;
@@ -171,6 +175,9 @@ primary(register int lval[]) {
 				break;
 			case DATASEG:
 				sto_cmd(REL_DATAW, curpos[DATASEG]);
+				break;
+			case TEXTSEG:
+				sto_cmd(REL_TEXTW, curpos[TEXTSEG]);
 				break;
 			case UDEFSEG:
 				sto_cmd(REL_UDEFW, curpos[UDEFSEG]);

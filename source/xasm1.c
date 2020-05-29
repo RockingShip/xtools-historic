@@ -92,8 +92,8 @@ initialize() {
 	// reset positions
 	pass = 1;
 	curseg = CODESEG;
-	curpos[CODESEG] = curpos[DATASEG] = curpos[UDEFSEG] = 0;
-	maxpos[CODESEG] = maxpos[DATASEG] = maxpos[UDEFSEG] = 0;
+	curpos[CODESEG] = curpos[DATASEG] = curpos[TEXTSEG] = curpos[UDEFSEG] = 0;
+	maxpos[CODESEG] = maxpos[DATASEG] = maxpos[TEXTSEG] = maxpos[UDEFSEG] = 0;
 
 	// reserved words
 	add_res("ILLEGAL", OPCODE, OPC_ILLEGAL);
@@ -133,6 +133,7 @@ initialize() {
 	add_res("SVC", OPCODE, OPC_SVC);
 	add_res(".CODE", PSEUDO, PSEUDO_CODE);
 	add_res(".DATA", PSEUDO, PSEUDO_DATA);
+	add_res(".TEXT", PSEUDO, PSEUDO_TEXT);
 	add_res(".UDEF", PSEUDO, PSEUDO_UDEF);
 	add_res(".ORG", PSEUDO, PSEUDO_ORG);
 	add_res(".END", PSEUDO, PSEUDO_END);
@@ -618,6 +619,8 @@ preprocess() {
 			fprintf(lishdl, ";C%04x: %s\n", curpos[CODESEG] & 0xffff, pbuf);
 		else if (curseg == DATASEG)
 			fprintf(lishdl, ";D%04x: %s\n", curpos[DATASEG] & 0xffff, pbuf);
+		else if (curseg == TEXTSEG)
+			fprintf(lishdl, ";T%04x: %s\n", curpos[TEXTSEG] & 0xffff, pbuf);
 		else
 			fprintf(lishdl, ";U%04x: %s\n", curpos[UDEFSEG] & 0xffff, pbuf);
 	}
@@ -844,7 +847,7 @@ main(int argc, int *argv) {
 	inclnr = inplnr = 0;
 	save_seg_size();
 	curseg = CODESEG;
-	curpos[CODESEG] = curpos[DATASEG] = curpos[UDEFSEG] = 0;
+	curpos[CODESEG] = curpos[DATASEG] = curpos[TEXTSEG] = curpos[UDEFSEG] = 0;
 	datlen = 0;
 
 	pass = 2;
@@ -861,6 +864,7 @@ main(int argc, int *argv) {
 	if (lishdl) {
 		fprintf(lishdl, "CODE         : %04x (%5d)\n", maxpos[CODESEG] & 0xffff, maxpos[CODESEG] & 0xffff);
 		fprintf(lishdl, "DATA         : %04x (%5d)\n", maxpos[DATASEG] & 0xffff, maxpos[DATASEG] & 0xffff);
+		fprintf(lishdl, "TEXT         : %04x (%5d)\n", maxpos[TEXTSEG] & 0xffff, maxpos[TEXTSEG] & 0xffff);
 		fprintf(lishdl, "UDEF         : %04x (%5d)\n", maxpos[UDEFSEG] & 0xffff, maxpos[UDEFSEG] & 0xffff);
 		fprintf(lishdl, "Macros       : %5d(%5d)\n", macinx, MACMAX);
 		j = 0;
@@ -938,100 +942,115 @@ sto_cmd(int cmd, int val) {
 	if (pass == 2) {
 		if (!debug)
 			switch (cmd) {
-				case REL_ADD:
-				case REL_SUB:
-				case REL_MUL:
-				case REL_DIV:
-				case REL_MOD:
-				case REL_LSR:
-				case REL_LSL:
-				case REL_AND:
-				case REL_OR:
-				case REL_XOR:
-				case REL_SWAP:
-				case REL_POPW:
-				case REL_POPB:
-				case REL_END:
+			case REL_END:
+			case REL_ADD:
+			case REL_SUB:
+			case REL_MUL:
+			case REL_DIV:
+			case REL_MOD:
+			case REL_LSR:
+			case REL_LSL:
+			case REL_AND:
+			case REL_OR:
+			case REL_XOR:
+			case REL_SWAP:
+			case REL_POPB:
+			case REL_POPW:
+				write_byte(cmd);
+				break;
+			case REL_PUSHB:
+			case REL_PUSHW:
+				if ((val >= -128) && (val <= 127))
+					cmd = REL_PUSHB;
+				if (cmd == REL_PUSHB) {
+					cval = val;
 					write_byte(cmd);
-					break;
-				case REL_PUSHW:
-				case REL_PUSHB:
-					if ((val >= -128) && (val <= 127))
-						cmd = REL_PUSHB;
-					if (cmd == REL_PUSHB) {
-						cval = val;
-						write_byte(cmd);
-						write_byte(cval);
-					} else {
-						write_byte(cmd);
-						write_word(val);
-					}
-					break;
-				case REL_CODEW:
-				case REL_CODEB:
-					if ((val >= -128) && (val <= 127))
-						cmd = REL_CODEB;
-					if (cmd == REL_CODEB) {
-						write_byte(cmd);
-						write_byte(cval);
-					} else {
-						write_byte(cmd);
-						write_word(val);
-					}
-					break;
-				case REL_DATAW:
-				case REL_DATAB:
-					if ((val >= -128) && (val <= 127))
-						cmd = REL_DATAB;
-					if (cmd == REL_DATAB) {
-						write_byte(cmd);
-						write_byte(cval);
-					} else {
-						write_byte(cmd);
-						write_word(val);
-					}
-					break;
-				case REL_UDEFW:
-				case REL_UDEFB:
-					if ((val >= -128) && (val <= 127))
-						cmd = REL_UDEFB;
-					if (cmd == REL_UDEFB) {
-						write_byte(cmd);
-						write_byte(cval);
-					} else {
-						write_byte(cmd);
-						write_word(val);
-					}
-					break;
-				case REL_SYMBOL:
-					write_byte(cmd);
-					write_byte(lenname(val));
-					foutname(val);
-					break;
-				case REL_CODEDEF:
-				case REL_DATADEF:
-				case REL_UDEFDEF:
-					p = &name[val * NLAST];
-					write_byte(cmd);
-					write_word(p[NVALUE]);
-					cval = lenname(val);
 					write_byte(cval);
-					foutname(val);
-					break;
-				case REL_CODEORG:
-				case REL_DATAORG:
-				case REL_UDEFORG:
-				case REL_DSB:
+				} else {
 					write_byte(cmd);
 					write_word(val);
-					break;
-				default:
-					printf("unimplemented OBJECT cmd: %d\n", cmd);
-					exit(1);
-					break;
+				}
+				break;
+			case REL_CODEB:
+			case REL_CODEW:
+				if ((val >= -128) && (val <= 127))
+					cmd = REL_CODEB;
+				if (cmd == REL_CODEB) {
+					write_byte(cmd);
+					write_byte(cval);
+				} else {
+					write_byte(cmd);
+					write_word(val);
+				}
+				break;
+			case REL_DATAB:
+			case REL_DATAW:
+				if ((val >= -128) && (val <= 127))
+					cmd = REL_DATAB;
+				if (cmd == REL_DATAB) {
+					write_byte(cmd);
+					write_byte(cval);
+				} else {
+					write_byte(cmd);
+					write_word(val);
+				}
+				break;
+			case REL_TEXTB:
+			case REL_TEXTW:
+				if ((val >= -128) && (val <= 127))
+					cmd = REL_TEXTB;
+				if (cmd == REL_TEXTB) {
+					write_byte(cmd);
+					write_byte(cval);
+				} else {
+					write_byte(cmd);
+					write_word(val);
+				}
+				break;
+			case REL_UDEFB:
+			case REL_UDEFW:
+				if ((val >= -128) && (val <= 127))
+					cmd = REL_UDEFB;
+				if (cmd == REL_UDEFB) {
+					write_byte(cmd);
+					write_byte(cval);
+				} else {
+					write_byte(cmd);
+					write_word(val);
+				}
+				break;
+			case REL_SYMBOL:
+				write_byte(cmd);
+				write_byte(lenname(val));
+				foutname(val);
+				break;
+			case REL_CODEDEF:
+			case REL_DATADEF:
+			case REL_TEXTDEF:
+			case REL_UDEFDEF:
+				p = &name[val * NLAST];
+				write_byte(cmd);
+				write_word(p[NVALUE]);
+				cval = lenname(val);
+				write_byte(cval);
+				foutname(val);
+				break;
+			case REL_CODEORG:
+			case REL_DATAORG:
+			case REL_TEXTORG:
+			case REL_UDEFORG:
+			case REL_DSB:
+				write_byte(cmd);
+				write_word(val);
+				break;
+			default:
+				printf("unimplemented OBJECT cmd: %d\n", cmd);
+				exit(1);
+				break;
 			}
 		else {
 			switch (cmd) {
+			case REL_END: fprintf(outhdl, "END\n", val); break;
 			case REL_ADD: fprintf(outhdl, "ADD\n"); break;
 			case REL_SUB: fprintf(outhdl, "SUB\n"); break;
 			case REL_MUL: fprintf(outhdl, "MUL\n"); break;
@@ -1045,18 +1064,20 @@ sto_cmd(int cmd, int val) {
 			case REL_SWAP: fprintf(outhdl, "SWAP\n"); break;
 			case REL_POPB: fprintf(outhdl, "POPB\n"); break;
 			case REL_POPW: fprintf(outhdl, "POPW\n"); break;
-			case REL_PUSHW: fprintf(outhdl, "PUSHW %d\n", val); break;
 			case REL_PUSHB: fprintf(outhdl, "PUSHB %d\n", val); break;
-			case REL_CODEW: fprintf(outhdl, "CODEW %d\n", val); break;
+			case REL_PUSHW: fprintf(outhdl, "PUSHW %d\n", val); break;
 			case REL_CODEB: fprintf(outhdl, "CODEB %d\n", val); break;
-			case REL_DATAW: fprintf(outhdl, "DATAW %d\n", val); break;
+			case REL_CODEW: fprintf(outhdl, "CODEW %d\n", val); break;
 			case REL_DATAB: fprintf(outhdl, "DATAB %d\n", val); break;
-			case REL_UDEFW: fprintf(outhdl, "UDEFW %d\n", val); break;
+			case REL_DATAW: fprintf(outhdl, "DATAW %d\n", val); break;
+			case REL_TEXTB: fprintf(outhdl, "TEXTB %d\n", val); break;
+			case REL_TEXTW: fprintf(outhdl, "TEXTW %d\n", val); break;
 			case REL_UDEFB: fprintf(outhdl, "UDEFB %d\n", val); break;
+			case REL_UDEFW: fprintf(outhdl, "UDEFW %d\n", val); break;
 			case REL_DSB: fprintf(outhdl, "DSB %d\n", val); break;
-			case REL_END: fprintf(outhdl, "END\n", val); break;
 			case REL_CODEORG: fprintf(outhdl, "CODEORG %d\n", val); break;
 			case REL_DATAORG: fprintf(outhdl, "DATAORG %d\n", val); break;
+			case REL_TEXTORG: fprintf(outhdl, "TEXTORG %d\n", val); break;
 			case REL_UDEFORG: fprintf(outhdl, "UDEFORG %d\n", val); break;
 			case REL_SYMBOL:
 				fprintf(outhdl, "SYMBOL ");
@@ -1072,6 +1093,12 @@ sto_cmd(int cmd, int val) {
 			case REL_DATADEF:
 				p = &name[val * NLAST];
 				fprintf(outhdl, "DATADEF %d,", p[NVALUE]);
+				foutname(val);
+				fprintf(outhdl, "\n", 0);
+				break;
+			case REL_TEXTDEF:
+				p = &name[val * NLAST];
+				fprintf(outhdl, "TEXTDEF %d,", p[NVALUE]);
 				foutname(val);
 				fprintf(outhdl, "\n", 0);
 				break;

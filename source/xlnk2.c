@@ -40,6 +40,8 @@ objerr(register int *fp, char *msg, int curseg) {
 		printf("C%04x", fp[FCODEPOS]);
 	else if (curseg == DATASEG)
 		printf("D%04x", fp[FDATAPOS]);
+	else if (curseg == TEXTSEG)
+		printf("D%04x", fp[FTEXTPOS]);
 	else
 		printf("U%04x", fp[FUDEFPOS]);
 	printf(" in %s\n", inpfn);
@@ -60,6 +62,8 @@ save_seg_size(register int *fp) {
 		fp[FCODELEN] = fp[FCODEPOS];
 	if (unsigned_GT(fp[FDATAPOS], fp[FDATALEN]))
 		fp[FDATALEN] = fp[FDATAPOS];
+	if (unsigned_GT(fp[FTEXTPOS], fp[FTEXTLEN]))
+		fp[FTEXTLEN] = fp[FTEXTPOS];
 	if (unsigned_GT(fp[FUDEFPOS], fp[FUDEFLEN]))
 		fp[FUDEFLEN] = fp[FUDEFPOS];
 }
@@ -112,9 +116,10 @@ dopass1(int fileid, int libid, int libofs) {
 	fp[FFILE] = fileid;
 	fp[FLIB] = libid;
 	fp[FOFFSET] = libofs;
-	fp[FCODEPOS] = fp[FDATAPOS] = fp[FUDEFPOS] = 0;
-	fp[FCODELEN] = fp[FDATALEN] = fp[FUDEFLEN] = 0;
-	fp[FCODEBASE] = fp[FDATABASE] = fp[FUDEFBASE] = 0;
+	fp[FCODEBASE] = fp[FCODEPOS] = fp[FCODELEN] = 0;
+	fp[FDATABASE] = fp[FDATAPOS] = fp[FDATALEN] = 0;
+	fp[FTEXTBASE] = fp[FTEXTPOS] = fp[FTEXTLEN] = 0;
+	fp[FUDEFBASE] = fp[FUDEFPOS] = fp[FUDEFLEN] = 0;
 
 	curseg = CODESEG;
 	if (verbose) {
@@ -135,135 +140,152 @@ dopass1(int fileid, int libid, int libofs) {
 				fp[FCODEPOS] += datlen;
 			else if (curseg == DATASEG)
 				fp[FDATAPOS] += datlen;
+			else if (curseg == TEXTSEG)
+				fp[FTEXTPOS] += datlen;
 			else
 				fp[FUDEFPOS] += datlen;
 		} else {
 			switch (cmd) {
-				case REL_ADD:
-				case REL_SUB:
-				case REL_MUL:
-				case REL_DIV:
-				case REL_MOD:
-				case REL_LSR:
-				case REL_LSL:
-				case REL_XOR:
-				case REL_AND:
-				case REL_OR:
-				case REL_NOT:
-				case REL_NEG:
-				case REL_SWAP:
-					// skip basic stack operations
-					break;
-				case REL_PUSHB:
-				case REL_CODEB:
-				case REL_DATAB:
-				case REL_UDEFB:
-					// skip byte length stack operations
-					read_byte();
-					break;
-				case REL_PUSHW:
-				case REL_CODEW:
-				case REL_DATAW:
-				case REL_UDEFW:
-					// skip BPW length stack operations
-					read_word();
-					break;
-				case REL_SYMBOL:
-					// Push symbol value on stack
-					datlen = read_byte(); // length
-					fread(datbuf, 1, datlen, inphdl); // symbol
-					datbuf[datlen] = 0;
-					dohash(datbuf, &hash);
-					p = &name[hash * NLAST];
-					if (!p[NTYPE])
-						p[NTYPE] = UNDEF;
-					if (debug)
-						printf("SYMBOL: %s\n", datbuf);
-					break;
-				case REL_POPB:
-					// increase curpos with 1
-					if (curseg == CODESEG)
-						fp[FCODEPOS] += 1;
-					else if (curseg == DATASEG)
-						fp[FDATAPOS] += 1;
-					else
-						fp[FUDEFPOS] += 1;
-					break;
-				case REL_POPW:
-					// increase curpos with BPW
-					if (curseg == CODESEG)
-						fp[FCODEPOS] += BPW;
-					else if (curseg == DATASEG)
-						fp[FDATAPOS] += BPW;
-					else
-						fp[FUDEFPOS] += BPW;
-					break;
-				case REL_DSB:
-					// skip specified number of bytes in current segment
-					symofs = read_word(); // skipcount
-					if (curseg == CODESEG)
-						fp[FCODEPOS] += symofs;
-					else if (curseg == DATASEG)
-						fp[FDATAPOS] += symofs;
-					else
-						fp[FUDEFPOS] += symofs;
-					break;
-				case REL_END:
-					save_seg_size(fp);
-					return;
-				case REL_CODEDEF:
-				case REL_DATADEF:
-				case REL_UDEFDEF:
-					// symbol definition
-					if (cmd == REL_CODEDEF)
-						symseg = CODE;
-					else if (cmd == REL_DATADEF)
-						symseg = DATA;
-					else
-						symseg = UDEF;
-					symofs = read_word(); // symbol offset
-					datlen = read_byte(); // length
-					fread(datbuf, 1, datlen, inphdl); // symbol
-					datbuf[datlen] = 0;
-					dohash(datbuf, &hash);
-					p = &name[hash * NLAST];
-					if (!p[NTYPE])
-						p[NTYPE] = UNDEF;
-					if (p[NTYPE] == UNDEF) {
-						// new symbol
-						p[NTYPE] = symseg;
-						p[NMODULE] = file2inx - 1;
-						p[NVALUE] = symofs;
-					} else {
-						printf("Symbol '%s' doubly defined", datbuf);
-						objerr(fp, "", symseg);
-					}
-					if (debug)
-						printf("SYMDEF: %s %d:%d\n", datbuf, symseg, symofs);
-					break;
-				case REL_CODEORG:
-				case REL_DATAORG:
-				case REL_UDEFORG:
-					symofs = read_word(); // segment offset
-					save_seg_size(fp);
-					if (cmd == REL_CODEORG) {
-						curseg = CODESEG;
-						fp[FCODEPOS] = symofs;
-					} else if (cmd == REL_DATAORG) {
-						curseg = DATASEG;
-						fp[FDATAPOS] = symofs;
-					} else {
-						curseg = UDEFSEG;
-						fp[FUDEFPOS] = symofs;
-					}
-					if (debug)
-						printf("ORG: %d:%d\n", curseg, symofs);
-					break;
-				default:
-					printf("unknown command %d", cmd);
-					objerr(fp, "", curseg);
-					exit(1);
-					break;
+			case REL_ADD:
+			case REL_SUB:
+			case REL_MUL:
+			case REL_DIV:
+			case REL_MOD:
+			case REL_LSR:
+			case REL_LSL:
+			case REL_XOR:
+			case REL_AND:
+			case REL_OR:
+			case REL_NOT:
+			case REL_NEG:
+			case REL_SWAP:
+				// skip basic stack operations
+				break;
+			case REL_PUSHB:
+			case REL_CODEB:
+			case REL_DATAB:
+			case REL_TEXTB:
+			case REL_UDEFB:
+				// skip byte length stack operations
+				read_byte();
+				break;
+			case REL_PUSHW:
+			case REL_CODEW:
+			case REL_DATAW:
+			case REL_TEXTW:
+			case REL_UDEFW:
+				// skip BPW length stack operations
+				read_word();
+				break;
+			case REL_SYMBOL:
+				// Push symbol value on stack
+				datlen = read_byte(); // length
+				fread(datbuf, 1, datlen, inphdl); // symbol
+				datbuf[datlen] = 0;
+				dohash(datbuf, &hash);
+				p = &name[hash * NLAST];
+				if (!p[NTYPE])
+					p[NTYPE] = UNDEF;
+				if (debug)
+					printf("SYMBOL: %s\n", datbuf);
+				break;
+			case REL_POPB:
+				// increase curpos with 1
+				if (curseg == CODESEG)
+					fp[FCODEPOS] += 1;
+				else if (curseg == DATASEG)
+					fp[FDATAPOS] += 1;
+				else if (curseg == TEXTSEG)
+					fp[FTEXTPOS] += 1;
+				else
+					fp[FUDEFPOS] += 1;
+				break;
+			case REL_POPW:
+				// increase curpos with BPW
+				if (curseg == CODESEG)
+					fp[FCODEPOS] += BPW;
+				else if (curseg == DATASEG)
+					fp[FDATAPOS] += BPW;
+				else if (curseg == TEXTSEG)
+					fp[FTEXTPOS] += BPW;
+				else
+					fp[FUDEFPOS] += BPW;
+				break;
+			case REL_DSB:
+				// skip specified number of bytes in current segment
+				symofs = read_word(); // skipcount
+				if (curseg == CODESEG)
+					fp[FCODEPOS] += symofs;
+				else if (curseg == DATASEG)
+					fp[FDATAPOS] += symofs;
+				else if (curseg == TEXTSEG)
+					fp[FTEXTPOS] += symofs;
+				else
+					fp[FUDEFPOS] += symofs;
+				break;
+			case REL_END:
+				save_seg_size(fp);
+				return;
+			case REL_CODEDEF:
+			case REL_DATADEF:
+			case REL_TEXTDEF:
+			case REL_UDEFDEF:
+				// symbol definition
+				if (cmd == REL_CODEDEF)
+					symseg = CODE;
+				else if (cmd == REL_DATADEF)
+					symseg = DATA;
+				else if (cmd == REL_TEXTDEF)
+					symseg = TEXT;
+				else
+					symseg = UDEF;
+				symofs = read_word(); // symbol offset
+				datlen = read_byte(); // length
+				fread(datbuf, 1, datlen, inphdl); // symbol
+				datbuf[datlen] = 0;
+				dohash(datbuf, &hash);
+				p = &name[hash * NLAST];
+				if (!p[NTYPE])
+					p[NTYPE] = UNDEF;
+				if (p[NTYPE] == UNDEF) {
+					// new symbol
+					p[NTYPE] = symseg;
+					p[NMODULE] = file2inx - 1;
+					p[NVALUE] = symofs;
+				} else {
+					printf("Symbol '%s' doubly defined", datbuf);
+					objerr(fp, "", symseg);
+				}
+				if (debug)
+					printf("SYMDEF: %s %d:%d\n", datbuf, symseg, symofs);
+				break;
+			case REL_CODEORG:
+			case REL_DATAORG:
+			case REL_TEXTORG:
+			case REL_UDEFORG:
+				symofs = read_word(); // segment offset
+				save_seg_size(fp);
+				if (cmd == REL_CODEORG) {
+					curseg = CODESEG;
+					fp[FCODEPOS] = symofs;
+				} else if (cmd == REL_DATAORG) {
+					curseg = DATASEG;
+					fp[FDATAPOS] = symofs;
+				} else if (cmd == REL_TEXTORG) {
+					curseg = TEXTSEG;
+					fp[FTEXTPOS] = symofs;
+				} else {
+					curseg = UDEFSEG;
+					fp[FUDEFPOS] = symofs;
+				}
+				if (debug)
+					printf("ORG: %d:%d\n", curseg, symofs);
+				break;
+			default:
+				printf("unknown command %d", cmd);
+				objerr(fp, "", curseg);
+				exit(1);
+				break;
 			}
 		}
 	}
@@ -298,6 +320,8 @@ dopass2(register int *fp) {
 				fp[FCODEPOS] += datlen;
 			else if (curseg == DATASEG)
 				fp[FDATAPOS] += datlen;
+			else if (curseg == TEXTSEG)
+				fp[FTEXTPOS] += datlen;
 			else {
 				objerr(fp, "data in UDEF segment", curseg);
 				exit(1);
@@ -371,6 +395,7 @@ dopass2(register int *fp) {
 				case REL_PUSHB:
 				case REL_CODEB:
 				case REL_DATAB:
+				case REL_TEXTB:
 				case REL_UDEFB:
 					val = read_byte();
 					if (cmd == REL_PUSHB)
@@ -379,6 +404,8 @@ dopass2(register int *fp) {
 						stack[stackinx] = fp[FCODEBASE] + val;
 					else if (cmd == REL_DATAB)
 						stack[stackinx] = fp[FDATABASE] + val;
+					else if (cmd == REL_TEXTB)
+						stack[stackinx] = fp[FTEXTBASE] + val;
 					else
 						stack[stackinx] = fp[FUDEFBASE] + val;
 					stackinx += 1;
@@ -387,6 +414,7 @@ dopass2(register int *fp) {
 				case REL_PUSHW:
 				case REL_CODEW:
 				case REL_DATAW:
+				case REL_TEXTW:
 				case REL_UDEFW:
 					val = read_word();
 					if (cmd == REL_PUSHW)
@@ -395,6 +423,8 @@ dopass2(register int *fp) {
 						stack[stackinx] = fp[FCODEBASE] + val;
 					else if (cmd == REL_DATAW)
 						stack[stackinx] = fp[FDATABASE] + val;
+					else if (cmd == REL_TEXTW)
+						stack[stackinx] = fp[FTEXTBASE] + val;
 					else
 						stack[stackinx] = fp[FUDEFBASE] + val;
 					stackinx += 1;
@@ -423,6 +453,8 @@ dopass2(register int *fp) {
 						fp[FCODEPOS] += 1;
 					else if (curseg == DATASEG)
 						fp[FDATAPOS] += 1;
+					else if (curseg == TEXTSEG)
+						fp[FTEXTPOS] += 1;
 					else {
 						objerr(fp, "data in UDEF segment", curseg);
 						exit(1);
@@ -439,6 +471,8 @@ dopass2(register int *fp) {
 						fp[FCODEPOS] += BPW;
 					else if (curseg == DATASEG)
 						fp[FDATAPOS] += BPW;
+					else if (curseg == TEXTSEG)
+						fp[FTEXTPOS] += BPW;
 					else {
 						objerr(fp, "data in UDEF segment", curseg);
 						exit(1);
@@ -452,6 +486,9 @@ dopass2(register int *fp) {
 						i = symofs;
 					} else if (curseg == DATASEG) {
 						fp[FDATAPOS] += symofs;
+						i = symofs;
+					} else if (curseg == TEXTSEG) {
+						fp[FTEXTPOS] += symofs;
 						i = symofs;
 					} else {
 						fp[FUDEFPOS] += symofs;
@@ -476,6 +513,7 @@ dopass2(register int *fp) {
 					return;
 				case REL_CODEDEF:
 				case REL_DATADEF:
+				case REL_TEXTDEF:
 				case REL_UDEFDEF:
 					// symbol definition (skipped in pass2)
 					symofs = read_word() & 0xffff; // symbol offset
@@ -484,6 +522,7 @@ dopass2(register int *fp) {
 					break;
 				case REL_CODEORG:
 				case REL_DATAORG:
+				case REL_TEXTORG:
 				case REL_UDEFORG:
 					symofs = read_word(); // segment offset
 					if (cmd == REL_CODEORG) {
@@ -494,6 +533,10 @@ dopass2(register int *fp) {
 						curseg = DATASEG;
 						fp[FDATAPOS] = symofs;
 						i = fp[FDATABASE] + symofs;
+					} else if (cmd == REL_TEXTORG) {
+						curseg = TEXTSEG;
+						fp[FTEXTPOS] = symofs;
+						i = fp[FTEXTBASE] + symofs;
 					} else {
 						curseg = UDEFSEG;
 						fp[FUDEFPOS] = symofs;
@@ -548,12 +591,25 @@ doreloc() {
 
 	dohash("___DATALEN", &hash);
 	name[hash * NLAST + NVALUE] = curlen;
-	dohash("___UDEFBASE", &hash);
+	dohash("___TEXTBASE", &hash);
 	name[hash * NLAST + NVALUE] = curpos;
 	curlen = 0;
 
-	// page align UDEF segment
-	curpos = (curpos + 0x01FF) & ~0x01FF;
+	// relocate TEXT
+	for (i = 0; i < file2inx; i++) {
+		p = &file2[i * FLAST];
+		if (p[FFILE] != -1) {
+			p[FTEXTBASE] = curpos;
+			curpos += p[FTEXTLEN];
+			curlen += p[FTEXTLEN];
+		}
+	}
+
+	dohash("___TEXTLEN", &hash);
+	name[hash * NLAST + NVALUE] = curlen;
+	dohash("___UDEFBASE", &hash);
+	name[hash * NLAST + NVALUE] = curpos;
+	curlen = 0;
 
 	// relocate UDEF
 	for (i = 0; i < file2inx; i++) {
@@ -580,6 +636,8 @@ doreloc() {
 			p[NVALUE] += file2[p[NMODULE] * FLAST + FCODEBASE];
 		else if (p[NTYPE] == DATA)
 			p[NVALUE] += file2[p[NMODULE] * FLAST + FDATABASE];
+		else if (p[NTYPE] == TEXT)
+			p[NVALUE] += file2[p[NMODULE] * FLAST + FTEXTBASE];
 		else if (p[NTYPE] == UDEF)
 			p[NVALUE] += file2[p[NMODULE] * FLAST + FUDEFBASE];
 	}

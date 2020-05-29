@@ -227,6 +227,7 @@ do_add() {
 			case REL_PUSHB:
 			case REL_CODEB:
 			case REL_DATAB:
+			case REL_TEXTB:
 			case REL_UDEFB:
 				read_byte();
 				objlen += 2;
@@ -234,6 +235,7 @@ do_add() {
 			case REL_PUSHW:
 			case REL_CODEW:
 			case REL_DATAW:
+			case REL_TEXTW:
 			case REL_UDEFW:
 				read_word();
 				objlen += BPW + 1;
@@ -254,6 +256,7 @@ do_add() {
 				break;
 			case REL_CODEDEF:
 			case REL_DATADEF:
+			case REL_TEXTDEF:
 			case REL_UDEFDEF:
 				// symbol definition
 				read_word(); // symbol offset
@@ -280,6 +283,7 @@ do_add() {
 				break;
 			case REL_CODEORG:
 			case REL_DATAORG:
+			case REL_TEXTORG:
 			case REL_UDEFORG:
 				read_word(); // segment offset
 				objlen += 1 + BPW;

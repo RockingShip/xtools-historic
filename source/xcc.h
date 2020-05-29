@@ -172,8 +172,10 @@ enum {
 
 enum {
 	CODESEG = 1,
-	DATASEG = 2,
-	UDEFSEG = 3,
+	DATASEG,
+	TEXTSEG,
+	UDEFSEG,
+	LASTSEG,
 };
 
 /*
@@ -251,8 +253,6 @@ EXTERN int
 	inphdl,			// handle for .C file
 	inplnr,			// Linenumber of .C file
 	lishdl,			// handle for .LIS file
-	litinx,			// Index to next entry
-	litq[LITMAX],
 	mac[MACMAX*MLAST],
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq

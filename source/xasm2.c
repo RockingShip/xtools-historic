@@ -253,6 +253,8 @@ save_seg_size() {
 		maxpos[CODESEG] = curpos[CODESEG];
 	if (unsigned_GT(curpos[DATASEG], maxpos[DATASEG]))
 		maxpos[DATASEG] = curpos[DATASEG];
+	if (unsigned_GT(curpos[TEXTSEG], maxpos[TEXTSEG]))
+		maxpos[TEXTSEG] = curpos[TEXTSEG];
 	if (unsigned_GT(curpos[UDEFSEG], maxpos[UDEFSEG]))
 		maxpos[UDEFSEG] = curpos[UDEFSEG];
 
@@ -270,6 +272,10 @@ do_pseudo(register int p[]) {
 	case PSEUDO_DATA:
 		curseg = DATASEG;
 		sto_cmd(REL_DATAORG, curpos[DATASEG]);
+		break;
+	case PSEUDO_TEXT:
+		curseg = TEXTSEG;
+		sto_cmd(REL_TEXTORG, curpos[TEXTSEG]);
 		break;
 	case PSEUDO_UDEF:
 		curseg = UDEFSEG;
@@ -298,7 +304,10 @@ do_pseudo(register int p[]) {
 				}
 				gch(); // skip terminator
 			} else {
-				expression(lval);
+				// get an expression
+				if (!hier1(lval))
+					break;
+
 				if (pass == 2) {
 					if (lval[LTYPE] != CONSTANT) {
 						loadlval(lval);
@@ -333,6 +342,9 @@ do_pseudo(register int p[]) {
 			case DATA:
 				curseg = DATASEG;
 				break;
+			case TEXT:
+				curseg = TEXTSEG;
+				break;
 			case UDEF:
 				curseg = UDEFSEG;
 				break;
@@ -347,6 +359,9 @@ do_pseudo(register int p[]) {
 				break;
 			case DATASEG:
 				sto_cmd(REL_DATAORG, curpos[curseg]);
+				break;
+			case TEXTSEG:
+				sto_cmd(REL_TEXTORG, curpos[curseg]);
 				break;
 			case UDEFSEG:
 				sto_cmd(REL_UDEFORG, curpos[curseg]);
@@ -407,6 +422,9 @@ parse() {
 					} else if (curseg == DATASEG) {
 						p[NTYPE] = DATA;
 						p[NVALUE] = curpos[DATASEG];
+					} else if (curseg == TEXTSEG) {
+						p[NTYPE] = TEXT;
+						p[NVALUE] = curpos[TEXTSEG];
 					} else if (curseg == UDEFSEG) {
 						p[NTYPE] = UDEF;
 						p[NVALUE] = curpos[UDEFSEG];
@@ -436,6 +454,7 @@ parse() {
 			case ABS:
 			case CODE:
 			case DATA:
+			case TEXT:
 			case UDEF:
 				if (match(":")) {
 					ext = match(":");
@@ -457,6 +476,14 @@ parse() {
 								error("phase error");
 						if (ext && (pass == 2))
 							sto_cmd(REL_DATADEF, hash);
+					} else if (p[NTYPE] == TEXT) {
+						if ((curseg != TEXTSEG) || (p[NVALUE] != curpos[TEXTSEG]))
+							if (pass == 1)
+								error("multiply defined");
+							else
+								error("phase error");
+						if (ext && (pass == 2))
+							sto_cmd(REL_TEXTDEF, hash);
 					} else if (p[NTYPE] == UDEF) {
 						if ((curseg != UDEFSEG) || (p[NVALUE] != curpos[UDEFSEG]))
 							if (pass == 1)

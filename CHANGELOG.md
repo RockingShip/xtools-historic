@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-05-28 21:48:47 Support for and convert to ".TEXT" segment for strings.
+                    Finally making string array initialisers possible.
+                    Re-enumerated `REL_*` id's
 2020-05-28 16:24:48 Upgraded `syms[]` to offload conversions in `primary()`.
                     More simple and logical design.
                     Added extra code for debugging.

@@ -470,15 +470,15 @@ step(register int pre, register int lval[], register int post) {
 doasm(register int lval[]) {
 	needtoken("(");
 
-	if (!qstr()) {
+	if (!match("\"")) {
 		error("string expected");
 	} else {
-		register int i;
-
 		fputc('\t', outhdl);
-		for (i = 0; i < litinx - 1; i++) // one less for trailing zero
-			fputc(litq[i], outhdl);
+		while (ch && (ch != '"'))
+			fputc(litchar(), outhdl);
 		fputc('\n', outhdl);
+
+		gch(); // skip terminator
 	}
 
 	blanks();
@@ -1021,25 +1021,54 @@ constant(register int lval[]) {
 
 	if (number(&lval[LVALUE]))
 		return 1;
-	if (pstr(&lval[LVALUE]))
-		return 1;
-	if (qstr()) {
-		// Convert to char pointer
-		lval[LTYPE] = ARRAY;
-		lval[LPTR] = 1;
-		lval[LSIZE] = 1;
-		lval[LEA] = EA_ADDR;
-		lval[LNAME] = - ++nxtlabel;
-		lval[LVALUE] = 0;
-		lval[LREG] = 0;
-		// Generate data
-		toseg(DATASEG);
-		fprintf(outhdl, "_%d:", - lval[LNAME]);
-		dumplits(1);
-		toseg(prevseg);
+
+	// character
+	if (match("'")) {
+		register int i;
+
+		i = 0;
+		while (ch && (ch != '\''))
+			i = (i << 8) + litchar();
+		gch();
+
+		lval[LVALUE] = i;
 		return 1;
 	}
-	return 0;
+
+	// start of string
+	if (!match("\""))
+		return 0;
+
+	int lbl, prevseg;
+	lbl = ++nxtlabel;
+	prevseg = currseg;
+
+	toseg(TEXTSEG);
+	fprintf(outhdl, "_%d:\t.DCB\t\"", lbl);
+
+	while (ch && (ch != '"')) {
+		if (ch == '\\') {
+			fputc(ch, outhdl);
+			gch();
+		}
+		fputc(ch, outhdl);
+		gch();
+	}
+	fprintf(outhdl, "\",0\n");
+	gch(); // skip terminator
+
+	toseg(prevseg);
+
+	// Convert to array of char
+	lval[LTYPE] = ARRAY;
+	lval[LPTR] = 1;
+	lval[LSIZE] = 1;
+	lval[LEA] = EA_ADDR;
+	lval[LNAME] = -lbl;
+	lval[LVALUE] = 0;
+	lval[LREG] = 0;
+
+	return 1;
 }
 
 /*
@@ -1068,37 +1097,6 @@ number(register int *val) {
 			i = i * 10 + (gch() - '0');
 	}
 	*val = i;
-	return 1;
-}
-
-/*
- * Get a character constant
- */
-pstr(int *val) {
-	register int i;
-
-	i = 0;
-	if (!match("'"))
-		return 0;
-	while (ch && (ch != '\''))
-		i = (i << 8) + litchar();
-	gch();
-	*val = i;
-	return 1;
-}
-
-/* 
- * Get a string constant
- */
-qstr() {
-	if (!match("\""))
-		return 0;
-
-	litinx = 0;
-	while (ch && (ch != '"'))
-		addlits(litchar(), 1);
-	gch(); // skip terminator
-	addlits(0, 1);
 	return 1;
 }
 
@@ -1138,50 +1136,4 @@ litchar() {
 		++i;
 	}
 	return i ? oct : gch();
-}
-
-/*
- * Add a value to the literal pool
- */
-addlits(register int val, register int size) {
-	if (size == BPW) {
-		litq[litinx++] = val >> 8;
-		if (litinx >= LITMAX)
-			fatal("Literal queue overflow");
-	}
-	litq[litinx++] = val;
-	if (litinx >= LITMAX)
-		fatal("Literal queue overflow");
-}
-
-/*
- * dump the literal pool
- */
-dumplits(int size) {
-	register int i, j;
-
-	if (!litinx)
-		return;
-
-	i = 0;
-	while (i < litinx) {
-		if (size == 1)
-			fprintf(outhdl, "\t.DCB ");
-		else
-			fprintf(outhdl, "\t.DCW ");
-
-		for (j = 0; j < 16; j++) {
-			if (size == 1)
-				fprintf(outhdl, "%d", (i >= litinx) ? 0 : litq[i]);
-			else
-				fprintf(outhdl, "%d", (i >= litinx) ? 0 : ((litq[i + 0] << 8) | (litq[i + 1] & 0xff)));
-			i += size;
-			if (i >= litinx)
-				break;
-			if (j != 15)
-				fprintf(outhdl, ",");
-		}
-		fprintf(outhdl, "\n");
-	}
-	litinx = 0;
 }
