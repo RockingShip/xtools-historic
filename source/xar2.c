@@ -39,7 +39,7 @@ objmap() {
 	printf("id       filename          offset       length   \n");
 	printf("-- -------------------- ------------ ------------\n");
 
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		printf("%2d ", i + 1);
 		len = outname(p[FNAME]);
@@ -54,7 +54,7 @@ symmap(register int start) {
 	register int ch, *p, hash, tab;
 
 	tab = (!start) ? 0 : start;
-	for (ch = '!'; ch <= '~'; ch++) {
+	for (ch = '!'; ch <= '~'; ++ch) {
 		hash = (start + ch * ch) % olbhdr[HNAME];
 		while (1) {
 			p = &name[hash * NLAST];
@@ -133,17 +133,17 @@ do_cre() {
 	olbhdr[HNAME] = NAMEMAX;
 	olbhdr[HFILE] = 0;
 	// Initialize nametable
-	for (i = 0; i < NAMEMAX; i++)
+	for (i = 0; i < NAMEMAX; ++i)
 		name[i * NLAST + NLIB] = -1;
 
 	// open outputfile
 	unlink(outfn);
-	outhdl = mustopen(outfn, "w");
+	outhdl = open_file(outfn, "w");
 
 	// Writeout
-	for (i = 0; i < HLAST; i++)
+	for (i = 0; i < HLAST; ++i)
 		write_word(olbhdr[i]);
-	for (i = 0; i < olbhdr[HNAME] * NLAST; i++)
+	for (i = 0; i < olbhdr[HNAME] * NLAST; ++i)
 		write_word(name[i]);
 
 	// close and rename
@@ -166,12 +166,12 @@ do_add() {
 
 	// first delete any existing occurrences
 	dohash(modn, &hash);
-	for (objinx = 0; objinx < olbhdr[HFILE]; objinx++)
+	for (objinx = 0; objinx < olbhdr[HFILE]; ++objinx)
 		if (file[objinx * FLAST + FNAME] == hash)
 			break;
 	if (objinx < olbhdr[HFILE]) {
 		// found existing entry, overwrite
-		for (i = 0; i < olbhdr[HNAME]; i++) {
+		for (i = 0; i < olbhdr[HNAME]; ++i) {
 			p = &name[i * NLAST];
 			if (p[NLIB] == objinx)
 				p[NLIB] = -1;
@@ -193,7 +193,7 @@ do_add() {
 	}
 
 	// open objectfile
-	objhdl = mustopen(objfn, "r");
+	objhdl = open_file(objfn, "r");
 
 	// read object, calc length and insert all found symbols
 	error = 0;
@@ -303,7 +303,7 @@ do_add() {
 	olblen = (HLAST * BPW) +
 		 (olbhdr[HNAME] * NLAST * BPW) +
 		 (olbhdr[HFILE] * FLAST * BPW);
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		p[FOFFSET] = olblen;
 		olblen += p[FLENGTH];
@@ -319,18 +319,18 @@ do_add() {
 
 	// build new library
 	unlink(outfn);
-	outhdl = mustopen(outfn, "w");
+	outhdl = open_file(outfn, "w");
 
 	// Writeout
-	for (i = 0; i < HLAST; i++)
+	for (i = 0; i < HLAST; ++i)
 		write_word(olbhdr[i]);
-	for (i = 0; i < olbhdr[HNAME] * NLAST; i++)
+	for (i = 0; i < olbhdr[HNAME] * NLAST; ++i)
 		write_word(name[i]);
-	for (i = 0; i < olbhdr[HFILE] * FLAST; i++)
+	for (i = 0; i < olbhdr[HFILE] * FLAST; ++i)
 		write_word(file[i]);
 
 	// copy objects and append new object
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		if (p[FOLDOFS])
 			copy_obj(olbhdl, p[FOLDOFS], p[FLENGTH]);
@@ -355,7 +355,7 @@ do_del() {
 
 	// locate module in filetable
 	dohash(modn, &hash);
-	for (objinx = 0; objinx < olbhdr[HFILE]; objinx++)
+	for (objinx = 0; objinx < olbhdr[HFILE]; ++objinx)
 		if (file[objinx * FLAST + FNAME] == hash)
 			break;
 	if (objinx >= olbhdr[HFILE]) {
@@ -364,7 +364,7 @@ do_del() {
 	}
 
 	// remove all symbol references
-	for (i = 0; i < olbhdr[HNAME]; i++) {
+	for (i = 0; i < olbhdr[HNAME]; ++i) {
 		p = &name[i * NLAST];
 		if (p[NLIB] == objinx)
 			p[NLIB] = -1;
@@ -373,7 +373,7 @@ do_del() {
 	}
 
 	// remove fileentry
-	for (i = objinx; i < olbhdr[HFILE]; i++) {
+	for (i = objinx; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		p[FNAME] = p[FNAME + FLAST];
 		p[FOLDOFS] = p[FOLDOFS + FLAST];
@@ -385,7 +385,7 @@ do_del() {
 	olblen = (HLAST * BPW) +
 		 (olbhdr[HNAME] * NLAST * BPW) +
 		 (olbhdr[HFILE] * FLAST * BPW);
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		p[FOFFSET] = olblen;
 		olblen += p[FLENGTH];
@@ -393,18 +393,18 @@ do_del() {
 
 	// build new library
 	unlink(outfn);
-	outhdl = mustopen(outfn, "w");
+	outhdl = open_file(outfn, "w");
 
 	// Writeout
-	for (i = 0; i < HLAST; i++)
+	for (i = 0; i < HLAST; ++i)
 		write_word(olbhdr[i]);
-	for (i = 0; i < olbhdr[HNAME] * NLAST; i++)
+	for (i = 0; i < olbhdr[HNAME] * NLAST; ++i)
 		write_word(name[i]);
-	for (i = 0; i < olbhdr[HFILE] * FLAST; i++)
+	for (i = 0; i < olbhdr[HFILE] * FLAST; ++i)
 		write_word(file[i]);
 
 	// copy objects and append new object
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		copy_obj(olbhdl, p[FOLDOFS], p[FLENGTH]);
 	}
@@ -426,7 +426,7 @@ do_ext() {
 
 	// locate module in filetable
 	dohash(modn, &hash);
-	for (objinx = 0; objinx < olbhdr[HFILE]; objinx++) {
+	for (objinx = 0; objinx < olbhdr[HFILE]; ++objinx) {
 		p = &file[objinx * FLAST];
 		if (p[FNAME] == hash)
 			break;
@@ -437,7 +437,7 @@ do_ext() {
 	}
 
 	// open object file as outhdl (used by copy_obj)
-	outhdl = mustopen(objfn, "w");
+	outhdl = open_file(objfn, "w");
 	copy_obj(olbhdl, p[FOFFSET], p[FLENGTH]);
 
 	fclose(outhdl);

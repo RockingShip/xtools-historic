@@ -62,7 +62,7 @@ initialize() {
 	file1inx = file2inx = 0;
 
 	// reset tables
-	for (i = 0; i < NAMEMAX; i++) {
+	for (i = 0; i < NAMEMAX; ++i) {
 		p = &name[i * NLAST];
 		p[NCHAR] = p[NTYPE] = p[NVALUE] = 0;
 	}
@@ -107,7 +107,7 @@ fext(char *out, char *path, char *ext, int force) {
 	int baselen;
 
 	baselen = 0;
-	for (p = path; *p; p++) {
+	for (p = path; *p; ++p) {
 		if (*p == '\\' || *p == '/')
 			baselen = 0;
 		else if (*p == '.')
@@ -127,7 +127,7 @@ fext(char *out, char *path, char *ext, int force) {
 startup(register int *argv) {
 	int hash, *p;
 
-	argv++; // skip argv[0]
+	++argv; // skip argv[0]
 	while (*argv) {
 		register char *arg;
 		arg = *argv++;
@@ -151,7 +151,7 @@ startup(register int *argv) {
 			p[FUDEFBASE] = p[FUDEFPOS] = p[FUDEFLEN] = 0;
 		} else {
 			// Process option
-			arg++;
+			++arg;
 			switch (*arg++) {
 			case 'd':
 				debug = 1;
@@ -220,7 +220,7 @@ startup(register int *argv) {
 /*
  * Open all files
  */
-mustopen(char *fn, char *mode) {
+open_file(char *fn, char *mode) {
 	int fd;
 
 	fd = fopen(fn, mode);
@@ -228,14 +228,6 @@ mustopen(char *fn, char *mode) {
 		return fd;
 	printf("fopen(%s,%s) failed\n", fn, mode);
 	exit(1);
-}
-
-openfile() {
-	register int i, *p;
-
-	outhdl = mustopen(outfn, "w");
-	if (lisfn[0])
-		lishdl = mustopen(lisfn, "w");
 }
 
 /*
@@ -247,18 +239,18 @@ open_olb() {
 	if (verbose)
 		printf("Loading library %s\n", inpfn);
 
-	inphdl = mustopen(inpfn, "r");
+	inphdl = open_file(inpfn, "r");
 
-	for (i = 0; i < LBHLAST; i++)
+	for (i = 0; i < LBHLAST; ++i)
 		lbhdr[i] = read_word();
 	if (lbhdr[LBHNAME] > NAMEMAX)
 		fatal("name table too large in .OLB\n");
 	if (lbhdr[LBHFILE] > FILEMAX)
 		fatal("file table too large in .OLB\n");
-	for (i = 0; i < lbhdr[LBHNAME] * LBNLAST; i++)
+	for (i = 0; i < lbhdr[LBHNAME] * LBNLAST; ++i)
 		lbname[i] = read_word();
 	if (lbhdr[LBHFILE] > 0)
-		for (i = 0; i < lbhdr[LBHFILE] * LBFLAST; i++)
+		for (i = 0; i < lbhdr[LBHFILE] * LBFLAST; ++i)
 			lbfile[i] = read_word();
 
 	if (verbose)
@@ -418,7 +410,11 @@ main(int argc, int *argv) {
 	initialize(); // initialize all variables
 
 	startup(argv);       // Process commandline options
-	openfile();          // Open all files
+
+	outhdl = open_file(outfn, "w");
+	if (lisfn[0])
+		lishdl = open_file(lisfn, "w");
+
 	process();           // Start linking
 
 	if (lishdl) {
@@ -430,7 +426,7 @@ main(int argc, int *argv) {
 
 	if (lishdl) {
 		j = 0;
-		for (i = 0; i < NAMEMAX; i++) if (name[i * NLAST + NCHAR]) j++;
+		for (i = 0; i < NAMEMAX; ++i) if (name[i * NLAST + NCHAR]) ++j;
 		fprintf(lishdl, "Names        : %5d/%5d)\n", j, NAMEMAX);
 	}
 
@@ -444,7 +440,7 @@ objmap() {
 	fprintf(lishdl, "id         module             library         BASE LEN   BASE LEN   BASE LEN   BASE LEN \n");
 	fprintf(lishdl, "-- -------------------- --------------------  ---- ----  ---- ----  ---- ----  ---- ----\n");
 
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		p = &file2[i * FLAST];
 		fprintf(lishdl, "%2d ", i + 1);
 		len = foutname(p[FFILE]);
@@ -469,7 +465,7 @@ symmap(register int start) {
 	register int ch, *p, hash, tab;
 
 	tab = (!start) ? 0 : start;
-	for (ch = '!'; ch <= '~'; ch++) {
+	for (ch = '!'; ch <= '~'; ++ch) {
 		hash = (start + ch * ch) % NAMEMAX;
 		while (1) {
 			p = &name[hash * NLAST];

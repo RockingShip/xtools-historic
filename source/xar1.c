@@ -51,7 +51,7 @@ initialize() {
 	objfn[0] = olbfn[0] = outfn[0] = 0;
 
 	// reset tables
-	for (i = 0; i < NAMEMAX; i++) {
+	for (i = 0; i < NAMEMAX; ++i) {
 		p = &name[i * NLAST];
 		p[NCHAR] = p[NLIB] = 0;
 	}
@@ -81,7 +81,7 @@ fext(char *out, char *path, char *ext, int force) {
 	int baselen;
 
 	baselen = 0;
-	for (p = path; *p; p++) {
+	for (p = path; *p; ++p) {
 		if (*p == '\\' || *p == '/')
 			baselen = 0;
 		else if (*p == '.')
@@ -99,7 +99,7 @@ fext(char *out, char *path, char *ext, int force) {
 }
 
 startup(register int *argv) {
-	argv++; // skip argv[0]
+	++argv; // skip argv[0]
 	while (*argv) {
 		register char *arg;
 		arg = *argv++;
@@ -139,7 +139,7 @@ startup(register int *argv) {
 				usage();
 		} else {
 			// Process option
-			arg++;
+			++arg;
 			switch (*arg++) {
 			case 'd':
 				debug = 1;
@@ -169,7 +169,7 @@ startup(register int *argv) {
 /*
  * Open all files
  */
-mustopen(char *fn, char *mode) {
+open_file(char *fn, char *mode) {
 	int fd;
 
 	fd = fopen(fn, mode);
@@ -195,7 +195,7 @@ open_olb() {
 		// init header for empty archive
 		olbhdr[HNAME] = NAMEMAX;
 		// set all symbols to 'not in library'
-		for (i = 0; i < NAMEMAX; i++)
+		for (i = 0; i < NAMEMAX; ++i)
 			name[i * NLAST + NLIB] = -1;
 		return;
 	}
@@ -203,20 +203,20 @@ open_olb() {
 	if (verbose)
 		printf("Loading library %s %d\n", olbfn, olbhdl);
 
-	for (i = 0; i < HLAST; i++)
+	for (i = 0; i < HLAST; ++i)
 		olbhdr[i] = read_word_olb();
 	if (olbhdr[HNAME] > NAMEMAX)
 		fatal("name table too large in .OLB\n");
 	if (olbhdr[HFILE] > FILEMAX)
 		fatal("file table too large in .OLB\n");
-	for (i = 0; i < olbhdr[HNAME] * NLAST; i++)
+	for (i = 0; i < olbhdr[HNAME] * NLAST; ++i)
 		name[i] = read_word_olb();
 	if (olbhdr[HFILE] > 0)
-		for (i = 0; i < olbhdr[HFILE] * FLAST; i++)
+		for (i = 0; i < olbhdr[HFILE] * FLAST; ++i)
 			file[i] = read_word_olb();
 
 	// duplicate offset fields
-	for (i = 0; i < olbhdr[HFILE]; i++) {
+	for (i = 0; i < olbhdr[HFILE]; ++i) {
 		p = &file[i * FLAST];
 		p[FOLDOFS] = p[FOFFSET];
 	}
@@ -238,8 +238,8 @@ read_word_olb() {
 }
 
 error(char *msg) {
-	errflag = 1;
 	printf("%s");
+	errflag = 1;
 }
 
 fatal(char *msg) {
@@ -353,7 +353,7 @@ main(int argc, int *argv) {
 
 	if (debug) {
 		j = 0;
-		for (i = 0; i < olbhdr[HNAME]; i++) if (name[i * NLAST + NCHAR]) j++;
+		for (i = 0; i < olbhdr[HNAME]; ++i) if (name[i * NLAST + NCHAR]) ++j;
 		printf("Names        : %5d/%5d\n", j, olbhdr[HNAME]);
 	}
 

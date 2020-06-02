@@ -564,7 +564,7 @@ doreloc() {
 	curlen = 0;
 
 	// relocate CODE
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		p = &file2[i * FLAST];
 		if (p[FFILE] != -1) {
 			p[FCODEBASE] = curpos;
@@ -580,7 +580,7 @@ doreloc() {
 	curlen = 0;
 
 	// relocate DATA
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		p = &file2[i * FLAST];
 		if (p[FFILE] != -1) {
 			p[FDATABASE] = curpos;
@@ -596,7 +596,7 @@ doreloc() {
 	curlen = 0;
 
 	// relocate TEXT
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		p = &file2[i * FLAST];
 		if (p[FFILE] != -1) {
 			p[FTEXTBASE] = curpos;
@@ -612,7 +612,7 @@ doreloc() {
 	curlen = 0;
 
 	// relocate UDEF
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		p = &file2[i * FLAST];
 		if (p[FFILE] != -1) {
 			p[FUDEFBASE] = curpos;
@@ -630,7 +630,7 @@ doreloc() {
 	p[NVALUE] = stksiz;
 
 	// relocate all symbols
-	for (i = 0; i < NAMEMAX; i++) {
+	for (i = 0; i < NAMEMAX; ++i) {
 		p = &name[i * NLAST];
 		if (p[NTYPE] == CODE)
 			p[NVALUE] += file2[p[NMODULE] * FLAST + FCODEBASE];
@@ -652,12 +652,12 @@ process() {
 		printf("Pass 1\n");
 
 	// process pass 1
-	for (i = 0; i < file1inx; i++) {
+	for (i = 0; i < file1inx; ++i) {
 		fp = &file1[i * FLAST];
 		if (fp[FLIB] == -1) {
 			// process object
 			soutname(fp[FFILE], inpfn);
-			inphdl = mustopen(inpfn, "r");
+			inphdl = open_file(inpfn, "r");
 			dopass1(fp[FFILE], fp[FLIB], 0);
 			fclose(inphdl);
 		} else {
@@ -666,7 +666,7 @@ process() {
 			open_olb();
 			found = 0;
 			while (1) {
-				for (j = 0; j < NAMEMAX; j++) {
+				for (j = 0; j < NAMEMAX; ++j) {
 					p = &name[j * NLAST];
 					if (p[NTYPE] == UNDEF) {
 						// found undefined symbol, test if in library
@@ -701,7 +701,7 @@ process() {
 	// test for undefined symbols
 	if (!undef) {
 		j = 0;
-		for (i = 0; i < NAMEMAX; i++) {
+		for (i = 0; i < NAMEMAX; ++i) {
 			p = &name[i * NLAST];
 			if (p[NTYPE] == UNDEF) {
 				if (!j) {
@@ -728,18 +728,18 @@ process() {
 	fwrite(datbuf, 1, 4, outhdl);
 
 	// process pass 2
-	for (i = 0; i < file2inx; i++) {
+	for (i = 0; i < file2inx; ++i) {
 		fp = &file2[i * FLAST];
 		if (fp[FLIB] == -1) {
 			// process object
 			soutname(fp[FFILE], inpfn);
-			inphdl = mustopen(inpfn, "r");
+			inphdl = open_file(inpfn, "r");
 			dopass2(fp);
 			fclose(inphdl);
 		} else {
 			// process library
 			soutname(fp[FLIB], inpfn);
-			inphdl = mustopen(inpfn, "r");
+			inphdl = open_file(inpfn, "r");
 			while (1) {
 				fseek(inphdl, fp[FOFFSET], 0);
 				dopass2(fp);

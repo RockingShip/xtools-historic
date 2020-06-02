@@ -57,15 +57,15 @@ initialize() {
 	debug = 0;
 
 	// character properties
-	for (i = '0'; i <= '9'; i++)
+	for (i = '0'; i <= '9'; ++i)
 		ctype[i] = CISDIGIT | CISXDIGIT | CSYMNEXT;
-	for (i = 'A'; i <= 'F'; i++)
+	for (i = 'A'; i <= 'F'; ++i)
 		ctype[i] = CISUPPER | CISXDIGIT | CSYMFIRST | CSYMNEXT;
-	for (i = 'G'; i <= 'Z'; i++)
+	for (i = 'G'; i <= 'Z'; ++i)
 		ctype[i] = CISUPPER | CSYMFIRST | CSYMNEXT;
-	for (i = 'a'; i <= 'f'; i++)
+	for (i = 'a'; i <= 'f'; ++i)
 		ctype[i] = CISLOWER | CISXDIGIT | CSYMFIRST | CSYMNEXT;
-	for (i = 'g'; i <= 'z'; i++)
+	for (i = 'g'; i <= 'z'; ++i)
 		ctype[i] = CISLOWER | CSYMFIRST | CSYMNEXT;
 	ctype['_'] = CSYMFIRST | CSYMNEXT;
 	ctype[' '] = CISSPACE;
@@ -76,42 +76,42 @@ initialize() {
 	ctype['\v'] = CISSPACE;
 
 	// reset table
-	for (i = 0; i < NAMEMAX; i++)
+	for (i = 0; i < NAMEMAX; ++i)
 		namech[i] = nametab[i] = 0;
-	for (i = 0; i < SYMMAX; i++)
+	for (i = 0; i < SYMMAX; ++i)
 		syms[i * ILAST + ISYM] = 0;
-	for (i = 0; i < SWMAX; i++)
+	for (i = 0; i < SWMAX; ++i)
 		sw[i * SLAST + SLABEL] = 0;
 
 	// reserve first entry so it terminates lists
 	namech[0] = '?';
 
 	// setup array containing hieriachal operators
-	hier_str[ 0] = "||"; hier_oper[ 0] = TOK_OR;    // hier3
+	hier_str[ 0] = "||"; hier_oper[ 0] = TOK_OR;	// expr_lor
 	hier_str[ 1] = 0;
-	hier_str[ 2] = "&&"; hier_oper[ 2] = TOK_AND;   // hier4
+	hier_str[ 2] = "&&"; hier_oper[ 2] = TOK_AND;	// expr_land
 	hier_str[ 3] = 0;
-	hier_str[ 4] = "|";  hier_oper[ 4] = TOK_OR;    // hier5
+	hier_str[ 4] = "|";  hier_oper[ 4] = TOK_OR;	// expr_or
 	hier_str[ 5] = 0;
-	hier_str[ 6] = "^";  hier_oper[ 6] = TOK_XOR;    // hier6
+	hier_str[ 6] = "^";  hier_oper[ 6] = TOK_XOR;	// expr_xor
 	hier_str[ 7] = 0;
-	hier_str[ 8] = "&";  hier_oper[ 8] = TOK_AND;   // hier7
+	hier_str[ 8] = "&";  hier_oper[ 8] = TOK_AND;	// expr_and
 	hier_str[ 9] = 0;
-	hier_str[10] = "=="; hier_oper[10] = TOK_BEQ;     // hier8
+	hier_str[10] = "=="; hier_oper[10] = TOK_BEQ;	// expr_equality
 	hier_str[11] = "!="; hier_oper[11] = TOK_BNE;
 	hier_str[12] = 0;
-	hier_str[13] = "<="; hier_oper[13] = TOK_BLE;     // hier9
+	hier_str[13] = "<="; hier_oper[13] = TOK_BLE;	// expr_relational
 	hier_str[14] = ">="; hier_oper[14] = TOK_BGE;
 	hier_str[15] = "<";  hier_oper[15] = TOK_BLT;
 	hier_str[16] = ">";  hier_oper[16] = TOK_BGT;
 	hier_str[17] = 0;
-	hier_str[18] = ">>"; hier_oper[18] = TOK_LSR;    // hier10
+	hier_str[18] = ">>"; hier_oper[18] = TOK_LSR;	// expr_shift
 	hier_str[19] = "<<"; hier_oper[19] = TOK_LSL;
 	hier_str[20] = 0;
-	hier_str[21] = "+";  hier_oper[21] = TOK_ADD;    // hier11
+	hier_str[21] = "+";  hier_oper[21] = TOK_ADD;	// expr_addsub
 	hier_str[22] = "-";  hier_oper[22] = TOK_SUB;
 	hier_str[23] = 0;
-	hier_str[24] = "*";  hier_oper[24] = TOK_MUL;    // hier12
+	hier_str[24] = "*";  hier_oper[24] = TOK_MUL;	// expr_muldiv
 	hier_str[25] = "/";  hier_oper[25] = TOK_DIV;
 	hier_str[26] = "%";  hier_oper[26] = TOK_MOD;
 	hier_str[27] = 0;
@@ -142,7 +142,7 @@ fext(char *out, char *path, char *ext, int force) {
 	int baselen;
 
 	baselen = 0;
-	for (p = path; *p; p++) {
+	for (p = path; *p; ++p) {
 		if (*p == '\\' || *p == '/')
 			baselen = 0;
 		else if (*p == '.')
@@ -163,7 +163,7 @@ fext(char *out, char *path, char *ext, int force) {
  * Handle program arguments
  */
 startup(register int *argv) {
-	argv++; // skip argv[0]
+	++argv; // skip argv[0]
 	while (*argv) {
 		register char *arg;
 		arg = *argv++;
@@ -174,7 +174,7 @@ startup(register int *argv) {
 				fext(outfn, arg, ".xs", 1);
 		} else {
 			// Process option
-			arg++;
+			++arg;
 			switch (*arg++) {
 			case 'S':
 				if (!*arg && *argv)
@@ -208,7 +208,7 @@ startup(register int *argv) {
 /*
  * Open all files
  */
-mustopen(char *fn, char *mode) {
+open_file(char *fn, char *mode) {
 	int fd;
 
 	fd = fopen(fn, mode);
@@ -216,11 +216,6 @@ mustopen(char *fn, char *mode) {
 		return fd;
 	printf("fopen(%s,%s) failed\n", fn, mode);
 	exit(1);
-}
-
-openfile() {
-	inphdl = mustopen(inpfn, "r");
-	outhdl = mustopen(outfn, "w");
 }
 
 //*
@@ -293,6 +288,7 @@ dump_ident(int ident[]) {
 	symname(ident[INAME]);
 	fprintf(outhdl, " VALUE=%d REG=%d\n", ident[IVALUE], ident[IREG]);
 }
+
 /*
  * reconstruct the symbol name
  */
@@ -311,7 +307,7 @@ symname(register int tab) {
 dohash(register char *name, int *retval) {
 	register int start, hash, tab, len;
 
-	if (~ctype[*name] & CSYMFIRST)
+	if (!(ctype[*name] & CSYMFIRST))
 		return 0; // Not a symbol
 
 	tab = 0;
@@ -347,7 +343,7 @@ findmac(register int sname) {
 	register int i;
 	register int *mptr;
 
-	for (i = 0; i < macinx; i++) {
+	for (i = 0; i < macinx; ++i) {
 		mptr = &mac[i * MLAST];
 		if (mptr[MNAME] == sname)
 			return mptr;
@@ -532,7 +528,7 @@ preprocess() {
 		int len;
 		len = strlen(line);
 		while (len && (ctype[line[len - 1]] & CISSPACE))
-			len--;
+			--len;
 		fprintf(outhdl, "; %d %s\n", inchdl ? inclnr : inplnr, line);
 	}
 }
@@ -567,63 +563,43 @@ blanks() {
 }
 
 /*
- * Return 'index' if both strings match
- */
-streq(register char *str1, register char *str2) {
-	register int i;
-
-	i = 0;
-	while (str2[i]) {
-		if (str1[i] != str2[i])
-			return 0;
-		i++;
-	}
-	return i;
-}
-
-/*
- * Return 'index' if str2 matches alphanumeric token str1
- */
-astreq(register char *str1, register char *str2) {
-	register int i;
-
-	i = 0;
-	while (str2[i]) {
-		if (str1[i] != str2[i])
-			return 0;
-		i++;
-	}
-	if (ctype[str1[i]] & CSYMNEXT)
-		return 0;
-	return i;
-}
-
-/*
  * Return 'index' if start next token equals 'lit'
  */
-match(char *lit) {
+match(register char *lit) {
 	register int i;
 
 	blanks();
-	if (i = streq(lptr, lit)) {
-		bump(i);
-		return 1;
+
+	i = 0;
+	while (lit[i]) {
+		if (lptr[i] != lit[i])
+			return 0;
+		++i;
 	}
-	return 0;
+
+	bump(i);
+	return 1;
 }
 
 /*
  * Return 'index' if next token equals 'lit'
  */
-amatch(char *lit) {
+amatch(register char *lit) {
 	register int i;
 
 	blanks();
-	if (i = astreq(lptr, lit)) {
-		bump(i);
-		return 1;
+
+	i = 0;
+	while (lit[i]) {
+		if (lptr[i] != lit[i])
+			return 0;
+		++i;
 	}
-	return 0;
+	if (ctype[lptr[i]] & CSYMNEXT)
+		return 0;
+
+	bump(i);
+	return 1;
 }
 
 /*
@@ -670,6 +646,15 @@ warning(char *msg) {
 	fprintf(outhdl, ";%% %s\n", msg);
 }
 
+expected(char *lit) {
+	if (inchdl)
+		printf("'%s' ", incfn);
+// Display original line
+	printf("%d: %s\n%%%s expected\n", inchdl ? inclnr : inplnr, sbuf, lit);
+	fprintf(outhdl, ";%% %s expected\n", lit);
+	errflag = 1;
+}
+
 error(char *msg) {
 	warning(msg);
 	errflag = 1;
@@ -682,71 +667,35 @@ fatal(char *msg) {
 
 exprerr() {
 	error("Invalid expression");
-	gencode(TOK_ILLEGAL);
-	junk();
-}
-
-needlval() {
-	error("must be lvalue");
-	gencode(TOK_ILLEGAL);
 }
 
 illname() {
 	error("illegal symbol name");
-	junk();
 }
 
 multidef() {
 	error("identifier already defined");
 }
 
-undef() {
-	error("identifier undefined");
-}
-
-needtoken(char *str) {
-	char txt[32], *p1, *p2;
-
-	if (!match(str)) {
-		p1 = txt;
-		p2 = "Expected ";
-		while (*p1++ = *p2++);
-		--p1; // Overwrite terminator
-		while (*p1++ = *str++);
-		error(txt);
-	}
-}
-
 /*
- * Skip current symbol
+ *
  */
-junk() {
-	if (ctype[ch] & CSYMNEXT) {
-		while (ctype[ch] & CSYMNEXT)
-			gch();
-	} else {
-		while (ch && (~ctype[ch] & CSYMNEXT))
-			gch();
-	}
-	blanks();
-}
+needtoken(char *lit) {
+	if (match(lit))
+		return;
 
-/*
- * Test for end-of-statement or end-of-file
- */
-endst() {
-	blanks();
-	return (!ch || (ch == ';'));
+	expected(lit);
+
+	// swallow chars until match
+	while (inphdl && !match(lit))
+		gch();
 }
 
 /*
  * semicolon enforcer
  */
-ns() {
-	if (!match(";")) {
-		error("no semicolon");
-		junk();
-	}
+semicolon() {
+	needtoken(";");
 }
 
 //*
@@ -756,31 +705,33 @@ ns() {
 //*
 
 /*
- * Execution starts here
+ * Program start
  */
 main(int argc, int *argv) {
 	register int i, j;
 
 	initialize(); // initialize all variables
-
 	startup(argv);       // Process commandline options
-	openfile();          // Open all files
+
+	inphdl = open_file(inpfn, "r");
+	outhdl = open_file(outfn, "w");
+
 	preprocess();        // fetch first line
 	toseg(CODESEG);      // setup initial segment //
 
 	parse();             // GO !!!
 	if (iflevel)
-		error("no closing #endif");
+		expected("#endif");
 	fprintf(outhdl, "\t.END\n");
 
 	j = 0;
-	for (i = 0; i < NAMEMAX; i++) if (namech[i]) j++;
+	for (i = 0; i < NAMEMAX; ++i) if (namech[i]) ++j;
 	fprintf(outhdl, "; Names        : %5d/%5d\n", j, NAMEMAX);
-	for (i = 0; i < SYMMAX && syms[i * ILAST + ISYM]; i++);
+	for (i = 0; i < SYMMAX && syms[i * ILAST + ISYM]; ++i);
 	fprintf(outhdl, "; Identifiers  : %5d/%5d\n", i, SYMMAX);
 	fprintf(outhdl, "; Macros       : %5d/%5d\n", macinx, MACMAX);
 	fprintf(outhdl, "; Local labels : %5d\n", nxtlabel);
-	for (i = 1; (i < SWMAX) && sw[i * SLAST + SLABEL]; i++);
+	for (i = 1; (i < SWMAX) && sw[i * SLAST + SLABEL]; ++i);
 	fprintf(outhdl, "; Switch cases : %5d/%5d\n", i - 1, SWMAX);
 
 	return errflag;

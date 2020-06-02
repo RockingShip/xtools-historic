@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = LICENSE.txt CHANGELOG.md README.md .gitignore cattle.c
 
-CLEANFILES = xcc.img xasm.ing xlnk.img xar.img xlib.xa cattle.xs cattle.xo cattle.img
+CLEANFILES = xcc.img xasm.img xlnk.img xar.img xlib.xa cattle.xs cattle.xo cattle.img
 
 # Directory order
 SUBDIRS = pso . lib source .

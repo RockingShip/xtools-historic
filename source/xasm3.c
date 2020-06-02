@@ -59,7 +59,7 @@ loadlval(register int lval[]) {
 		sto_cmd(REL_PUSHW, lval[LVALUE]);
 		lval[LTYPE] = EXPRESSION;
 	} else if (lval[LTYPE] == SYMBOL) {
-		p = &name[lval[LVALUE] * NLAST];
+		p = &names[lval[LVALUE] * NLAST];
 		switch (p[NTYPE]) {
 		case ABS:
 			sto_cmd(REL_PUSHW, p[NVALUE]);
@@ -137,7 +137,8 @@ primary(register int lval[]) {
 
 	if (match("<")) {  // <expression,...>
 		expression(lval);
-		needtoken(">");
+		if (!match(">"))
+			error("> expected");
 		return 1;
 	}
 
@@ -146,7 +147,7 @@ primary(register int lval[]) {
 	if (len) {
 		bump(len);
 		while (1) {
-			p = &name[hash * NLAST];
+			p = &names[hash * NLAST];
 			if (p[NTYPE] != LINK)
 				break;
 			else
@@ -197,10 +198,10 @@ primary(register int lval[]) {
 	return constant(lval);
 }
 
-hier7(register int lval[]) {
+expr_unary(register int lval[]) {
 
 	if (match("~")) {
-		if (!hier7(lval)) {
+		if (!expr_unary(lval)) {
 			exprerr();
 			return 0;
 		}
@@ -212,7 +213,7 @@ hier7(register int lval[]) {
 			sto_cmd(REL_NOT, 0);
 		}
 	} else if (match("-")) {
-		if (!hier7(lval)) {
+		if (!expr_unary(lval)) {
 			exprerr();
 			return 0;
 		}
@@ -224,7 +225,7 @@ hier7(register int lval[]) {
 			sto_cmd(REL_NEG, 0);
 		}
 	} else if (match("+")) {
-		if (!hier7(lval)) {
+		if (!expr_unary(lval)) {
 			exprerr();
 			return 0;
 		}
@@ -233,35 +234,35 @@ hier7(register int lval[]) {
 	return 1;
 }
 
-hier6(register int lval[]) {
-	xplng1(hier7, 12, lval);
+expr_muldiv(register int lval[]) {
+	xplng1(expr_unary, 12, lval);
 }
 
-hier5(register int lval[]) {
-	xplng1(hier6, 9, lval);
+expr_addsub(register int lval[]) {
+	xplng1(expr_muldiv, 9, lval);
 }
 
-hier4(register int lval[]) {
-	xplng1(hier5, 6, lval);
+expr_shift(register int lval[]) {
+	xplng1(expr_addsub, 6, lval);
 }
 
-hier3(register int lval[]) {
-	xplng1(hier4, 4, lval);
+expr_and(register int lval[]) {
+	xplng1(expr_shift, 4, lval);
 }
 
-hier2(register int lval[]) {
-	xplng1(hier3, 2, lval);
+expr_xor(register int lval[]) {
+	xplng1(expr_and, 2, lval);
 }
 
-hier1(register int lval[]) {
-	xplng1(hier2, 0, lval);
+expr_or(register int lval[]) {
+	xplng1(expr_xor, 0, lval);
 }
 
 /*
  * Load a numerical expression seperated by comma's
  */
 expression(register int lval[]) {
-	if (!hier1(lval))
+	if (!expr_or(lval))
 		error("expression required");
 }
 
@@ -271,7 +272,7 @@ expression(register int lval[]) {
 constexpr(register int *val) {
 	int lval[LLAST];
 
-	if (!hier1(lval))
+	if (!expr_or(lval))
 		return 0;
 	if (lval[LTYPE] == CONSTANT) {
 		*val = lval[LVALUE];
@@ -287,8 +288,20 @@ constant(register int lval[]) {
 	lval[LTYPE] = CONSTANT;
 	if (number(&lval[LVALUE]))
 		return 1;
-	if (pstr(&lval[LVALUE]))
+
+	// character
+	if (match("'")) {
+		register int i;
+
+		i = 0;
+		while (ch && (ch != '\''))
+			i = (i << 8) + litchar();
+		gch();
+
+		lval[LVALUE] = i;
 		return 1;
+	}
+
 	return 0;
 }
 
@@ -299,41 +312,28 @@ number(register int *val) {
 	register int i, minus;
 
 	i = minus = 0;
-	if (!isdigit(ch))
+	if (!(ctype[ch] & CISDIGIT))
 		return 0;
 	if ((ch == '0') && (toupper(nch) == 'X')) {
 		bump(2);
-		while (isxdigit(ch)) {
-			if (ch <= '9')
+		while (1) {
+			if (ctype[ch] & CISDIGIT)
 				i = i * 16 + (gch() - '0');
-			else if (ch >= 'a')
+			else if (ctype[ch] & CISLOWER)
 				i = i * 16 + (gch() - 'a' + 10);
-			else
+			else if (ctype[ch] & CISUPPER)
 				i = i * 16 + (gch() - 'A' + 10);
+			else
+				break;
 		}
 	} else {
-		while (isdigit(ch))
+		while (ctype[ch] & CISDIGIT)
 			i = i * 10 + (gch() - '0');
 	}
 	*val = i;
 	return 1;
 }
 
-/*
- * Get a character constant
- */
-pstr(int *val) {
-	register int i;
-
-	i = 0;
-	if (!match("'"))
-		return 0;
-	while (ch && (ch != '\''))
-		i = (i << 8) + litchar();
-	gch();
-	*val = i;
-	return 1;
-}
 
 /*
  * Return current literal character and bump lptr

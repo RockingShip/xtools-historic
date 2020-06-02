@@ -38,11 +38,10 @@
 //*
 
 /* 
- * Compiler dependent parameters
+ * Internal storage limits
  */
 
 enum {
-	LITMAX = 1500,		// literal pool
 	MACMAX = 300,		// Number of definable macro's
 	MACQMAX = MACMAX * 7,	// Expansiontable for macro's
 	NAMEMAX = 997,		// Size of nametable !!! MUST BE PRIME !!!
@@ -64,7 +63,7 @@ enum {
 };
 
 /*
- * Possible values for "CLASS"
+ * Possible values for storage "CLASS"
  */
 
 enum {
@@ -78,7 +77,7 @@ enum {
 };
 
 /*
- * Possible values for "TYPE"
+ * Possible values for data "TYPE"
  */
 
 enum {
@@ -112,8 +111,8 @@ enum {
 	LNAME,
 	LVALUE,
 	LREG,
-	LFALSE,
 	LTRUE,
+	LFALSE,
 	LLAST,
 };
 
@@ -221,7 +220,7 @@ enum {
 };
 
 /*
- * vharacter properties
+ * Character properties
  */
 
 enum {

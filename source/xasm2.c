@@ -33,32 +33,30 @@
 #define EXTERN extern
 #include "xasm.h"
 
-get_comma() {
-	if (ch <= ' ') white();
+need_comma() {
+	blanks();
 	if (ch == ',')
 		gch();
 	else
 		error("comma expected");
 }
 
-get_reg() {
+need_reg() {
 	int hash, reg;
 	register int len, *p;
 
-	if (ch <= ' ')
-		white();
+	blanks();
 	if (!ch)
 		len = 0;
 	else
 		len = dohash(lptr, &hash);
 	if (!len) {
 		error("register expected");
-		junk();
 		reg = 0;
 	} else {
 		bump(len);
 		while (1) {
-			p = &name[hash * NLAST];
+			p = &names[hash * NLAST];
 			if (p[NTYPE] != LINK)
 				break;
 			else
@@ -74,7 +72,7 @@ get_reg() {
 	sto_data(reg, 1);
 }
 
-get_imm() {
+need_imm() {
 	int lval[LLAST];
 
 	expression(lval);
@@ -86,24 +84,24 @@ get_imm() {
 	}
 }
 
-get_mem() {
+need_mem() {
 	int lval[LLAST];
 
-	if (ch <= ' ') white();
+	blanks();
 	if (ch != '(')
-		get_imm();
+		need_imm();
 	else
 		sto_data(0, BPW); // no address
 
 	// test for registers
-	if (ch <= ' ') white();
+	blanks();
 	if (ch != '(') {
 		sto_data(0, 1); // dummy reg
 	} else {
 		gch();
-		if (ch <= ' ') white();
-		get_reg();
-		if (ch <= ' ') white();
+		blanks();
+		need_reg();
+		blanks();
 		if (ch == ')')
 			gch();
 		else
@@ -167,7 +165,7 @@ do_opcode(register int p[]) {
 				error("unimplemented opcode");
 				break;
 		}
-		kill();
+		ch = 0; // ignore rest of line
 	} else {
 		sto_data(p[NVALUE], 1);
 		switch (p[NVALUE]) {
@@ -179,19 +177,19 @@ do_opcode(register int p[]) {
 		case OPC_PSHR:
 		case OPC_POPR:
 		case OPC_SVC:
-			get_imm();
+			need_imm();
 			curpos[curseg] += 3;
 			break;
 		case OPC_PSHB:
 		case OPC_PSHW:
 		case OPC_PSHA:
 		case OPC_JSB:
-			get_mem();
+			need_mem();
 			curpos[curseg] += 4;
 			break;
 		case OPC_NEG:
 		case OPC_NOT:
-			get_reg();
+			need_reg();
 			curpos[curseg] += 2;
 			break;
 		case OPC_ADD:
@@ -206,9 +204,9 @@ do_opcode(register int p[]) {
 		case OPC_LSL:
 		case OPC_LDR:
 		case OPC_CMP:
-			get_reg();
-			get_comma();
-			get_reg();
+			need_reg();
+			need_comma();
+			need_reg();
 			curpos[curseg] += 3;
 			break;
 		case OPC_BEQ:
@@ -218,7 +216,7 @@ do_opcode(register int p[]) {
 		case OPC_BGT:
 		case OPC_BGE:
 		case OPC_JMP:
-			get_mem();
+			need_mem();
 			curpos[curseg] += 4;
 			break;
 		case OPC_LDB:
@@ -226,14 +224,14 @@ do_opcode(register int p[]) {
 		case OPC_LEA:
 		case OPC_STB:
 		case OPC_STW:
-			get_reg();
-			get_comma();
-			get_mem();
+			need_reg();
+			need_comma();
+			need_mem();
 			curpos[curseg] += 5;
 			break;
 		default:
 			error("unimplemented opcode");
-			kill();
+			ch = 0; // ignore rest of line
 			break;
 		}
 	}
@@ -257,7 +255,6 @@ save_seg_size() {
 		maxpos[TEXTSEG] = curpos[TEXTSEG];
 	if (unsigned_GT(curpos[UDEFSEG], maxpos[UDEFSEG]))
 		maxpos[UDEFSEG] = curpos[UDEFSEG];
-
 }
 
 do_pseudo(register int p[]) {
@@ -305,7 +302,7 @@ do_pseudo(register int p[]) {
 				gch(); // skip terminator
 			} else {
 				// get an expression
-				if (!hier1(lval))
+				if (!expr_or(lval))
 					break;
 
 				if (pass == 2) {
@@ -334,7 +331,7 @@ do_pseudo(register int p[]) {
 		if (lval[LTYPE] == CONSTANT) {
 			curpos[curseg] = lval[LVALUE];
 		} else if (lval[LTYPE] == SYMBOL) {
-			p = &name[lval[LVALUE] * NLAST];
+			p = &names[lval[LVALUE] * NLAST];
 			switch (p[NTYPE]) {
 			case CODE:
 				curseg = CODESEG;
@@ -371,7 +368,7 @@ do_pseudo(register int p[]) {
 		break;
 	default:
 		error("-> pseudo");
-		kill();
+		ch = 0;
 		break;
 	}
 }
@@ -394,19 +391,18 @@ parse() {
 		if (debug && (pass == 2))
 			fprintf(outhdl, ";%s\n", lptr);
 		while (1) {
-			if (ch <= ' ')
-				white();
+			blanks();
 			if (!ch)
 				break; // end of line
 			len = dohash(lptr, &hash);
 			if (!len) {
 				if (pass == 1)
 					error("opcode expected");
-				kill();
+				ch = 0;
 				break;
 			}
 			bump(len);
-			p = &name[hash * NLAST];
+			p = &names[hash * NLAST];
 			if (!p[NTYPE])
 				p[NTYPE] = UNDEF;
 
@@ -436,11 +432,11 @@ parse() {
 					if (!len) {
 						if (pass == 1)
 							error("use #define");
-						kill();
+						ch = 0;
 					} else {
 						bump(len);
 						p[NTYPE] = LINK;
-						p = &name[p[NVALUE] * NLAST];
+						p = &names[p[NVALUE] * NLAST];
 						if (!p[NTYPE])
 							p[NTYPE] = UNDEF; // Initial value
 					}
@@ -448,7 +444,7 @@ parse() {
 				} else {
 					if (pass == 1)
 						error("unknown opcode");
-					kill();
+					ch = 0;
 					break;
 				}
 			case ABS:
@@ -504,7 +500,7 @@ parse() {
 					break;
 				} else {
 					error("internal error");
-					kill();
+					ch = 0;
 					break;
 				}
 			case OPCODE:
@@ -512,13 +508,13 @@ parse() {
 				break;
 			case PSEUDO:
 				if (p[NVALUE] == PSEUDO_END)
-					return; // DONE
+					return; // don't read next line keeping file open
 				do_pseudo(p);
 				break;
 			case LINK:
 				if (pass == 1)
 					error("multiply defined");
-				kill(); // errors displayed in pass 1
+				ch = 0; // errors displayed in pass 1
 				break;
 			default:
 				if (pass == 1)
@@ -527,8 +523,7 @@ parse() {
 			}
 
 			// test for junk
-			if (ch <= ' ')
-				white();
+			blanks();
 			if (ch)
 				error("encountered junk");
 			break;

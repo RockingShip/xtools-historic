@@ -31,7 +31,7 @@
 //*
 
 /* 
- * Compiler dependent parameters
+ * Internal storage limits
  */
 
 enum {

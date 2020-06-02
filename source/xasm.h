@@ -31,7 +31,7 @@
 //*
 
 /* 
- * Compiler dependent parameters
+ * Internal storage limits
  */
 
 enum {
@@ -41,7 +41,6 @@ enum {
 	MACMAX = 300,		// Number of definable macro's
 	MACQMAX = MACMAX * 7,	// Expansiontable for macro's
 	PATHMAX = 80,		// Length of filename
-	LITMAX = 1500,		// Literal pool
 };
 
 /*
@@ -230,6 +229,16 @@ enum {
 	REL_DSB = 37,
 };
 
+enum {
+	CISSPACE = 1 << 0,	// is a space
+	CISDIGIT = 1 << 1,	// is a digit
+	CISXDIGIT = 1 << 2,	// is a hex digit
+	CISUPPER = 1 << 3,	// is lowercase
+	CISLOWER = 1 << 4,	// is uppercase
+	CSYMFIRST = 1 << 5,	// first character of an identifier name
+	CSYMNEXT = 1 << 6,	// next character of an identifier name
+};
+
 /*
  * Storage
  */
@@ -252,7 +261,7 @@ EXTERN int
 	macinx,			// Next free entry in mac
 	macqinx,		// Next free entry in macq
 	maxpos[LASTSEG],	// Size in segment
-	name[NAMEMAX * NLAST],	// string name table
+	names[NAMEMAX * NLAST],	// string name table
 	outhdl,			// handle for .OBJ file
 	pass,			// Pass number
 	pinx,			// Position in preprocessor buffer
@@ -262,6 +271,7 @@ EXTERN int
 
 EXTERN char
 	ch,			// Current character in line being scanned
+	ctype[256],		// character properties
 	datbuf[128],		// storage buffer for sto_data
 	incfn[PATHMAX],		// include filename
 	inpfn[PATHMAX],		// input filename
