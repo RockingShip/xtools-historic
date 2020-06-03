@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-03 00:40:55 Expanded macros to `isWORD()` and `isINTPTR()`.
+                    Macro's are a language hack.
 2020-06-03 00:21:26 Added and converted to `gencode_lval()`.
                     Vrarint of `gencode_M()` with stack compensation of SP_AUTO variables. 
 2020-06-03 00:12:20 Pointers to function `"(*)()"` set LPTR=1.

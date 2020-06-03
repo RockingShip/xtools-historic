@@ -35,10 +35,19 @@
 
 /* test if lval is stored in a word */
 
-#define lval_ISBPW  (lval[LPTR]  || (lval[LSIZE] == BPW))
-#define lval2_ISBPW (lval2[LPTR] || (lval2[LSIZE] == BPW))
-#define dest_ISBPW  (dest[LPTR]  || (dest[LSIZE] == BPW))
-#define lval_ISIPTR (lval[LPTR]  && (lval[LSIZE] == BPW))
+/*
+ * Test if storage is BPW large. "int*" "char*" "int".
+ */
+isWORD(register int lval[]) {
+	return lval[LPTR]  || lval[LSIZE] == BPW;
+}
+
+/*
+ * Test if "int*".
+ */
+isINTPTR(register int lval[]) {
+	return lval[LPTR]  && lval[LSIZE] == BPW;
+}
 
 /*
  * Get the inverse of an compare
@@ -188,7 +197,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_lval(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval);
+		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
 
 		lval[LEA] = EA_ADDR;
 		// NOTE: lval[LPTR] can be non-zero
@@ -343,21 +352,21 @@ step(register int pre, register int lval[], register int post) {
 	dest[LREG] = lval[LREG];
 
 	if (isRegister(lval)) {
-		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
+		gencode_R((pre | post), lval[LREG], isINTPTR(lval) ? REG_BPW : REG_1);
 		if (post) {
 			reg = allocreg();
 			gencode_R(TOK_LDR, reg, lval[LREG]);
-			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
+			gencode_R((TOK_ADD + TOK_SUB - post), reg, isINTPTR(lval) ? REG_BPW : REG_1);
 			freelval(lval);
 			lval[LREG] = reg;
 		}
 	} else {
 		reg = allocreg();
 		loadlval(lval, reg);
-		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
-		gencode_lval(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
+		gencode_R((pre | post), lval[LREG], isINTPTR(lval) ? REG_BPW : REG_1);
+		gencode_lval(isWORD(dest) ? TOK_STW : TOK_STB, lval[LREG], dest);
 		if (post) {
-			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
+			gencode_R((TOK_ADD + TOK_SUB - post), reg, isINTPTR(lval) ? REG_BPW : REG_1);
 			lval[LREG] = reg;
 		}
 	}
@@ -553,7 +562,7 @@ expr_postfix(register int lval[]) {
 				if (lval2[LEA] != EA_IND)
 					gencode_lval(TOK_PSHA, -1, lval2);
 				else
-					gencode_lval(lval2_ISBPW ? TOK_PSHW : TOK_PSHB, -1, lval2);
+					gencode_lval(isWORD(lval2) ? TOK_PSHW : TOK_PSHB, -1, lval2);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -669,7 +678,7 @@ expr_unary(register int lval[]) {
 			error("Illegal address");
 		else {
 			lval[LTYPE] = EXPR;
-			lval[LSIZE] = lval_ISBPW ? BPW : 1;
+			lval[LSIZE] = isWORD(lval) ? BPW : 1;
 			++lval[LPTR];
 			lval[LEA] = EA_ADDR;
 		}
@@ -923,7 +932,7 @@ expr_assign(register int lval[]) {
 		if (isRegister(lval))
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else {
-			gencode_lval(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval);
+			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
 			freelval(lval);
 		}
 		lval[LNAME] = 0;
@@ -946,7 +955,7 @@ expr_assign(register int lval[]) {
 		if (isRegister(dest))
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
-			gencode_lval(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
+			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, lval[LREG], dest);
 	}
 
 	// resulting type is undefined, so modify LTYPE
