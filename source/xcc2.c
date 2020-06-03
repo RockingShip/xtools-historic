@@ -37,7 +37,7 @@
  * Declare/define a procedure argument
  */
 declarg(int scope, register int clas, register int argnr) {
-	int size, sname, len, ptr, type, cnt, reg;
+	int size, sname, len, ptr, type, cnt, reg, ptrfunc;
 	register int *sym, i;
 
 	// get size of type
@@ -52,10 +52,11 @@ declarg(int scope, register int clas, register int argnr) {
 	while (1) {
 		blanks();
 
+		ptrfunc = 0;
 		if (match("*"))
 			ptr = 1;
 		else if (match("(")) {
-			ptr = 2;
+			ptrfunc = 1;
 			needtoken("*");
 		} else
 			ptr = 0;
@@ -76,14 +77,15 @@ declarg(int scope, register int clas, register int argnr) {
 
 		type = VARIABLE;
 
-		if (ptr == 2) {
-			match(")");
+		if (ptrfunc) {
+			needtoken(")");
 			if (match("(")) {
 				if (match(")"))
 					type = FUNCTION;
 				else
 					error("bad (*)()");
 			}
+			ptr = 1;
 		}
 
 		cnt = 1; // Number of elements
@@ -132,7 +134,7 @@ declarg(int scope, register int clas, register int argnr) {
  * General global definitions
  */
 declvar(int scope, register int clas) {
-	int size, sname, len, ptr, type, cnt;
+	int size, sname, len, ptr, type, cnt, ptrfunc;
 	register int *sym, i;
 
 	// get size of type
@@ -147,10 +149,11 @@ declvar(int scope, register int clas) {
 	while (1) {
 		blanks();
 
+		ptrfunc = 0;
 		if (match("*"))
 			ptr = 1;
 		else if (match("(")) {
-			ptr = 2;
+			ptrfunc = 1;
 			needtoken("*");
 		} else
 			ptr = 0;
@@ -170,14 +173,15 @@ declvar(int scope, register int clas) {
 
 		type = VARIABLE;
 
-		if (ptr == 2) {
-			match(")");
+		if (ptrfunc) {
+			needtoken(")");
 			if (match("(")) {
 				if (match(")"))
 					type = FUNCTION;
 				else
 					error("bad (*)()");
 			}
+			ptr = 1;
 		}
 
 		cnt = 1; // Number of elements

@@ -126,7 +126,9 @@ loadlval(register int lval[], register int reg) {
 	// Sign extend to fix being called with negative constant when copiled with "-Dint=long"
 	reg |= -(reg & (1 << SBIT));
 
-	if (isConstant(lval)) {
+	if (lval[LTYPE] == FUNCTION)
+		error("unimplemented");
+	else if (isConstant(lval)) {
 		// test for a predefined register
 		if (reg > 0)
 			gencode_I(TOK_LDA, reg, lval[LVALUE]);
@@ -248,10 +250,6 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 			++entry;
 		}
 
-		// Put lval into a register
-		if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
-			error("Invalid function use");
-
 		// Load rval
 		if (!(*hier)(rval)) {
 			exprerr();
@@ -259,9 +257,6 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 		}
 
 		// Put rval into a register
-		if (!rval[LPTR] && (rval[LTYPE] == FUNCTION))
-			error("Invalid function use");
-
 		// Generate code
 		if (isConstant(lval) && isConstant(rval)) {
 			lval[LVALUE] = calc(lval[LVALUE], hier_oper[entry], rval[LVALUE]);
@@ -539,7 +534,7 @@ expr_postfix(register int lval[]) {
 		needtoken("]");
 	}
 	if (match("(")) { // function (...)
-		if (lval[LPTR] || (lval[LTYPE] != FUNCTION))
+		if (lval[LTYPE] != FUNCTION)
 			error("Illegal function");
 
 		argc = BPW;
@@ -657,12 +652,12 @@ expr_unary(register int lval[]) {
 			exprerr();
 			return 0;
 		}
-		if (!lval[LPTR] || isConstant(lval) || lval[LTYPE] == BRANCH)
-			error("Illegal address");
+		if (!lval[LPTR])
+			error("can't dereference");
 		else {
 			if (lval[LEA] == EA_IND)
 				loadlval(lval, 0);
-			lval[LPTR] = 0;
+			--lval[LPTR];
 			lval[LEA] = EA_IND;
 		}
 	} else if (match("&")) {
@@ -675,7 +670,7 @@ expr_unary(register int lval[]) {
 		else {
 			lval[LTYPE] = EXPR;
 			lval[LSIZE] = lval_ISBPW ? BPW : 1;
-			lval[LPTR] = 1;
+			++lval[LPTR];
 			lval[LEA] = EA_ADDR;
 		}
 	} else {
@@ -735,10 +730,6 @@ expr_land(int lval[]) {
 		if (!omatch("&&"))
 			return 1;
 
-		// Put lval into a register
-		if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
-			error("Invalid function use");
-
 		if (once) {
 			// One time only: process lval and jump
 
@@ -770,10 +761,6 @@ expr_land(int lval[]) {
 			return 1;
 		}
 
-		// Put lval into a register
-		if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
-			error("Invalid function use");
-
 		// lval must be BRANCH
 		if (lval[LTYPE] != BRANCH) {
 			loadlval(lval, 0);
@@ -801,10 +788,6 @@ expr_lor(int lval[]) {
 	while (1) {
 		if (!omatch("||"))
 			return 1;
-
-		// Put lval into a register
-		if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
-			error("Invalid function use");
 
 		if (once) {
 			// One time only: process lval and jump
@@ -836,10 +819,6 @@ expr_lor(int lval[]) {
 			exprerr();
 			return 1;
 		}
-
-		// Put lval into a register
-		if (!lval[LPTR] && (lval[LTYPE] == FUNCTION))
-			error("Invalid function use");
 
 		// lval must be BRANCH
 		if (lval[LTYPE] != BRANCH) {

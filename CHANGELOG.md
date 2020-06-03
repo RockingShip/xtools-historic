@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-03 00:12:20 Pointers to function `"(*)()"` set LPTR=1.
+                    This allows `LPTR` to be the deference distance to the basetype. 
 2020-06-02 23:43:31 Lost+Found of non-architecture parts of xtools-2.1.0
 ```
 
