@@ -847,10 +847,6 @@ gencode_M(int opc, int lreg, int name, int ofs, int rreg) {
 	if (lreg >= 0)
 		fprintf(outhdl, "R%d,", lreg);
 
-	// apply any stack ajustments
-	if (rreg == REG_SP)
-		ofs = ofs - csp;
-
 	if (name) {
 		if (name > 0){
 			fprintf(outhdl, "_");
@@ -867,6 +863,19 @@ gencode_M(int opc, int lreg, int name, int ofs, int rreg) {
 		fprintf(outhdl, "(R%d)", rreg);
 
 	fprintf(outhdl, "\n");
+}
+
+gencode_lval(int opc, int lreg, int lval[]) {
+	int name, ofs, rreg;
+	name = lval[LNAME];
+	ofs = lval[LVALUE];
+	rreg = lval[LREG];
+
+	// apply any stack adjustments for SP_AUTO
+	if (rreg == REG_SP)
+		ofs = ofs - csp;
+
+	gencode_M(opc, lreg, name, ofs, rreg);
 }
 
 /*

@@ -188,7 +188,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
+		gencode_lval(lval_ISBPW ? TOK_LDW : TOK_LDB, reg, lval);
 
 		lval[LEA] = EA_ADDR;
 		// NOTE: lval[LPTR] can be non-zero
@@ -199,7 +199,7 @@ loadlval(register int lval[], register int reg) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
-		gencode_M(TOK_LDA, reg, lval[LNAME], lval[LVALUE], lval[LREG]);
+		gencode_lval(TOK_LDA, reg, lval);
 
 		lval[LEA] = EA_ADDR;
 		lval[LPTR] = 0;
@@ -355,7 +355,7 @@ step(register int pre, register int lval[], register int post) {
 		reg = allocreg();
 		loadlval(lval, reg);
 		gencode_R((pre | post), lval[LREG], lval_ISIPTR ? REG_BPW : REG_1);
-		gencode_M(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest[LNAME], dest[LVALUE], dest[LREG]);
+		gencode_lval(dest_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
 		if (post) {
 			gencode_R((TOK_ADD + TOK_SUB - post), reg, lval_ISIPTR ? REG_BPW : REG_1);
 			lval[LREG] = reg;
@@ -551,9 +551,9 @@ expr_postfix(register int lval[]) {
 				freelval(lval2);
 				// Push onto stack
 				if (lval2[LEA] != EA_IND)
-					gencode_M(TOK_PSHA, -1, lval2[LNAME], lval2[LVALUE], lval2[LREG]);
+					gencode_lval(TOK_PSHA, -1, lval2);
 				else
-					gencode_M(lval2_ISBPW ? TOK_PSHW : TOK_PSHB, -1, lval2[LNAME], lval2[LVALUE], lval2[LREG]);
+					gencode_lval(lval2_ISBPW ? TOK_PSHW : TOK_PSHB, -1, lval2);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -567,7 +567,7 @@ expr_postfix(register int lval[]) {
 		gencode_I(TOK_PSHA, -1, argc);
 
 		// call
-		gencode_M(TOK_JSB, -1, lval[LNAME], lval[LVALUE], lval[LREG]);
+		gencode_lval(TOK_JSB, -1, lval);
 		freelval(lval);
 
 		// Pop args
@@ -923,7 +923,7 @@ expr_assign(register int lval[]) {
 		if (isRegister(lval))
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else {
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval[LNAME], lval[LVALUE], lval[LREG]);
+			gencode_lval(lval_ISBPW ? TOK_STW : TOK_STB, rval[LREG], lval);
 			freelval(lval);
 		}
 		lval[LNAME] = 0;
@@ -946,7 +946,7 @@ expr_assign(register int lval[]) {
 		if (isRegister(dest))
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
-			gencode_M(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest[LNAME], dest[LVALUE], dest[LREG]);
+			gencode_lval(lval_ISBPW ? TOK_STW : TOK_STB, lval[LREG], dest);
 	}
 
 	// resulting type is undefined, so modify LTYPE
