@@ -33,8 +33,6 @@
 #define EXTERN extern
 #include "xcc.h"
 
-/* test if lval is stored in a word */
-
 /*
  * Test if storage is BPW large. "int*" "char*" "int".
  */
@@ -276,11 +274,6 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 			// Execute operation and release rval
 			gencode_R(hier_oper[entry], lval[LREG], rval[LREG]);
 			freelval(rval);
-
-			// Modify lval
-			lval[LTYPE] = EXPR;
-			lval[LPTR] = 0;
-			lval[LEA] = EA_ADDR;
 		}
 	}
 }
@@ -931,10 +924,9 @@ expr_assign(register int lval[]) {
 	if (oper == -1) {
 		if (isRegister(lval))
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
-		else {
+		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
 			freelval(lval);
-		}
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = rval[LREG];
@@ -973,14 +965,18 @@ expression(register int lval[], int comma) {
 
 	if (!expr_assign(lval)) {
 		expected("expression");
+		return 0;
 	}
 
 	while (comma && match(",")) {
 		freelval(lval);
 		if (!expr_assign(lval)) {
 			expected("expression");
+			return 0;
 		}
 	}
+
+	return 1;
 }
 
 /*

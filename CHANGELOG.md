@@ -5,9 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+2020-06-03 00:21:26 Added and converted to `LTYPE=ADDRESS`.
+                    Includes register variables and constants.
 ## [Unreleased]
 
 ```
+2020-06-03 10:51:36 Fixed: `expr_assign()`, `xplng1()` and `expression()`.
+                    - Register leak in `expr_assign()`.
+                    - Leave data type untouched in `xplng1()`
+                    - return "1" when returning valid `lval[]` in `expression()`
 2020-06-03 00:40:55 Expanded macros to `isWORD()` and `isINTPTR()`.
                     Macro's are a language hack.
 2020-06-03 00:21:26 Added and converted to `gencode_lval()`.
