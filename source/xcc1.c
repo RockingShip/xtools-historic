@@ -273,8 +273,8 @@ dump_ident(int ident[]) {
 		classnames[5] = "AP_AUTO";
 		classnames[6] = "REGISTER";
 		typenames[0] = "0";
-		typenames[1] = "EXPR";
-		typenames[2] = "VARIABLE";
+		typenames[1] = "ADDRESS";
+		typenames[2] = "MEMORY";
 		typenames[3] = "FUNCTION";
 		typenames[4] = "BRANCH";
 	}
@@ -295,13 +295,13 @@ dump_lval(int lval[]) {
 
 	if (!typenames[0]) {
 		typenames[0] = "0";
-		typenames[1] = "EXPR";
-		typenames[2] = "VARIABLE";
+		typenames[1] = "ADDRESS";
+		typenames[2] = "MEMORY";
 		typenames[3] = "FUNCTION";
 		typenames[4] = "BRANCH";
 	}
 
-	fprintf(outhdl, "; TYPE=%s EA=%d PTR=%d SIZE=%d NAME=", typenames[lval[LTYPE]], lval[LEA], lval[LPTR], lval[LSIZE]);
+	fprintf(outhdl, "; TYPE=%s PTR=%d SIZE=%d NAME=", typenames[lval[LTYPE]], lval[LPTR], lval[LSIZE]);
 	symname(lval[LNAME]);
 	fprintf(outhdl, " VALUE=%d REG=%d TRUE=%d FALSE=%d\n", lval[LVALUE], lval[LREG], lval[LTRUE], lval[LFALSE]);
 }

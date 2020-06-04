@@ -80,19 +80,10 @@ enum {
  */
 
 enum {
-	EXPR = 1,
-	VARIABLE,
+	ADDRESS = 1,
+	MEMORY,
 	FUNCTION,
 	BRANCH,
-};
-
-/*
- * Possible values for "EA"
- */
-
-enum {
-	EA_ADDR = 1,
-	EA_IND,
 };
 
 /*
@@ -104,7 +95,6 @@ enum {
 	LTYPE = 0,
 	LPTR,
 	LSIZE,
-	LEA,
 	LNAME,
 	LVALUE,
 	LREG,

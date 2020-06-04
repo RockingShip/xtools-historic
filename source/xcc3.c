@@ -133,7 +133,7 @@ loadlval(register int lval[], register int reg) {
 	// Sign extend to fix being called with negative constant when copiled with "-Dint=long"
 	reg |= -(reg & (1 << SBIT));
 
-	if (lval[LTYPE] == EXPR) {
+	if (lval[LTYPE] == ADDRESS) {
 		// try to relocate offset to register
 		if (lval[LREG] == 0) {
 			if (lval[LVALUE] == 1) {
@@ -174,19 +174,17 @@ loadlval(register int lval[], register int reg) {
 		}
 
 		// Modify lval
-		lval[LTYPE] = EXPR;
-		lval[LEA] = EA_ADDR;
+		lval[LTYPE] = ADDRESS;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
-	} else if (lval[LTYPE] == VARIABLE) {
+	} else if (lval[LTYPE] == MEMORY) {
 		freelval(lval);
 		if (reg <= 0)
 			reg = allocreg();
 		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
 
-		lval[LTYPE] = EXPR;
-		lval[LEA] = EA_ADDR;
+		lval[LTYPE] = ADDRESS;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -207,9 +205,8 @@ loadlval(register int lval[], register int reg) {
 		gencode_R(TOK_LDR, reg, REG_0);
 		fprintf(outhdl, "_%d:", lblX);
 
-		lval[LTYPE] = EXPR;
+		lval[LTYPE] = ADDRESS;
 		lval[LPTR] = 0;
-		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -324,14 +321,13 @@ step(register int pre, register int lval[], register int post) {
 	int dest[LLAST];
 	register int reg;
 
-	if (!isRegister(lval) && lval[LTYPE] != VARIABLE)
+	if (!isRegister(lval) && lval[LTYPE] != MEMORY)
 		expected("lvalue");
 
 	// Copy lval
 	dest[LTYPE] = lval[LTYPE];
 	dest[LPTR] = lval[LPTR];
 	dest[LSIZE] = lval[LSIZE];
-	dest[LEA] = lval[LEA];
 	dest[LNAME] = lval[LNAME];
 	dest[LVALUE] = lval[LVALUE];
 	dest[LREG] = lval[LREG];
@@ -378,10 +374,9 @@ doasm(register int lval[]) {
 	needtoken(")");
 
 	// make R1 available
-	lval[LTYPE] = EXPR;
+	lval[LTYPE] = ADDRESS;
 	lval[LPTR] = 0;
 	lval[LSIZE] = BPW;
-	lval[LEA] = EA_ADDR;
 	lval[LNAME] = 0;
 	lval[LVALUE] = 0;
 	lval[LREG] = REG_RETURN;
@@ -422,12 +417,6 @@ primary(register int lval[]) {
 			lval[LVALUE] = sym[IVALUE];
 			lval[LREG] = sym[IREG];
 
-			if (sym[ITYPE] == EXPR || sym[ITYPE] == FUNCTION) {
-				lval[LEA] = EA_ADDR;
-			} else {
-				lval[LEA] = EA_IND;
-			}
-
 			return 1;
 		}
 	}
@@ -435,10 +424,9 @@ primary(register int lval[]) {
 	// test for reserved words
 	if (sname == argcid) {
 		// generate (2(AP)-BPW)/BPW
-		lval[LTYPE] = EXPR;
+		lval[LTYPE] = ADDRESS;
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
-		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = allocreg();
@@ -459,7 +447,6 @@ primary(register int lval[]) {
 	lval[LTYPE] = FUNCTION;
 	lval[LPTR] = 0;
 	lval[LSIZE] = BPW;
-	lval[LEA] = EA_ADDR;
 	lval[LNAME] = sname;
 	lval[LVALUE] = 0;
 	lval[LREG] = 0;
@@ -483,13 +470,13 @@ expr_postfix(register int lval[]) {
 			error("need subscript");
 		else {
 			if (isConstant(lval2)) {
-				if (lval[LEA] == EA_IND)
+				if (lval[LTYPE] == MEMORY)
 					loadlval(lval, 0); // make LVALUE available
 				// Subscript is a constant
 				lval[LVALUE] += lval2[LVALUE] * lval[LSIZE];
 			} else {
 				// Subscript is a variable/complex-expression
-				if (lval[LEA] == EA_IND)
+				if (lval[LTYPE] == MEMORY)
 					loadlval(lval, 0); // make LREG2 available
 				loadlval(lval2, 0);
 				if (lval[LSIZE] == BPW)
@@ -515,9 +502,8 @@ expr_postfix(register int lval[]) {
 				}
 			}
 			// Update data type
-			lval[LTYPE] = VARIABLE;
+			lval[LTYPE] = MEMORY;
 			lval[LPTR] = 0;
-			lval[LEA] = EA_IND;
 		}
 		needtoken("]");
 	}
@@ -538,10 +524,10 @@ expr_postfix(register int lval[]) {
 					loadlval(lval2, 0);
 				freelval(lval2);
 				// Push onto stack
-				if (lval2[LEA] != EA_IND)
-					gencode_lval(TOK_PSHA, -1, lval2);
-				else
+				if (lval2[LTYPE] == MEMORY)
 					gencode_lval(isWORD(lval2) ? TOK_PSHW : TOK_PSHB, -1, lval2);
+				else
+					gencode_lval(TOK_PSHA, -1, lval2);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -564,10 +550,9 @@ expr_postfix(register int lval[]) {
 
 		csp = sav_csp;
 
-		lval[LTYPE] = EXPR;
+		lval[LTYPE] = ADDRESS;
 		lval[LPTR] = 0;
 		lval[LSIZE] = BPW;
-		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
@@ -653,23 +638,21 @@ expr_unary(register int lval[]) {
 			lval[LVALUE] = 0;
 			lval[LREG] = reg;
 		} else {
-			if (lval[LEA] == EA_IND)
+			if (lval[LTYPE] == MEMORY)
 				loadlval(lval, 0);
 			--lval[LPTR];
-			lval[LTYPE] = VARIABLE;
-			lval[LEA] = EA_IND;
+			lval[LTYPE] = MEMORY;
 		}
 	} else if (match("&")) {
 		if (!expr_unary(lval)) {
 			exprerr();
 			return 0;
 		}
-		if (lval[LEA] != EA_IND || isConstant(lval)  || lval[LTYPE] == BRANCH)
+		if (lval[LTYPE] != MEMORY)
 			error("Illegal address");
 		else {
 			++lval[LPTR];
-			lval[LTYPE] = EXPR;
-			lval[LEA] = EA_ADDR;
+			lval[LTYPE] = ADDRESS;
 		}
 	} else {
 		if (!expr_postfix(lval))
@@ -877,9 +860,8 @@ expr_ternary(register int lval[]) {
 	fprintf(outhdl, "_%d:", lbl);
 
 	// resulting type is undefined, so modify LTYPE
-	lval[LTYPE] = EXPR;
+	lval[LTYPE] = ADDRESS;
 	lval[LPTR] = 0;
-	lval[LEA] = EA_ADDR;
 
 	return 1;
 }
@@ -907,7 +889,7 @@ expr_assign(register int lval[]) {
 		return 1;
 
 	// test if lval modifiable
-	if (!isRegister(lval) && lval[LTYPE] != VARIABLE)
+	if (!isRegister(lval) && lval[LTYPE] != MEMORY)
 		expected("lvalue");
 
 	// Get rval
@@ -923,8 +905,7 @@ expr_assign(register int lval[]) {
 		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
 		freelval(lval);
-		lval[LTYPE] = EXPR;
-		lval[LEA] = EA_ADDR;
+		lval[LTYPE] = ADDRESS;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = rval[LREG];
@@ -933,7 +914,6 @@ expr_assign(register int lval[]) {
 		dest[LTYPE] = lval[LTYPE];
 		dest[LPTR] = lval[LPTR];
 		dest[LSIZE] = lval[LSIZE];
-		dest[LEA] = lval[LEA];
 		dest[LNAME] = lval[LNAME];
 		dest[LVALUE] = lval[LVALUE];
 		dest[LREG] = lval[LREG];
@@ -949,8 +929,7 @@ expr_assign(register int lval[]) {
 	}
 
 	// resulting type is undefined, so modify LTYPE
-	lval[LTYPE] = EXPR;
-	lval[LEA] = EA_ADDR;
+	lval[LTYPE] = ADDRESS;
 
 	return 1;
 }
@@ -983,7 +962,7 @@ expression(register int lval[], int comma) {
  */
 isConstant(register int lval[])
 {
-	return (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LREG] == 0);
+	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LREG] == 0);
 }
 
 /*
@@ -993,7 +972,7 @@ isConstant(register int lval[])
  */
 isRegister(register int lval[])
 {
-	return (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LVALUE] == 0);
+	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LVALUE] == 0);
 }
 
 /*
@@ -1017,10 +996,9 @@ constexpr(register int *val) {
  * Load a constant value
  */
 constant(register int lval[]) {
-	lval[LTYPE] = EXPR;
+	lval[LTYPE] = ADDRESS;
 	lval[LPTR] = 0;
 	lval[LSIZE] = 0;
-	lval[LEA] = EA_ADDR;
 	lval[LNAME] = 0;
 	lval[LVALUE] = 0;
 	lval[LREG] = 0;
@@ -1066,10 +1044,9 @@ constant(register int lval[]) {
 	toseg(prevseg);
 
 	// Convert to array of char
-	lval[LTYPE] = EXPR;
+	lval[LTYPE] = ADDRESS;
 	lval[LPTR] = 1;
 	lval[LSIZE] = 1;
-	lval[LEA] = EA_ADDR;
 	lval[LNAME] = -lbl;
 	lval[LVALUE] = 0;
 	lval[LREG] = 0;

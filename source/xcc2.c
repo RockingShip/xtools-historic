@@ -75,7 +75,7 @@ declarg(int scope, register int clas, register int argnr) {
 			}
 		}
 
-		type = VARIABLE;
+		type = MEMORY;
 
 		if (ptrfunc) {
 			needtoken(")");
@@ -93,7 +93,7 @@ declarg(int scope, register int clas, register int argnr) {
 		if (match("[")) {
 			if (ptr)
 				error("array of pointers not supported");
-			if (type != VARIABLE)
+			if (type != MEMORY)
 				error("array type not supported");
 
 			ptr = 1; // address of array (passed as argument) is pushed on stack
@@ -172,7 +172,7 @@ declvar(int scope, register int clas) {
 			}
 		}
 
-		type = VARIABLE;
+		type = MEMORY;
 
 		if (ptrfunc) {
 			needtoken(")");
@@ -192,7 +192,7 @@ declvar(int scope, register int clas) {
 			if (clas == REGISTER)
 				error("register array not supported");
 
-			type = EXPR;
+			type = ADDRESS;
 			// add extra indirection to endtype
 			++ptr;
 
@@ -221,14 +221,14 @@ declvar(int scope, register int clas) {
 
 		// Now generate code
 		if (sym[ICLASS] == REGISTER) {
-			sym[ITYPE] = EXPR;
+			sym[ITYPE] = ADDRESS;
 			sym[INAME] = 0;
 			sym[IVALUE] = 0;
 			sym[IREG] = allocreg();
 			reglock |= (1 << sym[IREG]);
 		} else if (sym[ICLASS] == SP_AUTO) {
 
-			if (type == EXPR) {
+			if (type == ADDRESS) {
 				if (ptr <= 1 && size == 1)
 					csp -= cnt * 1;
 				else
@@ -252,7 +252,7 @@ declvar(int scope, register int clas) {
 			if (clas != STATIC)
 				fprintf(outhdl, ":");
 
-			if (type == EXPR) {
+			if (type == ADDRESS) {
 				if (ptr <= 1 && size == 1)
 					fprintf(outhdl, "\t.DSB\t%d\n", cnt);
 				else
@@ -317,7 +317,7 @@ declenum(int scope) {
 		sym = &syms[symidx++ * ILAST];
 		sym[ISYM] = sname;
 		sym[ICLASS] = EXTERNAL; // external has no storage
-		sym[ITYPE] = EXPR;
+		sym[ITYPE] = ADDRESS;
 		sym[IPTR] = 0;
 		sym[ISIZE] = 0;
 		sym[INAME] = 0;
@@ -498,7 +498,7 @@ declfunc(int clas) {
 			reg = allocreg();
 			reglock |= (1 << reg);
 			gencode_M((sym[ISIZE] == BPW || sym[IPTR]) ? TOK_LDW : TOK_LDB, reg, sym[INAME], sym[IVALUE], sym[IREG]);
-			sym[ITYPE] = EXPR;
+			sym[ITYPE] = ADDRESS;
 			sym[INAME] = 0;
 			sym[IVALUE] = 0;
 			sym[IREG] = reg;
