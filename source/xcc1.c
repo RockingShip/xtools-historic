@@ -728,15 +728,15 @@ main(int argc, int *argv) {
 	register int i, j;
 
 	initialize(); // initialize all variables
-	startup(argv);       // Process commandline options
+	startup(argv); // Process commandline options
 
 	inphdl = open_file(inpfn, "r");
 	outhdl = open_file(outfn, "w");
 
-	preprocess();        // fetch first line
-	toseg(CODESEG);      // setup initial segment //
+	preprocess(); // fetch first line
+	toseg(CODESEG); // setup initial segment
 
-	parse();             // GO !!!
+	parse(); // GO !!!
 	if (iflevel)
 		expected("#endif");
 	fprintf(outhdl, "\t.END\n");

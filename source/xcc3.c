@@ -471,13 +471,13 @@ expr_postfix(register int lval[]) {
 		else {
 			if (isConstant(lval2)) {
 				if (lval[LTYPE] == MEMORY)
-					loadlval(lval, 0); // make LVALUE available
+					loadlval(lval, 0); // load if pointer
 				// Subscript is a constant
 				lval[LVALUE] += lval2[LVALUE] * lval[LSIZE];
 			} else {
 				// Subscript is a variable/complex-expression
 				if (lval[LTYPE] == MEMORY)
-					loadlval(lval, 0); // make LREG2 available
+					loadlval(lval, 0); // load if pointer
 				loadlval(lval2, 0);
 				if (lval[LSIZE] == BPW)
 					gencode_R(TOK_MUL, lval2[LREG], REG_BPW); // size index
@@ -503,7 +503,7 @@ expr_postfix(register int lval[]) {
 			}
 			// Update data type
 			lval[LTYPE] = MEMORY;
-			lval[LPTR] = 0;
+			--lval[LPTR]; // deference pointer
 		}
 		needtoken("]");
 	}
@@ -557,6 +557,13 @@ expr_postfix(register int lval[]) {
 		lval[LVALUE] = 0;
 		lval[LREG] = REG_RETURN;
 	}
+
+	if (match("++")) {
+		step(0, lval, TOK_ADD);
+	} else if (match("--")) {
+		step(0, lval, TOK_SUB);
+	}
+
 	return 1;
 }
 
@@ -640,8 +647,8 @@ expr_unary(register int lval[]) {
 		} else {
 			if (lval[LTYPE] == MEMORY)
 				loadlval(lval, 0);
-			--lval[LPTR];
 			lval[LTYPE] = MEMORY;
+			--lval[LPTR];
 		}
 	} else if (match("&")) {
 		if (!expr_unary(lval)) {
@@ -651,17 +658,12 @@ expr_unary(register int lval[]) {
 		if (lval[LTYPE] != MEMORY)
 			error("Illegal address");
 		else {
-			++lval[LPTR];
 			lval[LTYPE] = ADDRESS;
+			++lval[LPTR];
 		}
 	} else {
 		if (!expr_postfix(lval))
 			return 0;
-		if (match("++")) {
-			step(0, lval, TOK_ADD);
-		} else if (match("--")) {
-			step(0, lval, TOK_SUB);
-		}
 	}
 	return 1;
 }
@@ -926,10 +928,10 @@ expr_assign(register int lval[]) {
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, lval[LREG], dest);
-	}
 
-	// resulting type is undefined, so modify LTYPE
-	lval[LTYPE] = ADDRESS;
+		// resulting type is undefined, so modify LTYPE
+		lval[LTYPE] = ADDRESS;
+	}
 
 	return 1;
 }
