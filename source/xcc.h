@@ -67,12 +67,11 @@ enum {
  */
 
 enum {
-	CONSTANT = 1,	// constant without storage
+	EXTERNAL = 1,	// external global variables
 	STATIC,		// static global variables
+	GLOBAL,		// global variables
 	SP_AUTO,	// local variables
 	AP_AUTO,	// procedure arguments
-	EXTERNAL,	// external global variables
-	GLOBAL,		// global variables
 	REGISTER,	// register variables
 };
 
@@ -81,12 +80,11 @@ enum {
  */
 
 enum {
-	VARIABLE = 1,
-	ARRAY,
-	LABEL,
+	EXPR = 1,
+	VARIABLE,
 	FUNCTION,
-	EXPR,
 	BRANCH,
+	ARRAY,
 };
 
 /*

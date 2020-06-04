@@ -37,7 +37,7 @@
  * Declare/define a procedure argument
  */
 declarg(int scope, register int clas, register int argnr) {
-	int size, sname, len, ptr, type, cnt, reg, ptrfunc;
+	int size, sname, len, ptr, type, reg, ptrfunc;
 	register int *sym, i;
 
 	// get size of type
@@ -80,15 +80,16 @@ declarg(int scope, register int clas, register int argnr) {
 		if (ptrfunc) {
 			needtoken(")");
 			if (match("(")) {
-				if (match(")"))
+				if (match(")")) {
 					type = FUNCTION;
-				else
+					ptr = 1;
+					if (clas == REGISTER)
+						error("register pointer to function not supported");
+				} else
 					error("bad (*)()");
 			}
-			ptr = 1;
 		}
 
-		cnt = 1; // Number of elements
 		if (match("[")) {
 			if (ptr)
 				error("array of pointers not supported");
@@ -99,6 +100,7 @@ declarg(int scope, register int clas, register int argnr) {
 			ptr = 1; // address of array (passed as argument) is pushed on stack
 
 			// get number of elements
+			int cnt;
 			if (constexpr(&cnt))
 				error("arraysize not allowed");
 
@@ -176,12 +178,14 @@ declvar(int scope, register int clas) {
 		if (ptrfunc) {
 			needtoken(")");
 			if (match("(")) {
-				if (match(")"))
+				if (match(")")) {
 					type = FUNCTION;
-				else
+					ptr = 1;
+					if (clas == REGISTER)
+						error("register pointer to function not supported");
+				} else
 					error("bad (*)()");
 			}
-			ptr = 1;
 		}
 
 		cnt = 1; // Number of elements
@@ -302,7 +306,7 @@ declenum(int scope) {
 			fatal("identifier table overflow");
 		sym = &syms[symidx++ * ILAST];
 		sym[ISYM] = sname;
-		sym[ICLASS] = CONSTANT;
+		sym[ICLASS] = EXTERNAL; // external has no storage
 		sym[ITYPE] = EXPR;
 		sym[IPTR] = 0;
 		sym[ISIZE] = 0;
@@ -483,7 +487,7 @@ declfunc(int clas) {
 			int reg;
 			reg = allocreg();
 			reglock |= (1 << reg);
-			gencode_M(((sym[ISIZE] == BPW) || sym[IPTR]) ? TOK_LDW : TOK_LDB, reg, sym[INAME], sym[IVALUE], sym[IREG]);
+			gencode_M((sym[ISIZE] == BPW || sym[IPTR]) ? TOK_LDW : TOK_LDB, reg, sym[INAME], sym[IVALUE], sym[IREG]);
 			sym[INAME] = 0;
 			sym[IVALUE] = 0;
 			sym[IREG] = reg;

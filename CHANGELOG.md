@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-2020-06-03 00:21:26 Added and converted to `LTYPE=ADDRESS`.
-                    Includes register variables and constants.
 ## [Unreleased]
 
 ```
+2020-06-03 23:41:21 Fixed `LTYPE=FUNCTION`.
+                    `FUNCTION` was treated as `ARRAY` which was giving a conflict.
+                    It is now a code concept with its own set of operators, currently dererence "(*fn)()"
+                    Register pointer to function needs an extra addressing mode, drop support.
 2020-06-03 10:51:36 Fixed: `expr_assign()`, `xplng1()` and `expression()`.
                     - Register leak in `expr_assign()`.
                     - Leave data type untouched in `xplng1()`

@@ -266,20 +266,18 @@ dump_ident(int ident[]) {
 
 	if (!classnames[0]) {
 		classnames[0] = "0";
-		classnames[1] = "CONSTANT";
+		classnames[1] = "EXTERNAL";
 		classnames[2] = "STATIC";
-		classnames[3] = "SP_AUTO";
-		classnames[4] = "AP_AUTO";
-		classnames[5] = "EXTERNAL";
-		classnames[6] = "GLOBAL";
-		classnames[7] = "REGISTER";
+		classnames[3] = "GLOBAL";
+		classnames[4] = "SP_AUTO";
+		classnames[5] = "AP_AUTO";
+		classnames[6] = "REGISTER";
 		typenames[0] = "0";
-		typenames[1] = "VARIABLE";
-		typenames[2] = "ARRAY";
-		typenames[3] = "LABEL";
-		typenames[4] = "FUNCTION";
-		typenames[5] = "EXPR";
-		typenames[6] = "BRANCH";
+		typenames[1] = "EXPR";
+		typenames[2] = "VARIABLE";
+		typenames[3] = "FUNCTION";
+		typenames[4] = "BRANCH";
+		typenames[5] = "ARRAY";
 	}
 
 	fprintf(outhdl, "; IDENT=");
@@ -287,6 +285,27 @@ dump_ident(int ident[]) {
 	fprintf(outhdl, " CLASS=%s TYPE=%s PTR=%d SIZE=%d NAME=", classnames[ident[ICLASS]], typenames[ident[ITYPE]], ident[IPTR], ident[ISIZE]);
 	symname(ident[INAME]);
 	fprintf(outhdl, " VALUE=%d REG=%d\n", ident[IVALUE], ident[IREG]);
+}
+
+/*
+ *
+ */
+dump_lval(int lval[]) {
+	if (!debug)
+		return;
+
+	if (!typenames[0]) {
+		typenames[0] = "0";
+		typenames[1] = "EXPR";
+		typenames[2] = "VARIABLE";
+		typenames[3] = "FUNCTION";
+		typenames[4] = "BRANCH";
+		typenames[5] = "ARRAY";
+	}
+
+	fprintf(outhdl, "; TYPE=%s EA=%d PTR=%d SIZE=%d NAME=", typenames[lval[LTYPE]], lval[LEA], lval[LPTR], lval[LSIZE]);
+	symname(lval[LNAME]);
+	fprintf(outhdl, " VALUE=%d REG=%d TRUE=%d FALSE=%d\n", lval[LVALUE], lval[LREG], lval[LTRUE], lval[LFALSE]);
 }
 
 /*

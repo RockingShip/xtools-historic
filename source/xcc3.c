@@ -208,8 +208,8 @@ loadlval(register int lval[], register int reg) {
 			reg = allocreg();
 		gencode_lval(TOK_LDA, reg, lval);
 
+		lval[LTYPE] = EXPR;
 		lval[LEA] = EA_ADDR;
-		lval[LPTR] = 0;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
@@ -238,7 +238,7 @@ freelval(register int lval[]) {
 /*
  * generic processing for <lval> { <operation> <rval> }
  */
-xplng1(register int (*hier)(), register int start, register int lval[]) {
+xplng1(int (*hier)(), register int start, register int lval[]) {
 	register char *cptr, entry;
 	int rval[LLAST];
 
@@ -281,7 +281,7 @@ xplng1(register int (*hier)(), register int start, register int lval[]) {
 /*
  * generic processing for <lval> <comparison> <rval>
  */
-xplng2(register int (*hier)(), register int start, register int lval[]) {
+xplng2(int (*hier)(), register int start, register int lval[]) {
 	register char *cptr, entry;
 	int rval[LLAST];
 
@@ -430,14 +430,14 @@ primary(register int lval[]) {
 			lval[LVALUE] = sym[IVALUE];
 			lval[LREG] = sym[IREG];
 
-			if (sym[ICLASS] == CONSTANT || sym[ICLASS] == REGISTER) {
+			if (sym[ICLASS] == REGISTER || sym[ITYPE] == EXPR || sym[ITYPE] == FUNCTION) {
 				lval[LEA] = EA_ADDR;
 			} else {
 				lval[LEA] = EA_IND;
 			}
 
 			// functions/arrays are addresses
-			if ((sym[ITYPE] == FUNCTION || sym[ITYPE] == ARRAY) && !sym[IPTR]) {
+			if (sym[ITYPE] == ARRAY && !sym[IPTR]) {
 				if (lval[LEA] != EA_IND)
 					fatal("ARRAY not EA_IND\n");
 				lval[LEA] = EA_ADDR;
@@ -494,7 +494,7 @@ expr_postfix(register int lval[]) {
 	if (match("[")) { // [subscript]
 		if (!(lval[LTYPE] == ARRAY || (lval[LTYPE] == VARIABLE && lval[LPTR])))
 			error("can't subscript");
-		else if (!expr_assign(lval2))
+ 		else if (!expr_assign(lval2))
 			error("need subscript");
 		else {
 			if (isConstant(lval2)) {
@@ -656,10 +656,21 @@ expr_unary(register int lval[]) {
 		}
 		if (!lval[LPTR])
 			error("can't dereference");
-		else {
+		else if (lval[LTYPE] == FUNCTION) {
+			// dereference pointer to function
+			int reg;
+			freelval(lval);
+			reg = allocreg();
+			gencode_lval(TOK_LDW, reg, lval);
+			--lval[LPTR];
+			lval[LNAME] = 0;
+			lval[LVALUE] = 0;
+			lval[LREG] = reg;
+		} else {
 			if (lval[LEA] == EA_IND)
 				loadlval(lval, 0);
 			--lval[LPTR];
+			lval[LTYPE] = VARIABLE;
 			lval[LEA] = EA_IND;
 		}
 	} else if (match("&")) {
@@ -670,9 +681,8 @@ expr_unary(register int lval[]) {
 		if (lval[LEA] != EA_IND || isConstant(lval)  || lval[LTYPE] == BRANCH)
 			error("Illegal address");
 		else {
-			lval[LTYPE] = EXPR;
-			lval[LSIZE] = isWORD(lval) ? BPW : 1;
 			++lval[LPTR];
+			lval[LTYPE] = EXPR;
 			lval[LEA] = EA_ADDR;
 		}
 	} else {
@@ -926,7 +936,9 @@ expr_assign(register int lval[]) {
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
-			freelval(lval);
+		freelval(lval);
+		lval[LTYPE] = EXPR;
+		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = rval[LREG];
@@ -952,7 +964,6 @@ expr_assign(register int lval[]) {
 
 	// resulting type is undefined, so modify LTYPE
 	lval[LTYPE] = EXPR;
-	lval[LPTR] = 0;
 	lval[LEA] = EA_ADDR;
 
 	return 1;

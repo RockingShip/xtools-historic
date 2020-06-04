@@ -87,7 +87,7 @@ loadlval(register int lval[]) {
 /*
  * generic processing for <lval> { <operation> <rval> }
  */
-xplng1(register int (*hier)(), register int start, register int lval[]) {
+xplng1(int (*hier)(), register int start, register int lval[]) {
 	register char *cptr, entry;
 	int rval[LLAST];
 
