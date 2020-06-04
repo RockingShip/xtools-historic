@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Release [1.4.0] 2020-06-04 12:39:17
+
+Simplified and bugfixed `sym[]` (identifier) and `lval[]` (peephole) structures.
+More flexible pointer depth.
+Syned language parts to `xtools 2.1.0`.
+
 ```
 2020-06-04 12:19:44 Lost+Found.
                     After syncing with `xtools 2.1.0`
@@ -219,7 +225,8 @@ Original 1991 submitted school assignment.
 2020-05-09 11:26:17 Changed license and '\n' line separators. 
 ```
 
-[Unreleased]: /RockingShip/xtools-historic/compare/v1.3.0...HEAD
+[Unreleased]: /RockingShip/xtools-historic/compare/v1.4.0...HEAD
+[1.4.0]: /RockingShip/xtools-historic/compare/v1.3.0...v1.4.0
 [1.3.0]: /RockingShip/xtools-historic/compare/v1.2.0...v1.3.0
 [1.2.0]: /RockingShip/xtools-historic/compare/v1.1.0...v1.2.0
 [1.1.0]: /RockingShip/xtools-historic/compare/v1.0.0...v1.1.0
