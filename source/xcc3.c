@@ -332,7 +332,7 @@ step(register int pre, register int lval[], register int post) {
 	int dest[LLAST];
 	register int reg;
 
-	if (lval[LTYPE] == EXPR || isConstant(lval) || lval[LTYPE] == BRANCH)
+	if (!isRegister(lval) && lval[LTYPE] != VARIABLE)
 		expected("lvalue");
 
 	// Copy lval
@@ -436,13 +436,6 @@ primary(register int lval[]) {
 				lval[LEA] = EA_IND;
 			}
 
-			// functions/arrays are addresses
-			if (sym[ITYPE] == ARRAY && !sym[IPTR]) {
-				if (lval[LEA] != EA_IND)
-					fatal("ARRAY not EA_IND\n");
-				lval[LEA] = EA_ADDR;
-			}
-
 			return 1;
 		}
 	}
@@ -492,8 +485,8 @@ expr_postfix(register int lval[]) {
 	if (!primary(lval))
 		return 0;
 	if (match("[")) { // [subscript]
-		if (!(lval[LTYPE] == ARRAY || (lval[LTYPE] == VARIABLE && lval[LPTR])))
-			error("can't subscript");
+		if (!lval[LPTR])
+			warning("can't subscript");
  		else if (!expr_assign(lval2))
 			error("need subscript");
 		else {
@@ -530,6 +523,7 @@ expr_postfix(register int lval[]) {
 				}
 			}
 			// Update data type
+			lval[LTYPE] = VARIABLE;
 			lval[LPTR] = 0;
 			lval[LEA] = EA_IND;
 		}
@@ -921,7 +915,7 @@ expr_assign(register int lval[]) {
 		return 1;
 
 	// test if lval modifiable
-	if (lval[LTYPE] == EXPR || isConstant(lval) || lval[LTYPE] == BRANCH)
+	if (!isRegister(lval) && lval[LTYPE] != VARIABLE)
 		expected("lvalue");
 
 	// Get rval
@@ -997,7 +991,7 @@ expression(register int lval[], int comma) {
  */
 isConstant(register int lval[])
 {
-	return (lval[LTYPE] == EXPR && lval[LPTR] == 0 && lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LREG] == 0);
+	return (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LREG] == 0);
 }
 
 /*
@@ -1007,7 +1001,10 @@ isConstant(register int lval[])
  */
 isRegister(register int lval[])
 {
-	if (lval[LTYPE] == VARIABLE || lval[LTYPE] == ARRAY || lval[LTYPE] == EXPR) {
+	if (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LVALUE] == 0)
+		return 1;
+
+	if (lval[LTYPE] == VARIABLE || lval[LTYPE] == EXPR) {
 		if (lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LVALUE] == 0)
 			return 1;
 	}
@@ -1084,7 +1081,7 @@ constant(register int lval[]) {
 	toseg(prevseg);
 
 	// Convert to array of char
-	lval[LTYPE] = ARRAY;
+	lval[LTYPE] = EXPR;
 	lval[LPTR] = 1;
 	lval[LSIZE] = 1;
 	lval[LEA] = EA_ADDR;

@@ -96,7 +96,6 @@ declarg(int scope, register int clas, register int argnr) {
 			if (type != VARIABLE)
 				error("array type not supported");
 
-			type = ARRAY;
 			ptr = 1; // address of array (passed as argument) is pushed on stack
 
 			// get number of elements
@@ -190,15 +189,12 @@ declvar(int scope, register int clas) {
 
 		cnt = 1; // Number of elements
 		if (match("[")) {
-			if (ptr)
-				error("array of pointers not supported");
-			if (type != VARIABLE)
-				error("array type not supported");
 			if (clas == REGISTER)
 				error("register array not supported");
 
-			type = ARRAY;
-			ptr = 0;
+			type = EXPR;
+			// add extra indirection to endtype
+			++ptr;
 
 			// get number of elements
 			if (!constexpr(&cnt))
@@ -230,12 +226,19 @@ declvar(int scope, register int clas) {
 			sym[IREG] = allocreg();
 			reglock |= (1 << sym[IREG]);
 		} else if (sym[ICLASS] == SP_AUTO) {
-			if (ptr)
-				csp -= BPW;
-			else if (size == 1)
-				csp -= cnt;
-			else
-				csp -= cnt * BPW;
+
+			if (type == EXPR) {
+				if (ptr <= 1 && size == 1)
+					csp -= cnt * 1;
+				else
+					csp -= cnt * BPW;
+			} else {
+				if (!ptr && size == 1)
+					csp -= cnt * 1;
+				else
+					csp -= cnt * BPW;
+			}
+
 			sym[INAME] = 0;
 			sym[IVALUE] = csp;
 			sym[IREG] = REG_SP;
@@ -247,12 +250,18 @@ declvar(int scope, register int clas) {
 
 			if (clas != STATIC)
 				fprintf(outhdl, ":");
-			if (ptr)
-				fprintf(outhdl, "\t.DSW\t1\n");
-			else if (size == 1)
-				fprintf(outhdl, "\t.DSB\t%d\n", cnt);
-			else
-				fprintf(outhdl, "\t.DSW\t%d\n", cnt);
+
+			if (type == EXPR) {
+				if (ptr <= 1 && size == 1)
+					fprintf(outhdl, "\t.DSB\t%d\n", cnt);
+				else
+					fprintf(outhdl, "\t.DSW\t%d\n", cnt);
+			} else {
+				if (!ptr && size == 1)
+					fprintf(outhdl, "\t.DSB\t1\n");
+				else
+					fprintf(outhdl, "\t.DSW\t1\n");
+			}
 		}
 		dump_ident(sym);
 

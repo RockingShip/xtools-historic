@@ -84,7 +84,6 @@ enum {
 	VARIABLE,
 	FUNCTION,
 	BRANCH,
-	ARRAY,
 };
 
 /*

@@ -277,7 +277,6 @@ dump_ident(int ident[]) {
 		typenames[2] = "VARIABLE";
 		typenames[3] = "FUNCTION";
 		typenames[4] = "BRANCH";
-		typenames[5] = "ARRAY";
 	}
 
 	fprintf(outhdl, "; IDENT=");
@@ -300,7 +299,6 @@ dump_lval(int lval[]) {
 		typenames[2] = "VARIABLE";
 		typenames[3] = "FUNCTION";
 		typenames[4] = "BRANCH";
-		typenames[5] = "ARRAY";
 	}
 
 	fprintf(outhdl, "; TYPE=%s EA=%d PTR=%d SIZE=%d NAME=", typenames[lval[LTYPE]], lval[LEA], lval[LPTR], lval[LSIZE]);
