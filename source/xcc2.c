@@ -221,6 +221,7 @@ declvar(int scope, register int clas) {
 
 		// Now generate code
 		if (sym[ICLASS] == REGISTER) {
+			sym[ITYPE] = EXPR;
 			sym[INAME] = 0;
 			sym[IVALUE] = 0;
 			sym[IREG] = allocreg();
@@ -488,15 +489,16 @@ declfunc(int clas) {
 	for (i = scope + 1; i < symidx; ++i) {
 		sym = &syms[i * ILAST];
 
-		// tweak ap offsets
+		// tweak AP offsets
 		sym[IVALUE] += numarg * BPW;
 
-		// generate code for register variables
+		// generate code for register parameters
 		if (sym[ICLASS] == REGISTER) {
 			int reg;
 			reg = allocreg();
 			reglock |= (1 << reg);
 			gencode_M((sym[ISIZE] == BPW || sym[IPTR]) ? TOK_LDW : TOK_LDB, reg, sym[INAME], sym[IVALUE], sym[IREG]);
+			sym[ITYPE] = EXPR;
 			sym[INAME] = 0;
 			sym[IVALUE] = 0;
 			sym[IREG] = reg;

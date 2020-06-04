@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-04 02:07:33 Fixed `loadlval()`.
+                    Seems like all paths working.
 2020-06-03 23:41:21 Fixed `LTYPE=ARRAY` and replaced with `LTYPE=EXPR`.
                     Pointer depth was also off by 1.
 2020-06-03 23:41:21 Fixed `LTYPE=FUNCTION`.

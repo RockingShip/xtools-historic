@@ -133,37 +133,59 @@ loadlval(register int lval[], register int reg) {
 	// Sign extend to fix being called with negative constant when copiled with "-Dint=long"
 	reg |= -(reg & (1 << SBIT));
 
-	if (lval[LTYPE] == FUNCTION)
-		error("unimplemented");
-	else if (isConstant(lval)) {
-		// test for a predefined register
-		if (reg > 0)
-			gencode_I(TOK_LDA, reg, lval[LVALUE]);
-		else {
-			if (lval[LVALUE] == 0)
-				srcreg = REG_0;
-			else if (lval[LVALUE] == 1)
-				srcreg = REG_1;
-			else if (lval[LVALUE] == BPW)
-				srcreg = REG_BPW;
-			else {
-				srcreg = allocreg();
-				gencode_I(TOK_LDA, srcreg, lval[LVALUE]);
+	if (lval[LTYPE] == EXPR) {
+		// try to relocate offset to register
+		if (lval[LREG] == 0) {
+			if (lval[LVALUE] == 1) {
+				lval[LREG] = REG_1;
+				lval[LVALUE] = 0;
+			} else if (lval[LVALUE] == BPW) {
+				lval[LREG] = REG_BPW;
+				lval[LVALUE] = 0;
 			}
+		}
 
-			if (reg == -1)
-				reg = srcreg;
-			else if (srcreg < REG_0)
-				reg = srcreg;
-			else {
-				reg = allocreg();
-				gencode_R(TOK_LDR, reg, srcreg);
-			}
+		// assign resulting register
+		if (reg > 0) {
+			// loaded into fixed register
+			freelval(lval);
+		} else if (lval[LNAME] || lval[LVALUE]) {
+			// need code to evaluate, result always in new register
+			freelval(lval);
+			reg = allocreg();
+		} else if (reg == 0 && ((reglock | regresvd) & (1 << lval[LREG]))) {
+			// reserved/locked register to writable register
+			reg = allocreg();
+		} else if (lval[LNAME] == 0 && lval[LVALUE] == 0) {
+			// already in register
+			return;
+		} else {
+			// reuse register
+			reg = lval[LREG];
+		}
+
+		// generate code
+		if (lval[LNAME] || lval[LVALUE]) {
+			gencode_lval(TOK_LDA, reg, lval);
+		} else if (lval[LREG] == 0) {
+			gencode_R(TOK_LDR, reg, REG_0);
+		} else {
+			gencode_R(TOK_LDR, reg, lval[LREG]);
 		}
 
 		// Modify lval
 		lval[LTYPE] = EXPR;
-		lval[LPTR] = 0;
+		lval[LEA] = EA_ADDR;
+		lval[LNAME] = 0;
+		lval[LVALUE] = 0;
+		lval[LREG] = reg;
+	} else if (lval[LTYPE] == VARIABLE) {
+		freelval(lval);
+		if (reg <= 0)
+			reg = allocreg();
+		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
+
+		lval[LTYPE] = EXPR;
 		lval[LEA] = EA_ADDR;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
@@ -191,38 +213,8 @@ loadlval(register int lval[], register int reg) {
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
-	} else if (lval[LEA] == EA_IND) {
-		freelval(lval);
-		if (reg <= 0)
-			reg = allocreg();
-		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
-
-		lval[LEA] = EA_ADDR;
-		// NOTE: lval[LPTR] can be non-zero
-		lval[LNAME] = 0;
-		lval[LVALUE] = 0;
-		lval[LREG] = reg;
-	} else if (!isRegister(lval)) {
-		freelval(lval);
-		if (reg <= 0)
-			reg = allocreg();
-		gencode_lval(TOK_LDA, reg, lval);
-
-		lval[LTYPE] = EXPR;
-		lval[LEA] = EA_ADDR;
-		lval[LNAME] = 0;
-		lval[LVALUE] = 0;
-		lval[LREG] = reg;
-	} else if (((reg > 0) && (lval[LREG] != reg)) ||
-		   (regresvd & (1 << lval[LREG])) ||
-		   ((reg != -1) && (reglock & (1 << lval[LREG])))) {
-		freelval(lval);
-		if (reg <= 0)
-			reg = allocreg();
-		gencode_R(TOK_LDR, reg, lval[LREG]);
-
-		lval[LREG] = reg;
-	}
+	} else
+		error("unimplemented");
 }
 
 /*
@@ -430,7 +422,7 @@ primary(register int lval[]) {
 			lval[LVALUE] = sym[IVALUE];
 			lval[LREG] = sym[IREG];
 
-			if (sym[ICLASS] == REGISTER || sym[ITYPE] == EXPR || sym[ITYPE] == FUNCTION) {
+			if (sym[ITYPE] == EXPR || sym[ITYPE] == FUNCTION) {
 				lval[LEA] = EA_ADDR;
 			} else {
 				lval[LEA] = EA_IND;
@@ -1001,14 +993,7 @@ isConstant(register int lval[])
  */
 isRegister(register int lval[])
 {
-	if (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LVALUE] == 0)
-		return 1;
-
-	if (lval[LTYPE] == VARIABLE || lval[LTYPE] == EXPR) {
-		if (lval[LEA] == EA_ADDR && lval[LNAME] == 0 && lval[LVALUE] == 0)
-			return 1;
-	}
-	return 0;
+	return (lval[LTYPE] == EXPR && lval[LNAME] == 0 && lval[LVALUE] == 0);
 }
 
 /*
