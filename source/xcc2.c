@@ -325,12 +325,8 @@ declenum(int scope) {
 		sym[IREG] = 0;
 
 		if (match("=")) {
-			expression(lval, 0);
-			if (!isConstant(lval)) {
-				error("constant expected");
-				return;
-			}
-			seqnr = lval[LVALUE];
+			if (!constexpr(&seqnr))
+				expected("constant expected");
 		}
 
 		sym[IVALUE] = seqnr++;
@@ -575,7 +571,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 
 	if (amatch("if")) {
 		needtoken("(");
-		expression(lval, 1);
+		expression(lval);
 		needtoken(")");
 		if (lval[LTYPE] == BRANCH) {
 			if (!lval[LFALSE])
@@ -620,7 +616,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		lbl1 = ++nxtlabel;
 		fprintf(outhdl, "_%d:", lbl1);
 		needtoken("(");
-		expression(lval, 1);
+		expression(lval);
 		needtoken(")");
 
 		if (lval[LTYPE] == BRANCH) {
@@ -652,7 +648,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		fprintf(outhdl, "_%d:", lbl2);
 		needtoken("while");
 		needtoken("(");
-		expression(lval, 1);
+		expression(lval);
 		needtoken(")");
 		if (lval[LTYPE] == BRANCH) {
 			if (lval[LTRUE])
@@ -682,14 +678,14 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		needtoken("(");
 		blanks();
 		if (ch != ';') {
-			expression(lval, 1);
+			expression(lval);
 			freelval(lval);
 		}
 		needtoken(";");
 		fprintf(outhdl, "_%d:", lbl1);
 		blanks();
 		if (ch != ';') {
-			expression(lval, 1);
+			expression(lval);
 			if (lval[LTYPE] == BRANCH) {
 				if (!lval[LFALSE])
 					lval[LFALSE] = ++nxtlabel;
@@ -709,7 +705,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		fprintf(outhdl, "_%d:", lbl2);
 		blanks();
 		if (ch != ')') {
-			expression(lval, 1);
+			expression(lval);
 			freelval(lval);
 		}
 		gencode_L(TOK_JMP, lbl1);
@@ -720,7 +716,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		fprintf(outhdl, "_%d:", lval[LFALSE]);
 	} else if (amatch("switch")) {
 		needtoken("(");
-		expression(lval, 1);
+		expression(lval);
 		needtoken(")");
 		loadlval(lval, REG_RETURN);
 		lbl1 = ++nxtlabel;
@@ -764,7 +760,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 	} else if (amatch("return")) {
 		if (!match(";")) {
 			// generate a return value in R1
-			expression(lval, 1);
+			expression(lval);
 			loadlval(lval, REG_RETURN);
 			semicolon();
 		}
@@ -788,7 +784,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 	} else if (!ch) {
 		return; // EOF
 	} else if (ch != ';') {
-		expression(lval, 1);
+		expression(lval);
 		freelval(lval);
 		semicolon();
 	} else

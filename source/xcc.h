@@ -111,7 +111,7 @@ enum {
 	ISYM = 0,		// identifier/symbol name
 	ICLASS,			// storage class
 	ITYPE,			// peephole data type
-	IPTR,			// part of ISIZE. 1="*name" 2="(*name)"
+	IPTR,			// Number of indirects to basetype
 	ISIZE,			// size in bytes.
 	INAME,			// EA name
 	IVALUE,			// EA value/offset

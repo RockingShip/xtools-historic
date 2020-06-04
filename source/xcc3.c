@@ -34,6 +34,26 @@
 #include "xcc.h"
 
 /*
+ * @date 2020-05-23 17:09:01
+ *
+ * Test if lval is a constant stored in `lval[LVALUE]`
+ */
+isConstant(register int lval[])
+{
+	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LREG] == 0);
+}
+
+/*
+ * @date 2020-05-24 14:02:47
+ *
+ * Test if lval is a register stored in `lval[LREG]`
+ */
+isRegister(register int lval[])
+{
+	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LVALUE] == 0);
+}
+
+/*
  * Test if storage is BPW large. "int*" "char*" "int".
  */
 isWORD(register int lval[]) {
@@ -360,7 +380,7 @@ doasm(register int lval[]) {
 	needtoken("(");
 
 	if (!match("\"")) {
-		error("string expected");
+		expected("string");
 	} else {
 		fputc('\t', outhdl);
 		while (ch && (ch != '"'))
@@ -390,7 +410,7 @@ primary(register int lval[]) {
 	int sname, len;
 
 	if (match("(")) {  // (expression,...)
-		expression(lval, 1);
+		expression(lval);
 		needtoken(")");
 		return 1;
 	}
@@ -465,8 +485,8 @@ expr_postfix(register int lval[]) {
 		return 0;
 	if (match("[")) { // [subscript]
 		if (!lval[LPTR])
-			warning("can't subscript");
- 		else if (!expr_assign(lval2))
+			error("can't subscript");
+		else if (!expression(lval2))
 			error("need subscript");
 		else {
 			if (isConstant(lval2)) {
@@ -516,7 +536,7 @@ expr_postfix(register int lval[]) {
 		blanks();
 		while (ch != ')') {
 			// Get expression
-			expression(lval2, 0);
+			expr_assign(lval2);
 			if (isConstant(lval2)) {
 				gencode_I(TOK_PSHA, -1, lval2[LVALUE]);
 			} else {
@@ -524,10 +544,10 @@ expr_postfix(register int lval[]) {
 					loadlval(lval2, 0);
 				freelval(lval2);
 				// Push onto stack
-				if (lval2[LTYPE] == MEMORY)
-					gencode_lval(isWORD(lval2) ? TOK_PSHW : TOK_PSHB, -1, lval2);
-				else
+				if (lval2[LTYPE] != MEMORY)
 					gencode_lval(TOK_PSHA, -1, lval2);
+				else
+					gencode_lval(isWORD(lval2) ? TOK_PSHW : TOK_PSHB, -1, lval2);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -646,9 +666,9 @@ expr_unary(register int lval[]) {
 			lval[LREG] = reg;
 		} else {
 			if (lval[LTYPE] == MEMORY)
-				loadlval(lval, 0);
+				loadlval(lval, 0); // load if pointer
 			lval[LTYPE] = MEMORY;
-			--lval[LPTR];
+			--lval[LPTR]; // deference pointer
 		}
 	} else if (match("&")) {
 		if (!expr_unary(lval)) {
@@ -656,7 +676,7 @@ expr_unary(register int lval[]) {
 			return 0;
 		}
 		if (lval[LTYPE] != MEMORY)
-			error("Illegal address");
+			expected("lvalue");
 		else {
 			lval[LTYPE] = ADDRESS;
 			++lval[LPTR];
@@ -844,7 +864,7 @@ expr_ternary(register int lval[]) {
 	gencode_L(lval[LVALUE], lfalse);
 	if (lval[LTRUE])
 		fprintf(outhdl, "_%d:", lval[LTRUE]);
-	expression(lval, 1);
+	expression(lval);
 	loadlval(lval, reg = allocreg()); // Needed to assign a dest reg
 
 	needtoken(":");
@@ -854,7 +874,7 @@ expr_ternary(register int lval[]) {
 
 	// process 'false' variant
 	fprintf(outhdl, "_%d:", lfalse);
-	if (!expr_assign(lval))
+	if (!expr_ternary(lval))
 		exprerr();
 	else
 		loadlval(lval, reg); // Needed for result to occupy same reg
@@ -906,6 +926,7 @@ expr_assign(register int lval[]) {
 			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
 		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
+		// continue with value stored in register `rval[LREG]`
 		freelval(lval);
 		lval[LTYPE] = ADDRESS;
 		lval[LNAME] = 0;
@@ -924,13 +945,11 @@ expr_assign(register int lval[]) {
 		loadlval(lval, allocreg()); // don't reuse regs for dest
 		gencode_R(oper, lval[LREG], rval[LREG]);
 		freelval(rval);
+		// write-back
 		if (isRegister(dest))
 			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
 		else
 			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, lval[LREG], dest);
-
-		// resulting type is undefined, so modify LTYPE
-		lval[LTYPE] = ADDRESS;
 	}
 
 	return 1;
@@ -939,42 +958,22 @@ expr_assign(register int lval[]) {
 /*
  * Load a numerical expression separated by comma's
  */
-expression(register int lval[], int comma) {
+expression(register int lval[]) {
 
 	if (!expr_assign(lval)) {
 		expected("expression");
 		return 0;
 	}
 
-	while (comma && match(",")) {
+	while (match(",")) {
 		freelval(lval);
 		if (!expr_assign(lval)) {
 			expected("expression");
-			return 0;
+			return 1;
 		}
 	}
 
 	return 1;
-}
-
-/*
- * @date 2020-05-23 17:09:01
- *
- * Test if lval is a constant stored in `lval[LVALUE]`
- */
-isConstant(register int lval[])
-{
-	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LREG] == 0);
-}
-
-/*
- * @date 2020-05-24 14:02:47
- *
- * Test if lval is a register stored in `lval[LREG]`
- */
-isRegister(register int lval[])
-{
-	return (lval[LTYPE] == ADDRESS && lval[LNAME] == 0 && lval[LVALUE] == 0);
 }
 
 /*
@@ -983,13 +982,13 @@ isRegister(register int lval[])
 constexpr(register int *val) {
 	int lval[LLAST];
 
-	if (!expr_assign(lval))
+	if (!expr_ternary(lval))
 		return 0;
 	if (isConstant(lval)) {
 		*val = lval[LVALUE];
 		return 1;
 	}
-	error("must be a constant expression");
+	expected("constant expression");
 	freelval(lval);
 	return 0;
 }

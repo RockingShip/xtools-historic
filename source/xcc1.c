@@ -425,7 +425,7 @@ ifline() {
 			if (!skiplevel) {
 				white();
 				if (!dohash(lptr, &sname))
-					error("identifier expected");
+					expected("identifier");
 				else if (!findmac(sname))
 					skiplevel = iflevel;
 			}
@@ -434,7 +434,7 @@ ifline() {
 			if (!skiplevel) {
 				white();
 				if (!dohash(lptr, &sname))
-					error("identifier expected");
+					expected("identifier");
 				else if (findmac(sname))
 					skiplevel = iflevel;
 			}
@@ -482,7 +482,7 @@ preprocess() {
 					keepch(gch());
 					keepch(gch());
 				} else if (!ch) {
-					error("no quote");
+					expected("end-quote");
 					break;
 				} else
 					keepch(gch());
@@ -496,7 +496,7 @@ preprocess() {
 					keepch(gch());
 					keepch(gch());
 				} else if (!ch) {
-					error("no apostrophe");
+					expected("end-apostrophe");
 					break;
 				} else
 					keepch(gch());
