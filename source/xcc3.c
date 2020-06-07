@@ -981,9 +981,6 @@ expression(register int lval[]) {
 	return 1;
 }
 
-	return 1;
-}
-
 /*
  * Load a constant expression
  */
