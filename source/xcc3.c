@@ -620,9 +620,17 @@ expr_unary(register int lval[]) {
 		if (isConstant(lval))
 			lval[LVALUE] = !lval[LVALUE];
 		else if (lval[LTYPE] == BRANCH && !lval[LTRUE]) {
-			// @date 	2020-05-19 20:21:57
-			// bugfix: can only negate opcode if no other opcodes were generated
+			/*
+			 * @date 2020-06-07 19:16:22
+			 * FIXED: Need to invert last instruction AND all prior by swapping T/F labels.
+			 */
+			// invert opcode in peephole
 			lval[LVALUE] = negop(lval[LVALUE]);
+			// swap labels
+			int sav;
+			sav = lval[LTRUE];
+			lval[LTRUE] = lval[LFALSE];
+			lval[LFALSE] = sav;
 		} else {
 			// convert CC bits into a BRANCH
 			loadlval(lval, 0);
@@ -967,11 +975,11 @@ expression(register int lval[]) {
 
 	while (match(",")) {
 		freelval(lval);
-		if (!expr_assign(lval)) {
+		if (!expr_assign(lval))
 			expected("expression");
-			return 1;
-		}
 	}
+	return 1;
+}
 
 	return 1;
 }
