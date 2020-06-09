@@ -1,4 +1,4 @@
-AC_INIT([xtools-historic], [1.4.1])
+AC_INIT([xtools-historic], [1.4.2])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_MACRO_DIRS([m4])

@@ -231,7 +231,7 @@ loadlval(register int lval[], register int reg) {
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else
-		error("unimplemented");
+		fatal("unimplemented");
 }
 
 /*
@@ -1085,6 +1085,14 @@ number(register int *val) {
 		while (ctype[ch] & CISDIGIT)
 			i = i * 10 + (gch() - '0');
 	}
+
+	/*
+	 * @date 2020-06-09 02:02:25
+	 * 0x8000 becomes 32768 (32-bits) and -32768 (16-bits).
+	 */
+	// sign extend
+	i |= -(i & (1 << SBIT));
+
 	*val = i;
 	return 1;
 }

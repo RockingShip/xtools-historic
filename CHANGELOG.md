@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+```
+2020-06-09 01:59:12 FIX: sign extend `number()`.
+                    0x8000 becomes 32768 (32-bits) and -32768 (16-bits).
+```
+
 ## Release [1.4.1] 2020-06-07 21:04:29
 
 ```
-2020-06-07 21:04:29 Fixed makefile stage3.
+2020-06-07 21:04:29 FIX: makefile stage3.
                     .xo3 as stage3 extension results in a different hasttable causing linker to load in different order.
-2020-06-07 19:16:22 Fixed unary "!"
+2020-06-07 19:16:22 FIX unary "!"
                     Need to invert last instruction AND all prior by swapping T/F labels.
 ```
 
