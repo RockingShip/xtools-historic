@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-09 20:44:49 FIX: Unroll `expr_land()` and `expr_lor()`.
+                    Simplify code.
 2020-06-08 00:49:39 FIX: `reglock` includes `regresvd`.
                     `reglock` is the soft (local) version of `regresvd` (global).
 2020-06-09 01:59:12 FIX: sign extend `number()`.

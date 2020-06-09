@@ -729,40 +729,35 @@ expr_or(int lval[]) {
 }
 
 expr_land(int lval[]) {
-	register int lbl;
-	int once;
+	register int lfalse;
 
 	// Load lval
 	if (!expr_or(lval))
 		return 0;
 
-	once = 1;
+	if (!omatch("&&"))
+		return 1;
+
+	// lval must be BRANCH
+	if (lval[LTYPE] != BRANCH) {
+		loadlval(lval, 0);
+		freelval(lval);
+		// Change lval to "BRANCH"
+		lval[LTYPE] = BRANCH;
+		lval[LVALUE] = TOK_BEQ;
+		lval[LTRUE] = lval[LFALSE] = 0;
+	}
+
+	// adopt LFALSE
+	if (!lval[LFALSE])
+		lval[LFALSE] = ++nxtlabel; // need an initial final LFALSE
+	lfalse = lval[LFALSE];
+
 	while (1) {
-		if (!omatch("&&"))
-			return 1;
-
-		if (once) {
-			// One time only: process lval and jump
-
-			// lval must be BRANCH
-			if (lval[LTYPE] != BRANCH) {
-				loadlval(lval, 0);
-				freelval(lval);
-				lval[LTYPE] = BRANCH;
-				lval[LVALUE] = TOK_BEQ;
-				lval[LTRUE] = lval[LFALSE] = 0;
-			}
-
-			if (!lval[LFALSE])
-				lval[LFALSE] = ++nxtlabel;
-			lbl = lval[LFALSE];
-
-			// Mark done
-			once = 0;
-		}
-
-		// postprocess last lval
+		// emit peephole
 		gencode_L(lval[LVALUE], lval[LFALSE]);
+
+		// emit LTRUE if referenced
 		if (lval[LTRUE])
 			fprintf(outhdl, "_%d:", lval[LTRUE]);
 
@@ -776,52 +771,52 @@ expr_land(int lval[]) {
 		if (lval[LTYPE] != BRANCH) {
 			loadlval(lval, 0);
 			freelval(lval);
+			// Change lval to "BRANCH"
 			lval[LTYPE] = BRANCH;
 			lval[LVALUE] = TOK_BEQ;
 			lval[LTRUE] = lval[LFALSE] = 0;
 		}
 
+		// cascade jumps
 		if (lval[LFALSE])
-			fprintf(outhdl, "_%d=_%d\n", lval[LFALSE], lbl);
-		lval[LFALSE] = lbl;
+			fprintf(outhdl, "_%d=_%d\n", lval[LFALSE], lfalse);
+		lval[LFALSE] = lfalse;
+
+		if (!omatch("&&"))
+			return 1;
 	}
 }
 
 expr_lor(int lval[]) {
-	register int lbl;
-	int once;
+	register int ltrue;
 
 	// Load lval
 	if (!expr_land(lval))
 		return 0;
 
-	once = 1;
+	if (!omatch("||"))
+		return 1;
+
+	// lval must be BRANCH
+	if (lval[LTYPE] != BRANCH) {
+		loadlval(lval, 0);
+		freelval(lval);
+		// Change lval to "BRANCH"
+		lval[LTYPE] = BRANCH;
+		lval[LVALUE] = TOK_BEQ;
+		lval[LTRUE] = lval[LFALSE] = 0;
+	}
+
+	// adopt LTRUE
+	if (!lval[LTRUE])
+		lval[LTRUE] = ++nxtlabel; // need an initial final LTRUE
+	ltrue = lval[LTRUE];
+
 	while (1) {
-		if (!omatch("||"))
-			return 1;
-
-		if (once) {
-			// One time only: process lval and jump
-
-			// lval must be BRANCH
-			if (lval[LTYPE] != BRANCH) {
-				loadlval(lval, 0);
-				freelval(lval);
-				lval[LTYPE] = BRANCH;
-				lval[LVALUE] = TOK_BEQ;
-				lval[LTRUE] = lval[LFALSE] = 0;
-			}
-
-			if (!lval[LTRUE])
-				lval[LTRUE] = ++nxtlabel;
-			lbl = lval[LTRUE];
-
-			// Mark done
-			once = 0;
-		}
-
-		// postprocess last lval
+		// emit peephole
 		gencode_L(negop(lval[LVALUE]), lval[LTRUE]);
+
+		// emit LFALSE if referenced
 		if (lval[LFALSE])
 			fprintf(outhdl, "_%d:", lval[LFALSE]);
 
@@ -835,14 +830,19 @@ expr_lor(int lval[]) {
 		if (lval[LTYPE] != BRANCH) {
 			loadlval(lval, 0);
 			freelval(lval);
+			// Change lval to "BRANCH"
 			lval[LTYPE] = BRANCH;
 			lval[LVALUE] = TOK_BEQ;
 			lval[LTRUE] = lval[LFALSE] = 0;
 		}
 
+		// cascade jumps
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d=_%d\n", lval[LTRUE], lbl);
-		lval[LTRUE] = lbl;
+			fprintf(outhdl, "_%d=_%d\n", lval[LTRUE], ltrue);
+		lval[LTRUE] = ltrue;
+
+		if (!omatch("||"))
+			return 1;
 	}
 }
 
