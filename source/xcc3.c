@@ -897,14 +897,14 @@ expr_ternary(register int lval[]) {
 }
 
 expr_assign(register int lval[]) {
-	int rval[LLAST], dest[LLAST];
+	int rval[LLAST];
 	register int oper;
 
 	if (!expr_ternary(lval))
 		return 0;
 
 	// Test for assignment
-	if (omatch("=")) oper = -1;
+	if (omatch("=")) oper = TOK_LDR;
 	else if (match("|=")) oper = TOK_OR;
 	else if (match("^=")) oper = TOK_XOR;
 	else if (match("&=")) oper = TOK_AND;
@@ -929,35 +929,30 @@ expr_assign(register int lval[]) {
 	}
 	loadlval(rval, -1);
 
-	if (oper == -1) {
-		if (isRegister(lval))
-			gencode_R(TOK_LDR, lval[LREG], rval[LREG]);
-		else
-			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
-		// continue with value stored in register `rval[LREG]`
+	if (isRegister(lval)) {
+		gencode_R(oper, lval[LREG], rval[LREG]);
+		freelval(rval);
+	} else if (oper == TOK_LDR) {
+		gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
+		freelval(rval);
+	} else {
+		int reg;
+		reg = allocreg();
+
+		// load lvalue into new register
+		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
+		// apply operator
+		gencode_R(oper, reg, rval[LREG]);
+		freelval(rval);
+		// writeback
+		gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, reg, lval);
+
+		// continue with register
 		freelval(lval);
 		lval[LTYPE] = ADDRESS;
 		lval[LNAME] = 0;
 		lval[LVALUE] = 0;
-		lval[LREG] = rval[LREG];
-	} else {
-		// Copy lval
-		dest[LTYPE] = lval[LTYPE];
-		dest[LPTR] = lval[LPTR];
-		dest[LSIZE] = lval[LSIZE];
-		dest[LNAME] = lval[LNAME];
-		dest[LVALUE] = lval[LVALUE];
-		dest[LREG] = lval[LREG];
-
-		// load lval into reg, modify it with rval and copy result into dest
-		loadlval(lval, allocreg()); // don't reuse regs for dest
-		gencode_R(oper, lval[LREG], rval[LREG]);
-		freelval(rval);
-		// write-back
-		if (isRegister(dest))
-			gencode_R(TOK_LDR, dest[LREG], lval[LREG]);
-		else
-			gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, lval[LREG], dest);
+		lval[LREG] = reg;
 	}
 
 	return 1;

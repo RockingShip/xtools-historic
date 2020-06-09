@@ -8,11 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-09 20:06:15 FIX: Simplify cascading in `expr_assign()`.
+                    Also, continue with lvalue, not rvalue.
 2020-06-09 20:44:49 FIX: Unroll `expr_land()` and `expr_lor()`.
                     Simplify code.
 2020-06-08 00:49:39 FIX: `reglock` includes `regresvd`.
                     `reglock` is the soft (local) version of `regresvd` (global).
-2020-06-09 01:59:12 FIX: sign extend `number()`.
+2020-06-09 01:59:12 FIX: Sign extend `number()`.
                     0x8000 becomes 32768 (32-bits) and -32768 (16-bits).
 ```
 
@@ -21,7 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ```
 2020-06-07 21:04:29 FIX: makefile stage3.
                     .xo3 as stage3 extension results in a different hasttable causing linker to load in different order.
-2020-06-07 19:16:22 FIX unary "!"
+2020-06-07 19:16:22 FIX: Unary "!"
                     Need to invert last instruction AND all prior by swapping T/F labels.
 ```
 
