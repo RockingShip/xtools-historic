@@ -173,7 +173,7 @@ loadlval(register int lval[], register int reg) {
 			// need code to evaluate, result always in new register
 			freelval(lval);
 			reg = allocreg();
-		} else if (reg == 0 && ((reglock | regresvd) & (1 << lval[LREG]))) {
+		} else if (reg == 0 && (reglock & (1 << lval[LREG]))) {
 			// reserved/locked register to writable register
 			reg = allocreg();
 		} else if (lval[LNAME] == 0 && lval[LVALUE] == 0) {

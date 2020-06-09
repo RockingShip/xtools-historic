@@ -406,7 +406,8 @@ declfunc(int clas) {
 	register int *sym, i, numarg;
 
 	returnlbl = ++nxtlabel;
-	reguse = regsum = reglock = 1 << REG_AP; // reset all registers
+	reguse = regsum = 1 << REG_AP; // reset all registers
+	reglock = regresvd | 1 << REG_AP; // locked registers include reserved registers
 	csp = 0; // reset stack
 	swinx = 1;
 	toseg(CODESEG);
