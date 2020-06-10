@@ -512,10 +512,8 @@ expr_postfix(register int lval[]) {
 					 */
 					if ((1<<lval[LREG]) & reglock) {
 						// register in lval is locked and needs to be made writable
-						freelval(lval);
-						reg = allocreg();
-						gencode_R(TOK_LDR, reg, lval[LREG]);
-						lval[LREG] = reg;
+						// @date 2020-06-10 22:44:40
+						loadlval(lval,0);
 					}
 					gencode_R(TOK_ADD, lval[LREG], lval2[LREG]);
 					freelval(lval2);
