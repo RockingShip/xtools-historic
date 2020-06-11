@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## Release [1.4.2] 2020-06-07 21:04:29
+
+Bugfixes from `xtools` v2.2.0.
+
 ```
 2020-06-11 21:27:29 FIX: Pointer Arithmetic.
                     Currently assuming only for `"int*"`.
@@ -250,7 +254,8 @@ Original 1991 submitted school assignment.
 2020-05-09 11:26:17 Changed license and '\n' line separators. 
 ```
 
-[Unreleased]: /RockingShip/xtools-historic/compare/v1.4.1...HEAD
+[Unreleased]: /RockingShip/xtools-historic/compare/v1.4.2...HEAD
+[1.4.2]: /RockingShip/xtools-historic/compare/v1.4.1...v1.4.2
 [1.4.1]: /RockingShip/xtools-historic/compare/v1.4.0...v1.4.1
 [1.4.0]: /RockingShip/xtools-historic/compare/v1.3.0...v1.4.0
 [1.3.0]: /RockingShip/xtools-historic/compare/v1.2.0...v1.3.0
