@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ```
+2020-06-11 21:27:29 FIX: Pointer Arithmetic.
+                    Currently assuming only for `"int*"`.
+                    Renaming.
 2020-06-10 22:44:40 FIX: `expr_postfix()` use `loadlval()` to merge registers.
                     Old code did not always work well with arrays.
 2020-06-09 20:06:15 FIX: Simplify cascading in `expr_assign()`.

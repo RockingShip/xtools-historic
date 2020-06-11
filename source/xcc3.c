@@ -248,7 +248,7 @@ freelval(register int lval[]) {
  * generic processing for <lval> { <operation> <rval> }
  */
 xplng1(int (*hier)(), register int start, register int lval[]) {
-	register char *cptr, entry;
+	register char *cptr, entry, opc;
 	int rval[LLAST];
 
 	// Load lval
@@ -272,16 +272,28 @@ xplng1(int (*hier)(), register int start, register int lval[]) {
 			return 1;
 		}
 
+		opc = hier_oper[entry];
+
+		// pointer arithmetic, scale index
+		if ((opc == TOK_ADD || opc == TOK_SUB) && isINTPTR(lval)) {
+			if (isConstant(rval)) {
+				rval[LVALUE] *= BPW;
+			} else {
+				loadlval(rval, 0);
+				gencode_R(TOK_MUL, rval[LREG], REG_BPW); // size index
+			}
+		}
+
 		// Put rval into a register
 		// Generate code
 		if (isConstant(lval) && isConstant(rval)) {
-			lval[LVALUE] = calc(lval[LVALUE], hier_oper[entry], rval[LVALUE]);
+			lval[LVALUE] = calc(lval[LVALUE], opc, rval[LVALUE]);
 		} else {
 			loadlval(lval, 0);
 			loadlval(rval, -1);
 
 			// Execute operation and release rval
-			gencode_R(hier_oper[entry], lval[LREG], rval[LREG]);
+			gencode_R(opc, lval[LREG], rval[LREG]);
 			freelval(rval);
 		}
 	}
@@ -478,7 +490,7 @@ primary(register int lval[]) {
  * Do a hierarchical evaluation
  */
 expr_postfix(register int lval[]) {
-	int lval2[LLAST], sav_csp;
+	int rval[LLAST], sav_csp;
 	register int argc, reg;
 
 	if (!primary(lval))
@@ -486,23 +498,28 @@ expr_postfix(register int lval[]) {
 	if (match("[")) { // [subscript]
 		if (!lval[LPTR])
 			error("can't subscript");
-		else if (!expression(lval2))
+		else if (!expression(rval))
 			error("need subscript");
 		else {
-			if (isConstant(lval2)) {
+			if (isConstant(rval)) {
 				if (lval[LTYPE] == MEMORY)
 					loadlval(lval, 0); // load if pointer
-				// Subscript is a constant
-				lval[LVALUE] += lval2[LVALUE] * lval[LSIZE];
+				// Subscript is a constant + pointer arithmetic
+				lval[LVALUE] += rval[LVALUE] * lval[LSIZE];
 			} else {
 				// Subscript is a variable/complex-expression
 				if (lval[LTYPE] == MEMORY)
 					loadlval(lval, 0); // load if pointer
-				loadlval(lval2, 0);
-				if (lval[LSIZE] == BPW)
-					gencode_R(TOK_MUL, lval2[LREG], REG_BPW); // size index
+
+
+				// pointer arithmetic
+				loadlval(rval, 0);
+				if (isINTPTR(lval))
+					gencode_R(TOK_MUL, rval[LREG], REG_BPW); // size index
+
+				// merge
 				if (!lval[LREG])
-					lval[LREG] = lval2[LREG];
+					lval[LREG] = rval[LREG];
 				else {
 					/*
 					 * @date 2020-05-23 01:14:18
@@ -515,8 +532,8 @@ expr_postfix(register int lval[]) {
 						// @date 2020-06-10 22:44:40
 						loadlval(lval,0);
 					}
-					gencode_R(TOK_ADD, lval[LREG], lval2[LREG]);
-					freelval(lval2);
+					gencode_R(TOK_ADD, lval[LREG], rval[LREG]);
+					freelval(rval);
 				}
 			}
 			// Update data type
@@ -534,18 +551,18 @@ expr_postfix(register int lval[]) {
 		blanks();
 		while (ch != ')') {
 			// Get expression
-			expr_assign(lval2);
-			if (isConstant(lval2)) {
-				gencode_I(TOK_PSHA, -1, lval2[LVALUE]);
+			expr_assign(rval);
+			if (isConstant(rval)) {
+				gencode_I(TOK_PSHA, -1, rval[LVALUE]);
 			} else {
-				if (lval2[LTYPE] == BRANCH)
-					loadlval(lval2, 0);
-				freelval(lval2);
+				if (rval[LTYPE] == BRANCH)
+					loadlval(rval, 0);
+				freelval(rval);
 				// Push onto stack
-				if (lval2[LTYPE] != MEMORY)
-					gencode_lval(TOK_PSHA, -1, lval2);
+				if (rval[LTYPE] != MEMORY)
+					gencode_lval(TOK_PSHA, -1, rval);
 				else
-					gencode_lval(isWORD(lval2) ? TOK_PSHW : TOK_PSHB, -1, lval2);
+					gencode_lval(isWORD(rval) ? TOK_PSHW : TOK_PSHB, -1, rval);
 			}
 			// increment ARGC
 			csp -= BPW;
@@ -896,23 +913,23 @@ expr_ternary(register int lval[]) {
 
 expr_assign(register int lval[]) {
 	int rval[LLAST];
-	register int oper;
+	register int opc;
 
 	if (!expr_ternary(lval))
 		return 0;
 
 	// Test for assignment
-	if (omatch("=")) oper = TOK_LDR;
-	else if (match("|=")) oper = TOK_OR;
-	else if (match("^=")) oper = TOK_XOR;
-	else if (match("&=")) oper = TOK_AND;
-	else if (match("+=")) oper = TOK_ADD;
-	else if (match("-=")) oper = TOK_SUB;
-	else if (match("*=")) oper = TOK_MUL;
-	else if (match("/=")) oper = TOK_DIV;
-	else if (match("%=")) oper = TOK_MOD;
-	else if (match(">>=")) oper = TOK_LSR;
-	else if (match("<<=")) oper = TOK_LSL;
+	if (omatch("=")) opc = TOK_LDR;
+	else if (match("|=")) opc = TOK_OR;
+	else if (match("^=")) opc = TOK_XOR;
+	else if (match("&=")) opc = TOK_AND;
+	else if (match("+=")) opc = TOK_ADD;
+	else if (match("-=")) opc = TOK_SUB;
+	else if (match("*=")) opc = TOK_MUL;
+	else if (match("/=")) opc = TOK_DIV;
+	else if (match("%=")) opc = TOK_MOD;
+	else if (match(">>=")) opc = TOK_LSR;
+	else if (match("<<=")) opc = TOK_LSL;
 	else
 		return 1;
 
@@ -925,12 +942,19 @@ expr_assign(register int lval[]) {
 		exprerr();
 		return 1;
 	}
-	loadlval(rval, -1);
+
+	// pointer arithmetic, scale index
+	if ((opc == TOK_ADD || opc == TOK_SUB) && isINTPTR(lval)) {
+		loadlval(rval, 0);
+		gencode_R(TOK_MUL, rval[LREG], REG_BPW); // size index
+	} else {
+		loadlval(rval, -1);
+	}
 
 	if (isRegister(lval)) {
-		gencode_R(oper, lval[LREG], rval[LREG]);
+		gencode_R(opc, lval[LREG], rval[LREG]);
 		freelval(rval);
-	} else if (oper == TOK_LDR) {
+	} else if (opc == TOK_LDR) {
 		gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, rval[LREG], lval);
 		freelval(rval);
 	} else {
@@ -940,7 +964,7 @@ expr_assign(register int lval[]) {
 		// load lvalue into new register
 		gencode_lval(isWORD(lval) ? TOK_LDW : TOK_LDB, reg, lval);
 		// apply operator
-		gencode_R(oper, reg, rval[LREG]);
+		gencode_R(opc, reg, rval[LREG]);
 		freelval(rval);
 		// writeback
 		gencode_lval(isWORD(lval) ? TOK_STW : TOK_STB, reg, lval);
