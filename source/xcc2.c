@@ -245,12 +245,12 @@ declvar(int scope, register int clas) {
 			sym[IREG] = REG_SP;
 		} else if (sym[ICLASS] != EXTERNAL) {
 			toseg(UDEFSEG);
-			fprintf(outhdl, "_");
+			fputc('_', outhdl);
 			symname(sname);
-			fprintf(outhdl, ":");
+			fputc(':', outhdl);
 
 			if (clas != STATIC)
-				fprintf(outhdl, ":");
+				fputc(':', outhdl);
 
 			if (type == ADDRESS) {
 				if (ptr <= 1 && size == 1)
@@ -402,7 +402,7 @@ declmac() {
  *
  */
 declfunc(int clas) {
-	int returnlbl, len, sname, lbl1, lbl2, inireg, sav_argc, scope;
+	int returnlbl, len, sname, inireg, sav_argc, scope, pshrequ;
 	register int *sym, i, numarg;
 
 	returnlbl = ++nxtlabel;
@@ -446,13 +446,12 @@ declfunc(int clas) {
 	dump_ident(sym);
 
 	// Generate global label
-	fprintf(outhdl, "_");
+	fputc('_', outhdl);
 	symname(sname);
-	fprintf(outhdl, "::");
+	fputs("::", outhdl);
 	gencode_R(TOK_LDR, REG_RETURN, REG_SP);
-	lbl1 = ++nxtlabel;
-	fprintf(outhdl, "_%d:", lbl1);
-	gencode_I(TOK_PSHR, -1, 0);
+	pshrequ = ++nxtlabel;
+	gencode_L(TOK_PSHR, pshrequ);
 	gencode_R(TOK_LDR, REG_AP, 1);
 
 	// get parameters
@@ -511,12 +510,8 @@ declfunc(int clas) {
 	if (inireg != reglock)
 		error("internal error. registers not unlocked");
 
-	// trailing statements
-	lbl2 = ++nxtlabel;
-	fprintf(outhdl, "_%d:\t.ORG\t_%d\n", lbl2, lbl1);
-	gencode_I(TOK_PSHR, -1, regsum);
-	fprintf(outhdl, "\t.ORG\t_%d\n", lbl2);
-	fprintf(outhdl, "_%d:", returnlbl);
+	genlabel(returnlbl);
+	fprintf(outhdl, "_%d=%d\n", pshrequ, regsum);
 	gencode_I(TOK_POPR, -1, regsum);
 	gencode(TOK_RSB);
 
@@ -585,7 +580,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			gencode_L(TOK_BEQ, lval[LFALSE]);
 		}
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d:", lval[LTRUE]);
+			genlabel(lval[LTRUE]);
 		freelval(lval);
 		statement(swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
 		if (!amatch("else")) {
@@ -593,7 +588,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			//     compare
 			// T:  statement
 			// F:
-			fprintf(outhdl, "_%d:", lval[LFALSE]);
+			genlabel(lval[LFALSE]);
 		} else {
 			// @date 2020-05-19 12:45:53
 			//     compare
@@ -603,9 +598,9 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			// L1:
 			lbl1 = ++nxtlabel;
 			gencode_L(TOK_JMP, lbl1);
-			fprintf(outhdl, "_%d:", lval[LFALSE]);
+			genlabel(lval[LFALSE]);
 			statement(swbase, returnlbl, breaklbl, contlbl, breaksp, contsp);
-			fprintf(outhdl, "_%d:", lbl1);
+			genlabel(lbl1);
 		}
 	} else if (amatch("while")) {
 		// @date 2020-05-19 12:39:49
@@ -615,7 +610,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		//     jmp L1
 		// F:
 		lbl1 = ++nxtlabel;
-		fprintf(outhdl, "_%d:", lbl1);
+		genlabel(lbl1);
 		needtoken("(");
 		expression(lval);
 		needtoken(")");
@@ -631,11 +626,11 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			gencode_L(TOK_BEQ, lval[LFALSE]);
 		}
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d:", lval[LTRUE]);
+			genlabel(lval[LTRUE]);
 		freelval(lval);
 		statement(swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
 		gencode_L(TOK_JMP, lbl1);
-		fprintf(outhdl, "_%d:", lval[LFALSE]);
+		genlabel(lval[LFALSE]);
 	} else if (amatch("do")) {
 		// @date 2020-05-19 12:37:46
 		// L1: statement
@@ -644,21 +639,21 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		// F:
 		lbl1 = ++nxtlabel;
 		lbl2 = ++nxtlabel;
-		fprintf(outhdl, "_%d:", lbl1);
+		genlabel(lbl1);
 		statement(swbase, returnlbl, lbl2, lbl1, csp, csp);
-		fprintf(outhdl, "_%d:", lbl2);
+		genlabel(lbl2);
 		needtoken("while");
 		needtoken("(");
 		expression(lval);
 		needtoken(")");
 		if (lval[LTYPE] == BRANCH) {
 			if (lval[LTRUE])
-				fprintf(outhdl, "_%d=_%d\n", lval[LTRUE], lbl1);
+				genequ(lval[LTRUE], lbl1);
 			else
 				lval[LTRUE] = lbl1;
 			gencode_L(negop(lval[LVALUE]), lval[LTRUE]);
 			if (lval[LFALSE])
-				fprintf(outhdl, "_%d:", lval[LFALSE]);
+				genlabel(lval[LFALSE]);
 		} else {
 			loadlval(lval, 0);
 			gencode_L(TOK_BNE, lbl1);
@@ -683,7 +678,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			freelval(lval);
 		}
 		needtoken(";");
-		fprintf(outhdl, "_%d:", lbl1);
+		genlabel(lbl1);
 		blanks();
 		if (ch != ';') {
 			expression(lval);
@@ -703,7 +698,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		}
 		gencode_L(TOK_JMP, lval[LTRUE]);
 		needtoken(";");
-		fprintf(outhdl, "_%d:", lbl2);
+		genlabel(lbl2);
 		blanks();
 		if (ch != ')') {
 			expression(lval);
@@ -711,10 +706,10 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		}
 		gencode_L(TOK_JMP, lbl1);
 		needtoken(")");
-		fprintf(outhdl, "_%d:", lval[LTRUE]);
+		genlabel(lval[LTRUE]);
 		statement(swbase, returnlbl, lval[LFALSE], lbl1, csp, csp);
 		gencode_L(TOK_JMP, lbl2);
-		fprintf(outhdl, "_%d:", lval[LFALSE]);
+		genlabel(lval[LFALSE]);
 	} else if (amatch("switch")) {
 		needtoken("(");
 		expression(lval);
@@ -730,7 +725,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		statement(sav_sw, returnlbl, lbl2, contlbl, csp, contsp);
 		gencode_L(TOK_JMP, lbl2);
 		dumpsw(sav_sw, lbl1, lbl2);
-		fprintf(outhdl, "_%d:", lbl2);
+		genlabel(lbl2);
 		swinx = sav_sw;
 	} else if (amatch("case")) {
 		if (!swbase)
@@ -742,7 +737,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 			if (sw[i * SLAST + SCASE] == lbl3)
 				error("case value already defined");
 		lbl1 = ++nxtlabel;
-		fprintf(outhdl, "_%d:", lbl1);
+		genlabel(lbl1);
 		if (swinx >= SWMAX)
 			fatal("switch table overflow");
 		sym = &sw[swinx++ * SLAST];
@@ -756,7 +751,7 @@ statement(int swbase, int returnlbl, int breaklbl, int contlbl, int breaksp, int
 		if (sym[SLABEL])
 			error("multiple defaults");
 		lbl1 = ++nxtlabel;
-		fprintf(outhdl, "_%d:", lbl1);
+		genlabel(lbl1);
 		sym[SLABEL] = lbl1;
 	} else if (amatch("return")) {
 		if (!match(";")) {
@@ -825,7 +820,7 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 	// generate map
 	maplbl = ++nxtlabel;
 	toseg(DATASEG);
-	fprintf(outhdl, "_%d:", maplbl);
+	genlabel(maplbl);
 	cnt = 0;
 	for (i = lo; i <= hi; ++i) {
 		lbl = deflbl;
@@ -841,16 +836,16 @@ dumpsw(int swbase, int codlbl, int endlbl) {
 		else
 			fprintf(outhdl, ",_%d", lbl);
 		if (cnt > 15) {
-			fprintf(outhdl, "\n");
+			fputc('\n', outhdl);
 			cnt = 0;
 		}
 	}
 	if (cnt)
-		fprintf(outhdl, "\n");
+		fputc('\n', outhdl);
 	toseg(prevseg);
 
 	// generate code (use j as reg)
-	fprintf(outhdl, "_%d:", codlbl);
+	genlabel(codlbl);
 	j = allocreg();
 	gencode_I(TOK_LDA, j, lo);
 	gencode_R(TOK_SUB, REG_RETURN, j);

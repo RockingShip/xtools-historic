@@ -332,7 +332,7 @@ foutname(register int hash) {
 		i = foutname(i); // display and get length string
 	else
 		i = 0; // nothing displayed yet
-	fprintf(lishdl, "%c", name[hash * NLAST + NCHAR]);
+	fputc(name[hash * NLAST + NCHAR], lishdl);
 	return i + 1; // Increment length
 }
 
@@ -473,21 +473,21 @@ symmap(register int start) {
 				if (p[NTYPE]) {
 					fprintf(lishdl, "%2d %04x ", p[NMODULE] + 1, p[NVALUE]);
 					if (p[NTYPE] == UNDEF)
-						fprintf(lishdl, "**** ");
+						fputs("**** ", lishdl);
 					else if (p[NTYPE] == ABS)
-						fprintf(lishdl, "ABS  ");
+						fputs("ABS  ", lishdl);
 					else if (p[NTYPE] == CODE)
-						fprintf(lishdl, "CODE ");
+						fputs("CODE ", lishdl);
 					else if (p[NTYPE] == DATA)
-						fprintf(lishdl, "DATA ");
+						fputs("DATA ", lishdl);
 					else if (p[NTYPE] == TEXT)
-						fprintf(lishdl, "TEXT ");
+						fputs("TEXT ", lishdl);
 					else if (p[NTYPE] == UDEF)
-						fprintf(lishdl, "UDEF ");
+						fputs("UDEF ", lishdl);
 					else
-						fprintf(lishdl, "????");
+						fputs("????", lishdl);
 					foutname(hash);
-					fprintf(lishdl, "\n");
+					fputc('\n', lishdl);
 				}
 				symmap(hash);
 				break; // Inner loop

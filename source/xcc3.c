@@ -209,8 +209,8 @@ loadlval(register int lval[], register int reg) {
 		lval[LVALUE] = 0;
 		lval[LREG] = reg;
 	} else if (lval[LTYPE] == BRANCH) {
-		int lblX;
-		lblX = ++nxtlabel;
+		int lend;
+		lend = ++nxtlabel;
 
 		if (reg <= 0)
 			reg = allocreg();
@@ -218,12 +218,12 @@ loadlval(register int lval[], register int reg) {
 			lval[LFALSE] = ++nxtlabel;
 		gencode_L(lval[LVALUE], lval[LFALSE]);
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d:", lval[LTRUE]);
+			genlabel(lval[LTRUE]);
 		gencode_R(TOK_LDR, reg, REG_1);
-		gencode_L(TOK_JMP, lblX);
-		fprintf(outhdl, "_%d:", lval[LFALSE]);
+		gencode_L(TOK_JMP, lend);
+		genlabel(lval[LFALSE]);
 		gencode_R(TOK_LDR, reg, REG_0);
-		fprintf(outhdl, "_%d:", lblX);
+		genlabel(lend);
 
 		lval[LTYPE] = ADDRESS;
 		lval[LPTR] = 0;
@@ -774,7 +774,7 @@ expr_land(int lval[]) {
 
 		// emit LTRUE if referenced
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d:", lval[LTRUE]);
+			genlabel(lval[LTRUE]);
 
 		// Load next lval
 		if (!expr_or(lval)) {
@@ -794,7 +794,7 @@ expr_land(int lval[]) {
 
 		// cascade jumps
 		if (lval[LFALSE])
-			fprintf(outhdl, "_%d=_%d\n", lval[LFALSE], lfalse);
+			genequ(lval[LFALSE], lfalse);
 		lval[LFALSE] = lfalse;
 
 		if (!omatch("&&"))
@@ -833,7 +833,7 @@ expr_lor(int lval[]) {
 
 		// emit LFALSE if referenced
 		if (lval[LFALSE])
-			fprintf(outhdl, "_%d:", lval[LFALSE]);
+			genlabel(lval[LFALSE]);
 
 		// Load next lval
 		if (!expr_land(lval)) {
@@ -853,7 +853,7 @@ expr_lor(int lval[]) {
 
 		// cascade jumps
 		if (lval[LTRUE])
-			fprintf(outhdl, "_%d=_%d\n", lval[LTRUE], ltrue);
+			genequ(lval[LTRUE], ltrue);
 		lval[LTRUE] = ltrue;
 
 		if (!omatch("||"))
@@ -886,7 +886,7 @@ expr_ternary(register int lval[]) {
 	// process 'true' variant
 	gencode_L(lval[LVALUE], lfalse);
 	if (lval[LTRUE])
-		fprintf(outhdl, "_%d:", lval[LTRUE]);
+		genlabel(lval[LTRUE]);
 	expression(lval);
 	loadlval(lval, reg = allocreg()); // Needed to assign a dest reg
 
@@ -896,13 +896,13 @@ expr_ternary(register int lval[]) {
 	gencode_L(TOK_JMP, lbl);
 
 	// process 'false' variant
-	fprintf(outhdl, "_%d:", lfalse);
+	genlabel(lfalse);
 	if (!expr_ternary(lval))
 		exprerr();
 	else
 		loadlval(lval, reg); // Needed for result to occupy same reg
 
-	fprintf(outhdl, "_%d:", lbl);
+	genlabel(lbl);
 
 	// resulting type is undefined, so modify LTYPE
 	lval[LTYPE] = ADDRESS;
@@ -1051,7 +1051,8 @@ constant(register int lval[]) {
 	prevseg = currseg;
 
 	toseg(TEXTSEG);
-	fprintf(outhdl, "_%d:\t.DCB\t\"", lbl);
+	genlabel(lbl);
+	fputs("\t.DCB\t\"", outhdl);
 
 	while (ch && (ch != '"')) {
 		if (ch == '\\') {

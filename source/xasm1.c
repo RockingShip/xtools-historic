@@ -855,9 +855,9 @@ sto_flush() {
 					if (++i >= datlen)
 						break;
 					if (j != 15)
-						fprintf(outhdl, ",");
+						fputc(',', outhdl);
 				}
-				fprintf(outhdl, "\n");
+				fputc('\n', outhdl);
 			}
 		}
 
@@ -995,63 +995,63 @@ sto_cmd(int cmd, int val) {
 			}
 		else {
 			switch (cmd) {
-			case REL_END: fprintf(outhdl, "END\n", val); break;
-			case REL_ADD: fprintf(outhdl, "ADD\n"); break;
-			case REL_SUB: fprintf(outhdl, "SUB\n"); break;
-			case REL_MUL: fprintf(outhdl, "MUL\n"); break;
-			case REL_DIV: fprintf(outhdl, "DIV\n"); break;
-			case REL_MOD: fprintf(outhdl, "MOD\n"); break;
-			case REL_LSR: fprintf(outhdl, "LSR\n"); break;
-			case REL_LSL: fprintf(outhdl, "LSL\n"); break;
-			case REL_AND: fprintf(outhdl, "AND\n"); break;
-			case REL_OR: fprintf(outhdl, "OR\n"); break;
-			case REL_XOR: fprintf(outhdl, "XOR\n"); break;
-			case REL_SWAP: fprintf(outhdl, "SWAP\n"); break;
-			case REL_POPB: fprintf(outhdl, "POPB\n"); break;
-			case REL_POPW: fprintf(outhdl, "POPW\n"); break;
-			case REL_PUSHB: fprintf(outhdl, "PUSHB %d\n", val); break;
-			case REL_PUSHW: fprintf(outhdl, "PUSHW %d\n", val); break;
-			case REL_CODEB: fprintf(outhdl, "CODEB %d\n", val); break;
-			case REL_CODEW: fprintf(outhdl, "CODEW %d\n", val); break;
-			case REL_DATAB: fprintf(outhdl, "DATAB %d\n", val); break;
-			case REL_DATAW: fprintf(outhdl, "DATAW %d\n", val); break;
-			case REL_TEXTB: fprintf(outhdl, "TEXTB %d\n", val); break;
-			case REL_TEXTW: fprintf(outhdl, "TEXTW %d\n", val); break;
-			case REL_UDEFB: fprintf(outhdl, "UDEFB %d\n", val); break;
-			case REL_UDEFW: fprintf(outhdl, "UDEFW %d\n", val); break;
-			case REL_DSB: fprintf(outhdl, "DSB %d\n", val); break;
-			case REL_CODEORG: fprintf(outhdl, "CODEORG %d\n", val); break;
-			case REL_DATAORG: fprintf(outhdl, "DATAORG %d\n", val); break;
-			case REL_TEXTORG: fprintf(outhdl, "TEXTORG %d\n", val); break;
-			case REL_UDEFORG: fprintf(outhdl, "UDEFORG %d\n", val); break;
+			case REL_END: fputs("END\n", outhdl); break;
+			case REL_ADD: fputs("ADD\n", outhdl); break;
+			case REL_SUB: fputs("SUB\n", outhdl); break;
+			case REL_MUL: fputs("MUL\n", outhdl); break;
+			case REL_DIV: fputs("DIV\n", outhdl); break;
+			case REL_MOD: fputs("MOD\n", outhdl); break;
+			case REL_LSR: fputs("LSR\n", outhdl); break;
+			case REL_LSL: fputs("LSL\n", outhdl); break;
+			case REL_AND: fputs("AND\n", outhdl); break;
+			case REL_OR: fputs("OR\n", outhdl); break;
+			case REL_XOR: fputs("XOR\n", outhdl); break;
+			case REL_SWAP: fputs("SWAP\n", outhdl); break;
+			case REL_POPB: fputs("POPB\n", outhdl); break;
+			case REL_POPW: fputs("POPW\n", outhdl); break;
+			case REL_PUSHB: fputs("PUSHB %d\n", val, outhdl); break;
+			case REL_PUSHW: fputs("PUSHW %d\n", val, outhdl); break;
+			case REL_CODEB: fputs("CODEB %d\n", val, outhdl); break;
+			case REL_CODEW: fputs("CODEW %d\n", val, outhdl); break;
+			case REL_DATAB: fputs("DATAB %d\n", val, outhdl); break;
+			case REL_DATAW: fputs("DATAW %d\n", val, outhdl); break;
+			case REL_TEXTB: fputs("TEXTB %d\n", val, outhdl); break;
+			case REL_TEXTW: fputs("TEXTW %d\n", val, outhdl); break;
+			case REL_UDEFB: fputs("UDEFB %d\n", val, outhdl); break;
+			case REL_UDEFW: fputs("UDEFW %d\n", val, outhdl); break;
+			case REL_DSB: fputs("DSB %d\n", val, outhdl); break;
+			case REL_CODEORG: fputs("CODEORG %d\n", val, outhdl); break;
+			case REL_DATAORG: fputs("DATAORG %d\n", val, outhdl); break;
+			case REL_TEXTORG: fputs("TEXTORG %d\n", val, outhdl); break;
+			case REL_UDEFORG: fputs("UDEFORG %d\n", val, outhdl); break;
 			case REL_SYMBOL:
-				fprintf(outhdl, "SYMBOL ");
+				fputs("SYMBOL ", outhdl);
 				foutname(val);
-				fprintf(outhdl, "\n");
+				fputc('\n', outhdl);
 				break;
 			case REL_CODEDEF:
 				p = &names[val * NLAST];
 				fprintf(outhdl, "CODEDEF %d,", p[NVALUE]);
 				foutname(val);
-				fprintf(outhdl, "\n", 0);
+				fputc('\n', outhdl);
 				break;
 			case REL_DATADEF:
 				p = &names[val * NLAST];
 				fprintf(outhdl, "DATADEF %d,", p[NVALUE]);
 				foutname(val);
-				fprintf(outhdl, "\n", 0);
+				fputc('\n', outhdl);
 				break;
 			case REL_TEXTDEF:
 				p = &names[val * NLAST];
 				fprintf(outhdl, "TEXTDEF %d,", p[NVALUE]);
 				foutname(val);
-				fprintf(outhdl, "\n", 0);
+				fputc('\n', outhdl);
 				break;
 			case REL_UDEFDEF:
 				p = &names[val * NLAST];
 				fprintf(outhdl, "UDEFDEF %d,", p[NVALUE]);
 				foutname(val);
-				fprintf(outhdl, "\n", 0);
+				fputc('\n', outhdl);
 				break;
 			default:
 				fprintf(outhdl, "cmd: %d\n", cmd);
