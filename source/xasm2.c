@@ -428,17 +428,22 @@ parse() {
 						error("unknown segment");
 					continue;
 				} else if (match("=")) {
-					len = dohash(lptr, &p[NVALUE]);
-					if (!len) {
-						if (pass == 1)
-							error("use #define");
-						ch = 0;
-					} else {
-						bump(len);
+					expression(lval);
+					if (lval[LTYPE] == CONSTANT) {
+						p[NTYPE] = ABS;
+						p[NVALUE] = lval[LVALUE];
+					} else if (lval[LTYPE] == SYMBOL) {
 						p[NTYPE] = LINK;
+						p[NVALUE] = lval[LVALUE];
+
 						p = &names[p[NVALUE] * NLAST];
 						if (!p[NTYPE])
 							p[NTYPE] = UNDEF; // Initial value
+					} else if (pass == 1) {
+						p[NTYPE] = ABS;
+						p[NVALUE] = 0;
+					} else {
+						error("use #define");
 					}
 					break;
 				} else {

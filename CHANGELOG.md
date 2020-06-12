@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+```
+2020-06-12 00:04:44 FIX: `xasm` properly handles `"symbol=expresion"`.
+```
+
 ## Release [1.4.2] 2020-06-07 21:04:29
 
 Bugfixes from `xtools` v2.2.0.
