@@ -453,6 +453,10 @@ primary(register int lval[]) {
 			lval[LVALUE] = sym[IVALUE];
 			lval[LREG] = sym[IREG];
 
+			// apply any stack adjustments for SP_AUTO
+			if (lval[LREG] == REG_SP)
+				lval[LVALUE] = lval[LVALUE] - csp;
+
 			return 1;
 		}
 	}

@@ -903,10 +903,6 @@ gencode_lval(int opc, int lreg, int lval[]) {
 	ofs = lval[LVALUE];
 	rreg = lval[LREG];
 
-	// apply any stack adjustments for SP_AUTO
-	if (rreg == REG_SP)
-		ofs = ofs - csp;
-
 	gencode_M(opc, lreg, name, ofs, rreg);
 }
 
