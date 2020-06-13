@@ -36,7 +36,11 @@
 /*
  * Process a constant evaluation
  */
-calc(register int left, register int right, int oper) {
+calc(register int left, int oper, register int right) {
+	// sign extend
+	left |= -(left & (1 << SBIT));
+	right |= -(right & (1 << SBIT));
+
 	switch (oper) {
 	case REL_OR :  return (left  |  right);
 	case REL_XOR:  return (left  ^  right);

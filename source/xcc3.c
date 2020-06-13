@@ -86,6 +86,10 @@ negop(register int op) {
  * Process a constant evaluation
  */
 calc(register int left, int oper, int right) {
+	// sign extend
+	left |= -(left & (1 << SBIT));
+	right |= -(right & (1 << SBIT));
+
 	switch (oper) {
 		case TOK_OR : return (left | right);
 		case TOK_XOR: return (left ^ right);
